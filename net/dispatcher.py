@@ -1,3 +1,4 @@
+from construct import *
 
 packet_lengths = [
    10,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -46,7 +47,8 @@ packet_lengths = [
 
 
 def dispatch(stream, proto_def):
-    opcode = UBInt16("opcode").parse_stream(stream)
+    opcode = ULInt16("opcode").parse_stream(stream)
+    # print "opcode={0:x}".format(opcode)
     if opcode in proto_def:
         func, macro = proto_def[opcode]
         data = macro.parse_stream(stream)

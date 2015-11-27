@@ -1,16 +1,17 @@
-import socket
-# import asyncore
+
 from construct import *
 from construct.protocols.layer3.ipv4 import IpAddress
 from protocol import *
 from dispatcher import dispatch
+from utils import *
+from charserv import cmsg_char_server_connect
 
 loginsrv = None
+username = 'john_doe'
+password = '123456'
+server_addr = 'server.themanaworld.org'
+server_port = 6902
 
-def StringZ(name, length, **kw):
-    kw['padchar'] = "\x00"
-    kw['paddir'] = "right"
-    return String(name, length, **kw)
 
 def smsg_server_version(data):
     print "SMSG_SERVER_VERSION {}.{}".format(data.hi, data.lo)
@@ -22,14 +23,14 @@ def smsg_server_version(data):
                         StringZ("password", 24),
                         Byte("flags"))
 
-    obj = type('login_info', (object,),
-               {'opcode': CMSG_LOGIN_REGISTER,
-                'clientversion': 3,
-                'username': 'john_doe',
-                'password': '123456',
-                'flags': 3})
+    class packet:
+        opcode = CMSG_LOGIN_REGISTER
+        clientversion = 3
+        username = username
+        password = password
+        flags = 3
 
-    packet_def.build_stream(obj, loginsrv)
+    packet_def.build_stream(packet, loginsrv)
     dispatch(loginsrv, login_packets)
 
 def smsg_update_host(data):
@@ -39,6 +40,7 @@ def smsg_update_host(data):
 def smsg_login_data(data):
     print "SMSG_LOGIN_DATA", data
     loginsrv.close()
+    cmsg_char_server_connect(data)
 
 def smsg_login_error(data):
 
@@ -80,7 +82,7 @@ login_packets = {
                      Padding(2),
                      Enum(Byte("gender"),
                           BOY = 1,
-                          GIRL = 2),
+                          GIRL = 0),
                      Array(lambda ctx: (ctx.length - 47) / 32,
                            Struct("worlds",
                                   IpAddress("address"),
@@ -95,27 +97,13 @@ login_packets = {
                      StringZ("date", 20)))
 }
 
-
-class SocketWrapper(socket.socket):
-    buffer_size = 1500
-
-    def read(self, n = -1):
-        if n < 0:
-            n = buffer_size
-        return self.recv(n)
-
-    def write(self, data):
-        self.send(data)
-
-    def flush():
-        pass
-
-
-if __name__ == "__main__":
+def cmsg_server_version_request(host, port):
+    global loginsrv
     loginsrv = SocketWrapper()
-    loginsrv.connect(('server.themanaworld.org', 6902))
-
+    loginsrv.connect((host, port))
     ULInt16("opcode").build_stream(0x7530, loginsrv)
     dispatch(loginsrv, login_packets)
 
-    loginsrv.close()
+if __name__ == "__main__":
+    host, port = 'server.themanaworld.org', 6902
+    cmsg_server_version_request(host, port)

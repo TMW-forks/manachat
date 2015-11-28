@@ -1,10 +1,10 @@
-
+import logging
 from construct import *
 from construct.protocols.layer3.ipv4 import IpAddress
 from protocol import *
 from dispatcher import dispatch
 from utils import *
-from charserv import cmsg_char_server_connect
+import charserv
 
 loginsrv = None
 username = 'john_doe'
@@ -31,16 +31,18 @@ def smsg_server_version(data):
         flags = 3
 
     packet_def.build_stream(packet, loginsrv)
-    dispatch(loginsrv, login_packets)
 
 def smsg_update_host(data):
     print "SMSG_UPDATE_HOST {}".format(data.host)
-    dispatch(loginsrv, login_packets)
 
 def smsg_login_data(data):
     print "SMSG_LOGIN_DATA", data
     loginsrv.close()
-    cmsg_char_server_connect(data)
+
+    charserv.charserv = SocketWrapper(protodef=charserv.charserv_packets)
+    charserv.charserv.connect(('server.themanaworld.org', data.worlds[0].port))
+    charserv.cmsg_char_server_connect(data)
+
 
 def smsg_login_error(data):
 
@@ -60,6 +62,7 @@ def smsg_login_error(data):
 
     print "SMSG_LOGIN_ERROR {}".format(error_codes.get(data.code, "Unknown error"))
     loginsrv.close()
+
 
 login_packets = {
     0x7531 : (smsg_server_version,
@@ -97,13 +100,16 @@ login_packets = {
                      StringZ("date", 20)))
 }
 
-def cmsg_server_version_request(host, port):
-    global loginsrv
-    loginsrv = SocketWrapper()
-    loginsrv.connect((host, port))
+def cmsg_server_version_request():
     ULInt16("opcode").build_stream(0x7530, loginsrv)
-    dispatch(loginsrv, login_packets)
+
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
     host, port = 'server.themanaworld.org', 6902
-    cmsg_server_version_request(host, port)
+    loginsrv = SocketWrapper(protodef=login_packets)
+    loginsrv.connect((host, port))
+    cmsg_server_version_request()
+    asyncore.loop()

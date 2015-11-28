@@ -5,6 +5,10 @@ from protocol import *
 from dispatcher import dispatch
 from utils import *
 
+# migrate to asyncore
+# Struct("data"...) should be Struct("functionname"...)
+# Session class with it's own asyncore loop and state (???)
+
 mapserv = None
 
 def smsg_ignore(data):
@@ -140,7 +144,7 @@ mapserv_packets = {
     0x019b : (smsg_ignore,                      # being-self-effect
               Struct("data",
                      ULInt32("id"),
-                     ULInt32("effect")))
+                     ULInt32("effect"))),
     0x007c : (smsg_ignore, Field("data", 39)),  # spawn
     0x0196 : (smsg_ignore, Field("data", 7)),   # status-change
     0x0178 : (smsg_being_visible,
@@ -248,7 +252,7 @@ mapserv_packets = {
     0x00fb : (smsg_party_info,
               Struct("data",
                      ULInt16("length"),
-                     Stringz("name", 24),
+                     StringZ("name", 24),
                      Array(lambda ctx: (ctx.length - 28) / 46,
                            Struct("members",
                                   ULInt32("id"),
@@ -307,14 +311,10 @@ mapserv_packets = {
     
 
 def cmsg_map_server_connect(data):
-    global mapserv
-    mapserv = SocketWrapper()
-    mapserv.connect('server.themanaworld.org', data.worlds[0].port)
-
     data_def = Struct("packet",
                       ULInt16("opcode"),
                       ULInt32("account"),
-                      ULInt32("charid"),
+                      ULInt32("char_id"),
                       ULInt32("session1"),
                       ULInt32("session2"),
                       Enum(Byte("gender"),

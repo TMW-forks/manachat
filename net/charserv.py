@@ -4,12 +4,13 @@ from construct.protocols.layer3.ipv4 import IpAddress
 from protocol import *
 from dispatcher import dispatch
 from utils import *
+import mapserv
 
 charserv = None
 char_name = "Trav2"
 
 def smsg_ignore(data):
-    dispatch(charserv, charsrv_packets)
+    print "SMSG_IGNORE"
 
 def smsg_char_login(data):
     print "SMSG_CHAR_LOGIN", data
@@ -30,7 +31,7 @@ def smsg_char_login(data):
         slot = char_slot
 
     data_def.build_stream(packet, charserv)
-    dispatch(charserv, charsrv_packets)
+    # dispatch(charserv, charserv_packets)
 
 def smsg_char_login_error(data):
     print "SMSG_CHAR_LOGIN_ERROR (code={})".format(data.code)
@@ -40,14 +41,23 @@ def smsg_char_map_info(data):
     print "SMSG_CHAR_MAP_INFO (CID={} map={} addr={} port={}".format(
         data.char_id, data.map_name, data.address, data.port)
     charserv.close()
+    data.account = charserv.account
+    data.session1 = charserv.session1
+    data.session2 = charserv.session2
+    data.gender = charserv.gender
+    mapserv.mapserv = SocketWrapper(protodef=mapserv.mapserv_packets)
+    mapserv.mapserv.connect(('server.themanaworld.org', data.port))
+    mapserv.cmsg_map_server_connect(data)
 
-charsrv_packets = {
+
+charserv_packets = {
     0x8000 : (smsg_ignore, Field("data", 2)),
     0x006b : (smsg_char_login,
               Struct("data",
                      ULInt16("length"),
                      ULInt16("slots"),
                      Byte("version"),
+                     # Probe("debug", show_stream=False, show_stack=False),
                      Padding(17),
                      Array(lambda ctx: (ctx["length"] - 24) / 106,
                            Struct("chars",
@@ -72,11 +82,6 @@ charsrv_packets = {
 }
 
 def cmsg_char_server_connect(data):
-    global charserv
-    charserv = SocketWrapper()
-    host, port = 'server.themanaworld.org', data.worlds[0].port
-    charserv.connect((host, port))
-
     data_def = Struct("packet",
                       ULInt16("opcode"),
                       ULInt32("account"),
@@ -86,11 +91,14 @@ def cmsg_char_server_connect(data):
                       Enum(Byte("gender"),
                            BOY = 1,
                            GIRL = 0))
-                      # Byte("gender"))
+
+    charserv.account = data.account
+    charserv.session1 = data.session1
+    charserv.session2 = data.session2
+    charserv.gender = data.gender
 
     data.opcode = CMSG_CHAR_SERVER_CONNECT
     data.proto = 1
 
     data_def.build_stream(data, charserv)
-    dispatch(charserv, charsrv_packets)
 

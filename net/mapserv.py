@@ -63,7 +63,11 @@ def smsg_ip_response(data):
     print "SMSG_IP_RESPONSE", data
 
 def smsg_connection_problem(data):
-    print "SMSG_CONNECTION_PROBLEM (code={})".format(data.code)
+    error_codes = {
+        2 : "Account already in use"
+    }
+    msg = error_codes.get(data.code, str(data.code))
+    print "SMSG_CONNECTION_PROBLEM (code={})".format(msg)
 
 def smsg_gm_chat(data):
     print "SMSG_GM_CHAT {}".format(data.message)
@@ -106,6 +110,7 @@ def smsg_server_ping(data):
 
 def smsg_map_login_success(data):
     print "SMSG_MAP_LOGIN_SUCCESS", data
+    cmsg_map_loaded()
 
 mapserv_packets = {
     0x8000 : (smsg_ignore, Field("data", 2)),      # ignore
@@ -147,7 +152,7 @@ mapserv_packets = {
                      ULInt32("effect"))),
     0x007c : (smsg_ignore, Field("data", 39)),  # spawn
     0x0196 : (smsg_ignore, Field("data", 7)),   # status-change
-    0x0178 : (smsg_being_visible,
+    0x0078 : (smsg_being_visible,
               Struct("data",
                      ULInt32("id"),
                      Padding(8),
@@ -177,7 +182,7 @@ mapserv_packets = {
     0x01ee : (smsg_player_inventory,
               Struct("data",
                      ULInt16("length"),
-                     Array(lambda ctx: (ctx.length - 4) / 20,
+                     Array(lambda ctx: (ctx.length - 4) / 18,
                            Struct("items",
                                   ULInt16("index"),
                                   ULInt16("id"),
@@ -323,3 +328,6 @@ def cmsg_map_server_connect(data):
 
     data.opcode = CMSG_MAP_SERVER_CONNECT
     data_def.build_stream(data, mapserv)
+
+def cmsg_map_loaded():
+    ULInt16("opcode").build_stream(CMSG_MAP_LOADED, mapserv)

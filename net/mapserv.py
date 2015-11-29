@@ -5,10 +5,12 @@ from protocol import *
 from dispatcher import dispatch
 from utils import *
 from common import netlog, SocketWrapper
+# from being import Being, BeingCache
 
 # migrate to asyncore
 # Struct("data"...) should be Struct("functionname"...)
 # Session class with it's own asyncore loop and state (???)
+# chatlog (where, message)     where=General|Party|Nick|Guild
 
 server = None
 timers = []
@@ -104,6 +106,7 @@ def smsg_party_chat(data):
 
 def smsg_trade_request(data):
     netlog.info("SMSG_TRADE_REQUEST {}".format(data.nick))
+    cmsg_trade_response("DECLINE")
 
 
 def smsg_trade_response(data):
@@ -354,8 +357,15 @@ protodef = {
 def connect(host, port):
     global server
     server = SocketWrapper(host=host, port=port, protodef=protodef)
-    timers.append(Schedule(15, 15, cmsg_map_server_ping))
+    timers.append(Schedule(15, 30, cmsg_map_server_ping))
     return server
+
+
+def cleanup():
+    global server
+    for t in timers:
+        t.cancel()
+    server.close()
 
 
 def cmsg_map_server_connect(data):
@@ -390,4 +400,25 @@ def cmsg_map_server_ping(tick=1):
         tick = 1
 
     netlog.info("CMSG_MAP_SERVER_PING tick={}".format(p.tick))
+    d.build_stream(p, server)
+
+
+def cmsg_trade_response(answer):
+    if answer in ("OK", "ACCEPT", "YES", True):
+        answer = 3
+    elif answer in ("DECLINE", "CANCEL", "NO", False):
+        answer = 4
+
+    d = Struct("packet",
+                ULInt16("opcode"),
+                Byte("answer"))
+
+    s = {3: "ACCEPT", 4: "DECLINE"}
+
+    class p:
+        opcode = CMSG_TRADE_RESPONSE
+
+    p.answer = answer
+
+    netlog.info("CMSG_TRADE_RESPONSE {}".format(s[p.answer]))
     d.build_stream(p, server)

@@ -124,4 +124,8 @@ if __name__ == "__main__":
                         datefmt='%Y-%m-%d %H:%M:%S')
     connect('server.themanaworld.org', 6902, 'john_doe', '123456')
     cmsg_server_version_request()
-    asyncore.loop()
+    try:
+        asyncore.loop()
+    except KeyboardInterrupt:
+        import mapserv
+        mapserv.cleanup()

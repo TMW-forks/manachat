@@ -5,15 +5,19 @@ from protocol import *
 from dispatcher import dispatch
 from utils import *
 import mapserv
+from common import netlog, SocketWrapper
 
-charserv = None
-char_name = "Trav2"
+
+server = None
+char_name = ""
+
 
 def smsg_ignore(data):
-    print "SMSG_IGNORE"
+    pass
+
 
 def smsg_char_login(data):
-    print "SMSG_CHAR_LOGIN", data
+    netlog.info("SMSG_CHAR_LOGIN {}".format(data))
 
     char_slot = -1
     for c in data.chars:
@@ -30,27 +34,31 @@ def smsg_char_login(data):
         opcode = CMSG_CHAR_SELECT
         slot = char_slot
 
-    data_def.build_stream(packet, charserv)
-    # dispatch(charserv, charserv_packets)
+    netlog.info("CMSG_CHAR_SELECT slot={}".format(char_slot))
+    data_def.build_stream(packet, server)
+
 
 def smsg_char_login_error(data):
-    print "SMSG_CHAR_LOGIN_ERROR (code={})".format(data.code)
-    charserv.close()
+    netlog.error("SMSG_CHAR_LOGIN_ERROR (code={})".format(data.code))
+    server.close()
+
 
 def smsg_char_map_info(data):
-    print "SMSG_CHAR_MAP_INFO (CID={} map={} addr={} port={}".format(
-        data.char_id, data.map_name, data.address, data.port)
-    charserv.close()
-    data.account = charserv.account
-    data.session1 = charserv.session1
-    data.session2 = charserv.session2
-    data.gender = charserv.gender
-    mapserv.mapserv = SocketWrapper(protodef=mapserv.mapserv_packets)
-    mapserv.mapserv.connect(('server.themanaworld.org', data.port))
+    netlog.info("SMSG_CHAR_MAP_INFO CID={} map={} addr={} port={}".format(
+        data.char_id, data.map_name, data.address, data.port))
+    server.close()
+
+    # restore session data
+    data.account = server.account
+    data.session1 = server.session1
+    data.session2 = server.session2
+    data.gender = server.gender
+
+    mapserv.connect('server.themanaworld.org', data.port)
     mapserv.cmsg_map_server_connect(data)
 
 
-charserv_packets = {
+protodef = {
     0x8000 : (smsg_ignore, Field("data", 2)),
     0x006b : (smsg_char_login,
               Struct("data",
@@ -81,6 +89,14 @@ charserv_packets = {
                      ULInt16("port")))
 }
 
+
+def connect(host, port, char_name_):
+    global server, char_name
+    char_name = char_name_
+    server = SocketWrapper(host=host, port=port, protodef=protodef)
+    return server
+
+
 def cmsg_char_server_connect(data):
     data_def = Struct("packet",
                       ULInt16("opcode"),
@@ -92,13 +108,15 @@ def cmsg_char_server_connect(data):
                            BOY = 1,
                            GIRL = 0))
 
-    charserv.account = data.account
-    charserv.session1 = data.session1
-    charserv.session2 = data.session2
-    charserv.gender = data.gender
+    # save session data
+    server.account = data.account
+    server.session1 = data.session1
+    server.session2 = data.session2
+    server.gender = data.gender
 
     data.opcode = CMSG_CHAR_SERVER_CONNECT
     data.proto = 1
 
-    data_def.build_stream(data, charserv)
-
+    logging.info("CMSG_CHAR_SERVER_CONNECT account={} session1={} session2={} proto={} gender={}".format(
+        data.account, data.session1, data.session2, data.proto, data.gender))
+    data_def.build_stream(data, server)

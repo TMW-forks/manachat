@@ -1,3 +1,4 @@
+import asyncore
 import logging
 from construct import *
 from construct.protocols.layer3.ipv4 import IpAddress
@@ -5,16 +6,16 @@ from protocol import *
 from dispatcher import dispatch
 from utils import *
 import charserv
+from common import netlog, SocketWrapper
 
-loginsrv = None
-username = 'john_doe'
-password = '123456'
-server_addr = 'server.themanaworld.org'
-server_port = 6902
+
+server = None
+username = ''
+password = ''
 
 
 def smsg_server_version(data):
-    print "SMSG_SERVER_VERSION {}.{}".format(data.hi, data.lo)
+    netlog.info("SMSG_SERVER_VERSION {}.{}".format(data.hi, data.lo))
 
     packet_def = Struct("packet",
                         ULInt16("opcode"),
@@ -30,22 +31,25 @@ def smsg_server_version(data):
         password = password
         flags = 3
 
-    packet_def.build_stream(packet, loginsrv)
+    netlog.info("CMSG_LOGIN_REGISTER username={} password={}".format(username, password))
+    packet_def.build_stream(packet, server)
+
 
 def smsg_update_host(data):
-    print "SMSG_UPDATE_HOST {}".format(data.host)
+    netlog.info("SMSG_UPDATE_HOST {}".format(data.host))
+
 
 def smsg_login_data(data):
-    print "SMSG_LOGIN_DATA", data
-    loginsrv.close()
+    netlog.info("SMSG_LOGIN_DATA {}".format(data))
+    server.close()
 
-    charserv.charserv = SocketWrapper(protodef=charserv.charserv_packets)
-    charserv.charserv.connect(('server.themanaworld.org', data.worlds[0].port))
+    charserv.connect('server.themanaworld.org',
+                     data.worlds[0].port,
+                     'Trav2')                      # FIXME move to config
     charserv.cmsg_char_server_connect(data)
 
 
 def smsg_login_error(data):
-
     error_codes = {
         0: "Unregistered ID",
         1: "Wrong password",
@@ -60,11 +64,11 @@ def smsg_login_error(data):
         11: "Incurrect email",
         99: "Username permanently erased" }
 
-    print "SMSG_LOGIN_ERROR {}".format(error_codes.get(data.code, "Unknown error"))
-    loginsrv.close()
+    netlog.error("SMSG_LOGIN_ERROR {}".format(error_codes.get(data.code, "Unknown error")))
+    server.close()
 
 
-login_packets = {
+protodef = {
     0x7531 : (smsg_server_version,
               Struct("data",
                      ULInt32("hi"),
@@ -100,16 +104,24 @@ login_packets = {
                      StringZ("date", 20)))
 }
 
+
 def cmsg_server_version_request():
-    ULInt16("opcode").build_stream(0x7530, loginsrv)
+    netlog.info("CMSG_SERVER_VERSION_REQUEST")
+    ULInt16("opcode").build_stream(0x7530, server)
+
+
+def connect(host, port, username_, password_):
+    global server, username, password
+    username = username_
+    password = password_
+    server = SocketWrapper(host=host, port=port, protodef=protodef)
+    return server
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
-    host, port = 'server.themanaworld.org', 6902
-    loginsrv = SocketWrapper(protodef=login_packets)
-    loginsrv.connect((host, port))
+    connect('server.themanaworld.org', 6902, 'john_doe', '123456')
     cmsg_server_version_request()
     asyncore.loop()

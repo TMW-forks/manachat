@@ -4,115 +4,151 @@ from construct.protocols.layer3.ipv4 import IpAddress
 from protocol import *
 from dispatcher import dispatch
 from utils import *
+from common import netlog, SocketWrapper
 
 # migrate to asyncore
 # Struct("data"...) should be Struct("functionname"...)
 # Session class with it's own asyncore loop and state (???)
 
-mapserv = None
+server = None
+timers = []
+
 
 def smsg_ignore(data):
     pass
 
+
 def smsg_being_chat(data):
-    print "SMSG_BEING_CHAT {} : {}".format(data.id, data.message)
+    netlog.info("SMSG_BEING_CHAT {} : {}".format(data.id, data.message))
+
 
 def smsg_being_emotion(data):
-    print "SMSG_BEING_EMOTION {} : {}".format(data.id, data.emote)
+    netlog.info("SMSG_BEING_EMOTION {} : {}".format(data.id, data.emote))
+
 
 def smsg_being_move(data):
-    pass
+    netlog.info("SMSG_BEING_MOVE id={}".format(data.id))
+
 
 def smsg_being_name_response(data):
-    print "SMSG_BEING_NAME_RESPONSE", data
+    netlog.info("SMSG_BEING_NAME_RESPONSE id={} name={}".format(data.id, data.name))
+
 
 def smsg_being_remove(data):
-    print "SMSG_BEING_REMOVE (id={}, deadflag={})".format(data.id, data.deadflag)
+    netlog.info("SMSG_BEING_REMOVE (id={}, deadflag={})".format(data.id, data.deadflag))
+
 
 def smsg_being_visible(data):
-    print "SMSG_BEING_VISIBLE (id={}, job={})".format(data.id, data.job)
+    netlog.info("SMSG_BEING_VISIBLE (id={}, job={})".format(data.id, data.job))
+
 
 def smsg_player_chat(data):
-    print "SMSG_PLAYER_CHAT {}".format(data.message)
+    netlog.info("SMSG_PLAYER_CHAT {}".format(data.message))
+
 
 def smsg_player_equipment(data):
-    print "SMSG_PLAYER_EQUIPMENT", data
+    netlog.info("SMSG_PLAYER_EQUIPMENT {}".format(data))
+
 
 def smsg_player_inventory(data):
-    print "SMSG_PLAYER_INVENTORY", data
+    netlog.info("SMSG_PLAYER_INVENTORY {}".format(data))
+
 
 def smsg_player_inventory_add(data):
-    print "SMSG_PLAYER_INVENTORY_ADD", data
+    netlog.info("SMSG_PLAYER_INVENTORY_ADD index={} id={} amount={}".format(data.index, data.id, data.amount))
+
 
 def smsg_player_inventory_remove(data):
-    print "SMSG_PLAYER_INVENTORY_REMOVE", data
+    netlog.info("SMSG_PLAYER_INVENTORY_REMOVE index={} amount={}".format(data.index, data.amount))
+
 
 def smsg_player_move(data):
-    print "SMSG_PLAYER_MOVE (id={}, job={})".format(data.id, data.job)
+    netlog.info("SMSG_PLAYER_MOVE (id={}, job={})".format(data.id, data.job))
+
 
 def smsg_player_stop(data):
-    print "SMSG_PLAYER_STOP (id={}, x={}, y={}".format(data.id, data.x, data.y)
+    netlog.info("SMSG_PLAYER_STOP (id={}, x={}, y={}".format(data.id, data.x, data.y))
+
 
 def smsg_player_update(data):
-    pass
+    netlog.info("SMSG_PLAYER_UPDATE_ (id={}, job={})".format(data.id, data.job))
+
 
 def smsg_player_warp(data):
-    print "SMSG_PLAYER_WARP (map={}, x={}, y={}".format(data.map, data.x, data.y)
+    netlog.info("SMSG_PLAYER_WARP (map={}, x={}, y={}".format(data.map, data.x, data.y))
+
 
 def smsg_ip_response(data):
-    print "SMSG_IP_RESPONSE", data
+    netlog.info("SMSG_IP_RESPONSE id={} ip={}".format(data.id, data.ip))
+
 
 def smsg_connection_problem(data):
     error_codes = {
         2 : "Account already in use"
     }
     msg = error_codes.get(data.code, str(data.code))
-    print "SMSG_CONNECTION_PROBLEM (code={})".format(msg)
+    netlog.error("SMSG_CONNECTION_PROBLEM {}".format(msg))
+
 
 def smsg_gm_chat(data):
-    print "SMSG_GM_CHAT {}".format(data.message)
+    netlog.info("SMSG_GM_CHAT {}".format(data.message))
+
 
 def smsg_party_info(data):
-    print "SMSG_PARTY_INFO", data
+    netlog.info("SMSG_PARTY_INFO {}".format(data))
+
 
 def smsg_party_chat(data):
-    print "SMSG_PARTY_CHAT", data
+    netlog.info("SMSG_PARTY_CHAT {} : {}".format(data.id, data.message))
+
 
 def smsg_trade_request(data):
-    print "SMSG_TRADE_REQUEST", data
+    netlog.info("SMSG_TRADE_REQUEST {}".format(data.nick))
+
 
 def smsg_trade_response(data):
-    print "SMSG_TRADE_RESPONSE", data
+    netlog.info("SMSG_TRADE_RESPONSE {}".format(data.code))
+
 
 def smsg_trade_item_add(data):
-    print "SMSG_TRADE_ITEM_ADD", data
+    netlog.info("SMSG_TRADE_ITEM_ADD id={} amount={}".format(data.id, data.amount))
+
 
 def smsg_trade_item_add_response(data):
-    print "SMSG_TRADE_ITEM_ADD_RESPONSE", data
+    netlog.info("SMSG_TRADE_ITEM_ADD_RESPONSE index={} amount={} code={}".format(
+        data.index, data.amount, data.code))
+
 
 def smsg_trade_cancel(data):
-    print "SMSG_TRADE_CANCEL", data
+    netlog.info("SMSG_TRADE_CANCEL")
+
 
 def smsg_trade_ok(data):
-    print "SMSG_TRADE_OK", data
+    netlog.info("SMSG_TRADE_OK who={}".format(data.who))
+
 
 def smsg_trade_complete(data):
-    print "SMSG_TRADE_COMPLETE", data
+    netlog.info("SMSG_TRADE_COMPLETE")
+
 
 def smsg_whisper(data):
-    print "SMSG_WHISPER (nick={}, message={})".format(data.nick, data.message)
+    netlog.info("SMSG_WHISPER {} : {}".format(data.nick, data.message))
+
 
 def smsg_whisper_response(data):
-    print "SMSG_WHISPER_RESPONSE", data
+    netlog.info("SMSG_WHISPER_RESPONSE {}".format(data.code))
+
 
 def smsg_server_ping(data):
-    pass
+    netlog.info("SMSG_SERVER_PING tick={}".format(data.tick))
+
 
 def smsg_map_login_success(data):
-    print "SMSG_MAP_LOGIN_SUCCESS", data
+    netlog.info("SMSG_MAP_LOGIN_SUCCESS".format(data))
     cmsg_map_loaded()
 
-mapserv_packets = {
+
+protodef = {
     0x8000 : (smsg_ignore, Field("data", 2)),      # ignore
     0x008a : (smsg_ignore, Field("data", 27)),     # being-action
     0x009c : (smsg_ignore, Field("data", 7)),      # being-change-direction
@@ -313,7 +349,14 @@ mapserv_packets = {
               Struct("data",
                      ULInt32("tick")))
 }
-    
+
+
+def connect(host, port):
+    global server
+    server = SocketWrapper(host=host, port=port, protodef=protodef)
+    timers.append(Schedule(15, 15, cmsg_map_server_ping))
+    return server
+
 
 def cmsg_map_server_connect(data):
     data_def = Struct("packet",
@@ -327,7 +370,24 @@ def cmsg_map_server_connect(data):
                            GIRL = 0))
 
     data.opcode = CMSG_MAP_SERVER_CONNECT
-    data_def.build_stream(data, mapserv)
+    netlog.info("CMSG_MAP_SERVER_CONNECT account={} char_id={} session1={} session2={} gender={}".format(
+        data.account, data.char_id, data.session1, data.session2, data.gender))
+    data_def.build_stream(data, server)
+
 
 def cmsg_map_loaded():
-    ULInt16("opcode").build_stream(CMSG_MAP_LOADED, mapserv)
+    netlog.info("CMSG_MAP_LOADED")
+    ULInt16("opcode").build_stream(CMSG_MAP_LOADED, server)
+
+
+def cmsg_map_server_ping(tick=1):
+    d = Struct("packet",
+                ULInt16("opcode"),
+                ULInt32("tick"))
+
+    class p:
+        opcode = CMSG_MAP_SERVER_PING
+        tick = 1
+
+    netlog.info("CMSG_MAP_SERVER_PING tick={}".format(p.tick))
+    d.build_stream(p, server)

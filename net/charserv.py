@@ -2,7 +2,6 @@
 from construct import *
 from construct.protocols.layer3.ipv4 import IpAddress
 from protocol import *
-from dispatcher import dispatch
 from utils import *
 import mapserv
 from common import netlog, SocketWrapper
@@ -26,16 +25,7 @@ def smsg_char_login(data):
     if char_slot < 0:
         raise Exception("CharName {} not found".format(char_name))
 
-    data_def = Struct("packet",
-                      ULInt16("opcode"),
-                      Byte("slot"))
-
-    class packet:
-        opcode = CMSG_CHAR_SELECT
-        slot = char_slot
-
-    netlog.info("CMSG_CHAR_SELECT slot={}".format(char_slot))
-    data_def.build_stream(packet, server)
+    cmsg_char_select(char_slot)
 
 
 def smsg_char_login_error(data):
@@ -120,3 +110,8 @@ def cmsg_char_server_connect(data):
     logging.info("CMSG_CHAR_SERVER_CONNECT account={} session1={} session2={} proto={} gender={}".format(
         data.account, data.session1, data.session2, data.proto, data.gender))
     data_def.build_stream(data, server)
+
+
+def cmsg_char_select(slot):
+    netlog.info("CMSG_CHAR_SELECT slot={}".format(slot))
+    send_packet(server, CMSG_CHAR_SELECT, (Byte("slot"), slot))

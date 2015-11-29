@@ -3,7 +3,6 @@ import logging
 from construct import *
 from construct.protocols.layer3.ipv4 import IpAddress
 from protocol import *
-from dispatcher import dispatch
 from utils import *
 import charserv
 from common import netlog, SocketWrapper
@@ -16,23 +15,7 @@ password = ''
 
 def smsg_server_version(data):
     netlog.info("SMSG_SERVER_VERSION {}.{}".format(data.hi, data.lo))
-
-    packet_def = Struct("packet",
-                        ULInt16("opcode"),
-                        ULInt32("clientversion"),
-                        StringZ("username", 24),
-                        StringZ("password", 24),
-                        Byte("flags"))
-
-    class packet:
-        opcode = CMSG_LOGIN_REGISTER
-        clientversion = 3
-        username = username
-        password = password
-        flags = 3
-
-    netlog.info("CMSG_LOGIN_REGISTER username={} password={}".format(username, password))
-    packet_def.build_stream(packet, server)
+    cmsg_login_register(username, password)
 
 
 def smsg_update_host(data):
@@ -108,6 +91,15 @@ protodef = {
 def cmsg_server_version_request():
     netlog.info("CMSG_SERVER_VERSION_REQUEST")
     ULInt16("opcode").build_stream(0x7530, server)
+
+
+def cmsg_login_register(username, password):
+    netlog.info("CMSG_LOGIN_REGISTER username={} password={}".format(username, password))
+    send_packet(server, CMSG_LOGIN_REGISTER,
+                (ULInt32("clientversion"),  3),
+                (StringZ("username", 24),   username),
+                (StringZ("password", 24),   password),
+                (Byte("flags"),             3))
 
 
 def connect(host, port, username_, password_):

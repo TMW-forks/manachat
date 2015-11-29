@@ -1,8 +1,7 @@
 import time
 import threading
 import logging
-from construct import String
-from dispatcher import dispatch
+from construct import String, ULInt16, Struct
 
 
 def StringZ(name, length, **kw):
@@ -48,3 +47,17 @@ class Schedule:
         if self._active:
             self._active = False
             self._thread.join()
+
+
+def send_packet(srv, opcode_, *fields):
+    class C:
+        opcode = opcode_
+
+    ms = [ULInt16("opcode")]
+
+    for macro, value in fields:
+        setattr(C, macro.name, value)
+        ms.append(macro)
+
+    d = Struct("packet", *ms)
+    d.build_stream(C, srv)

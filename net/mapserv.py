@@ -391,16 +391,9 @@ def cmsg_map_loaded():
 
 
 def cmsg_map_server_ping(tick=1):
-    d = Struct("packet",
-                ULInt16("opcode"),
-                ULInt32("tick"))
-
-    class p:
-        opcode = CMSG_MAP_SERVER_PING
-        tick = 1
-
-    netlog.info("CMSG_MAP_SERVER_PING tick={}".format(p.tick))
-    d.build_stream(p, server)
+    netlog.info("CMSG_MAP_SERVER_PING tick={}".format(tick))
+    send_packet(server, CMSG_NAME_REQUEST,
+                (ULInt32("tick"), tick))
 
 
 def cmsg_trade_response(answer):
@@ -409,16 +402,14 @@ def cmsg_trade_response(answer):
     elif answer in ("DECLINE", "CANCEL", "NO", False):
         answer = 4
 
-    d = Struct("packet",
-                ULInt16("opcode"),
-                Byte("answer"))
-
     s = {3: "ACCEPT", 4: "DECLINE"}
 
-    class p:
-        opcode = CMSG_TRADE_RESPONSE
+    netlog.info("CMSG_TRADE_RESPONSE {}".format(s[answer]))
+    send_packet(server, CMSG_TRADE_RESPONSE,
+                (Byte("answer"), answer))
 
-    p.answer = answer
 
-    netlog.info("CMSG_TRADE_RESPONSE {}".format(s[p.answer]))
-    d.build_stream(p, server)
+def cmsg_name_request(id_):
+    netlog.info("CMSG_NAME_REQUEST id={}".format(id_))
+    send_packet(server, CMSG_NAME_REQUEST,
+                (ULInt32("id"), id_))

@@ -46,11 +46,11 @@ packet_lengths = [
 ]
 
 
-def dispatch(stream, proto_def):
+def dispatch(stream, protodef):
     opcode = ULInt16("opcode").parse_stream(stream)
     # print "opcode={0:x}".format(opcode)
-    if opcode in proto_def:
-        func, macro = proto_def[opcode]
+    if opcode in protodef:
+        func, macro = protodef[opcode]
         data = macro.parse_stream(stream)
         func(data)
     elif opcode < len(packet_lengths):

@@ -147,7 +147,7 @@ def smsg_server_ping(data):
 
 
 def smsg_map_login_success(data):
-    netlog.info("SMSG_MAP_LOGIN_SUCCESS".format(data))
+    netlog.info("SMSG_MAP_LOGIN_SUCCESS {}".format(data))
     cmsg_map_loaded()
 
 
@@ -346,7 +346,11 @@ protodef = {
     0x0073 : (smsg_map_login_success,
               Struct("data",
                      ULInt32("tick"),
-                     ULInt24("coor"),
+                     # ULInt24("coor"),
+                     BitStruct("coor",
+                               BitField("x", 10),
+                               BitField("y", 10),
+                               Nibble("dir")),
                      Padding(2))),
     0x007f : (smsg_server_ping,
               Struct("data",

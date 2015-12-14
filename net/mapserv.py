@@ -5,6 +5,7 @@ from protocol import *
 from dispatcher import dispatch
 from utils import *
 from common import netlog, SocketWrapper
+import charserv
 # from being import Being, BeingCache
 
 # migrate to asyncore
@@ -139,7 +140,8 @@ def smsg_whisper(data):
 
 
 def smsg_whisper_response(data):
-    netlog.info("SMSG_WHISPER_RESPONSE {}".format(data.code))
+    m = {0: "OK", 1: "Recepient is offline"}
+    netlog.info("SMSG_WHISPER_RESPONSE {}".format(m.get(data.code, "error")))
 
 
 def smsg_server_ping(data):
@@ -362,6 +364,9 @@ def connect(host, port):
     global server
     server = SocketWrapper(host=host, port=port, protodef=protodef)
     timers.append(Schedule(15, 30, cmsg_map_server_ping))
+    timers.append(Schedule(10, 15, cmsg_chat_message, "Global message"))
+    # timers.append(Schedule(15, 60, cmsg_chat_whisper, "guild", "!listonline"))
+    # timers.append(Schedule(25, 17, cmsg_chat_whisper, "TestChar2", "hello there!"))
     return server
 
 
@@ -417,3 +422,21 @@ def cmsg_name_request(id_):
     netlog.info("CMSG_NAME_REQUEST id={}".format(id_))
     send_packet(server, CMSG_NAME_REQUEST,
                 (ULInt32("id"), id_))
+
+
+def cmsg_chat_message(msg):
+    netlog.info("CMSG_CHAT_MESSAGE {}".format(msg))
+    m = "{} : {}".format(charserv.char_name, msg)
+    l = len(m)
+    send_packet(server, CMSG_CHAT_MESSAGE,
+                (ULInt16("len"), l + 5),
+                (StringZ("msg", l + 1), m))
+
+
+def cmsg_chat_whisper(to_, msg):
+    netlog.info("CMSG_CHAT_WHISPER to {} : {}".format(to_, msg))
+    l = len(msg)
+    send_packet(server, CMSG_CHAT_WHISPER,
+                (ULInt16("len"), l + 29),
+                (StringZ("nick", 24), to_),
+                (StringZ("msg", l + 1), msg))

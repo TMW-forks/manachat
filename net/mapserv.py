@@ -6,6 +6,7 @@ from dispatcher import dispatch
 from utils import *
 from common import netlog, SocketWrapper
 import charserv
+from being import BeingsCache
 # from being import Being, BeingCache
 
 # migrate to asyncore
@@ -15,6 +16,7 @@ import charserv
 
 server = None
 timers = []
+beings_cache = None
 
 
 def smsg_ignore(data):
@@ -22,26 +24,32 @@ def smsg_ignore(data):
 
 
 def smsg_being_chat(data):
+    beings_cache.add(data.id, 1)
     netlog.info("SMSG_BEING_CHAT {} : {}".format(data.id, data.message))
 
 
 def smsg_being_emotion(data):
+    beings_cache.add(data.id, 1)
     netlog.info("SMSG_BEING_EMOTION {} : {}".format(data.id, data.emote))
 
 
 def smsg_being_move(data):
+    beings_cache.add(data.id, 1)
     netlog.info("SMSG_BEING_MOVE id={}".format(data.id))
 
 
 def smsg_being_name_response(data):
+    beings_cache[data.id].name = data.name
     netlog.info("SMSG_BEING_NAME_RESPONSE id={} name={}".format(data.id, data.name))
 
 
 def smsg_being_remove(data):
+    beings_cache[data.id].nearby = False
     netlog.info("SMSG_BEING_REMOVE (id={}, deadflag={})".format(data.id, data.deadflag))
 
 
 def smsg_being_visible(data):
+    beings_cache.add(data.id, data.job)
     netlog.info("SMSG_BEING_VISIBLE (id={}, job={})".format(data.id, data.job))
 
 
@@ -66,14 +74,17 @@ def smsg_player_inventory_remove(data):
 
 
 def smsg_player_move(data):
+    beings_cache.add(data.id, data.job)
     netlog.info("SMSG_PLAYER_MOVE (id={}, job={})".format(data.id, data.job))
 
 
 def smsg_player_stop(data):
+    beings_cache.add(data.id, 1)
     netlog.info("SMSG_PLAYER_STOP (id={}, x={}, y={}".format(data.id, data.x, data.y))
 
 
 def smsg_player_update(data):
+    beings_cache.add(data.id, data.job)
     netlog.info("SMSG_PLAYER_UPDATE_ (id={}, job={})".format(data.id, data.job))
 
 
@@ -360,23 +371,6 @@ protodef = {
 }
 
 
-def connect(host, port):
-    global server
-    server = SocketWrapper(host=host, port=port, protodef=protodef)
-    timers.append(Schedule(15, 30, cmsg_map_server_ping))
-    timers.append(Schedule(10, 15, cmsg_chat_message, "Global message"))
-    # timers.append(Schedule(15, 60, cmsg_chat_whisper, "guild", "!listonline"))
-    # timers.append(Schedule(25, 17, cmsg_chat_whisper, "TestChar2", "hello there!"))
-    return server
-
-
-def cleanup():
-    global server
-    for t in timers:
-        t.cancel()
-    server.close()
-
-
 def cmsg_map_server_connect(data):
     data_def = Struct("packet",
                       ULInt16("opcode"),
@@ -440,3 +434,21 @@ def cmsg_chat_whisper(to_, msg):
                 (ULInt16("len"), l + 29),
                 (StringZ("nick", 24), to_),
                 (StringZ("msg", l + 1), msg))
+
+
+def connect(host, port):
+    global server, beings_cache
+    beings_cache = BeingsCache(cmsg_name_request)
+    server = SocketWrapper(host=host, port=port, protodef=protodef)
+    timers.append(Schedule(15, 30, cmsg_map_server_ping))
+    timers.append(Schedule(10, 15, cmsg_chat_message, "Global message"))
+    # timers.append(Schedule(15, 60, cmsg_chat_whisper, "guild", "!listonline"))
+    # timers.append(Schedule(25, 17, cmsg_chat_whisper, "TestChar2", "hello there!"))
+    return server
+
+
+def cleanup():
+    global server
+    for t in timers:
+        t.cancel()
+    server.close()

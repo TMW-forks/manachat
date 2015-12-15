@@ -7,7 +7,7 @@ from utils import *
 from common import netlog, SocketWrapper
 import charserv
 from being import BeingsCache
-# from being import Being, BeingCache
+from extend import extendable
 
 # migrate to asyncore
 # Struct("data"...) should be Struct("functionname"...)
@@ -23,11 +23,13 @@ def smsg_ignore(data):
     pass
 
 
+@extendable
 def smsg_being_chat(data):
     beings_cache.add(data.id, 1)
     netlog.info("SMSG_BEING_CHAT {} : {}".format(data.id, data.message))
 
 
+@extendable
 def smsg_being_emotion(data):
     beings_cache.add(data.id, 1)
     netlog.info("SMSG_BEING_EMOTION {} : {}".format(data.id, data.emote))
@@ -53,6 +55,7 @@ def smsg_being_visible(data):
     netlog.info("SMSG_BEING_VISIBLE (id={}, job={})".format(data.id, data.job))
 
 
+@extendable
 def smsg_player_chat(data):
     netlog.info("SMSG_PLAYER_CHAT {}".format(data.message))
 
@@ -146,6 +149,7 @@ def smsg_trade_complete(data):
     netlog.info("SMSG_TRADE_COMPLETE")
 
 
+@extendable
 def smsg_whisper(data):
     netlog.info("SMSG_WHISPER {} : {}".format(data.nick, data.message))
 

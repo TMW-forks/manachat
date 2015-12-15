@@ -35,9 +35,6 @@ def init():
     chatlog_win.idlok(1)
     chatlog_win.scrollok(1)
 
-    # input_win.idlok(1)
-    # input_win.immedok(1)
-
     input_textbox = Textbox(input_win)
     input_textbox.stripspaces = True
 
@@ -50,19 +47,22 @@ def init():
 
 
 def chatlog_append(line):
+    if line[-1] != "\n":
+        line = line + "\n"
     chatlog_win.addstr(line)
     chatlog_win.refresh()
 
 
 def input_loop(callback):
     def v(ch):
+        # chatlog_append(curses.keyname(ch))
         if ch in (curses.KEY_ENTER, curses.ascii.NL):
             return curses.ascii.BEL
         return ch
 
     cmd = ''
-    while cmd.strip() not in ('/exit', '/quit'):
-        cmd = input_textbox.edit(v)
+    while cmd not in ('/exit', '/quit'):
+        cmd = input_textbox.edit(v).strip()
         callback(cmd)
         input_win.clear()
         input_win.move(0, 0)

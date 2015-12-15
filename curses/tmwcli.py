@@ -5,6 +5,8 @@ import sys
 import logging
 import asyncore
 import curses
+import threading
+from time import gmtime, strftime
 
 # add ../net to PYTHONPATH
 parent, _ = os.path.split(os.getcwd())
@@ -13,23 +15,47 @@ del parent
 
 import loginsrv
 from common import netlog
+# from utils import Schedule
 import cui
+import handlers
+import commands
+
+# def print_time():
+#     now = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+#     cui.chatlog_append(now)
+
+    # s = Schedule(5, 7, print_time)
+    # s.cancel()
+    # sys.exit()
 
 
 if __name__ == "__main__":
-    cui.init()
-    cui.input_loop(cui.chatlog_append)
-    cui.finalize()
-    sys.exit()
     logging.basicConfig(level=logging.ERROR,
                         format='%(asctime)s %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
     netlog.setLevel(logging.ERROR)
 
+    handlers.register_all()
+
+    cui.init()
+
     loginsrv.connect('server.themanaworld.org', 6902, 'john_doe', '123456')
     loginsrv.cmsg_server_version_request()
-    try:
-        asyncore.loop()
-    except KeyboardInterrupt:
-        import mapserv
-        mapserv.cleanup()
+
+    t = threading.Thread(target=asyncore.loop)
+    t.start()
+
+    # cui.input_loop(cui.chatlog_append)
+    cui.input_loop(commands.curses_general_chat)
+    cui.finalize()
+
+    raise asyncore.ExitNow('Terminating asyncore loop')
+    t.join()
+    import mapserv
+    mapserv.cleanup()
+
+    # try:
+    #     asyncore.loop()
+    # except KeyboardInterrupt:
+    #     import mapserv
+    #     mapserv.cleanup()

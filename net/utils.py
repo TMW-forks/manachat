@@ -61,3 +61,28 @@ def send_packet(srv, opcode_, *fields):
 
     d = Struct("packet", *ms)
     d.build_stream(C, srv)
+
+
+# The following group of functions is to provide a way to extend
+# a module's functions by decorating them with @extendable
+
+extensions = {}
+
+
+def register_extension(name, func):
+    if name in extensions:
+        extensions[name].append(func)
+    else:
+        extensions[name] = [func]
+
+
+def extendable(fun):
+
+    def wrapper(*args, **kwargs):
+        name = fun.__name__
+        fun(*args, **kwargs)
+        if name in extensions:
+            for f in extensions[name]:
+                f(*args, **kwargs)
+
+    return wrapper

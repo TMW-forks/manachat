@@ -1,7 +1,8 @@
 
 import cui
 import mapserv
-from extend import register_extension
+from utils import register_extension
+
 
 def curses_being_chat(data):
     id_, message = data.id, data.message

@@ -7,12 +7,12 @@ from utils import *
 from common import netlog, SocketWrapper
 import charserv
 from being import BeingsCache
-from extend import extendable
 
 # migrate to asyncore
 # Struct("data"...) should be Struct("functionname"...)
 # Session class with it's own asyncore loop and state (???)
 # chatlog (where, message)     where=General|Party|Nick|Guild
+# move all global variables to g.py
 
 server = None
 timers = []
@@ -35,21 +35,25 @@ def smsg_being_emotion(data):
     netlog.info("SMSG_BEING_EMOTION {} : {}".format(data.id, data.emote))
 
 
+@extendable
 def smsg_being_move(data):
     beings_cache.add(data.id, 1)
     netlog.info("SMSG_BEING_MOVE id={}".format(data.id))
 
 
+@extendable
 def smsg_being_name_response(data):
     beings_cache[data.id].name = data.name
     netlog.info("SMSG_BEING_NAME_RESPONSE id={} name={}".format(data.id, data.name))
 
 
+@extendable
 def smsg_being_remove(data):
     beings_cache[data.id].nearby = False
     netlog.info("SMSG_BEING_REMOVE (id={}, deadflag={})".format(data.id, data.deadflag))
 
 
+@extendable
 def smsg_being_visible(data):
     beings_cache.add(data.id, data.job)
     netlog.info("SMSG_BEING_VISIBLE (id={}, job={})".format(data.id, data.job))
@@ -60,45 +64,55 @@ def smsg_player_chat(data):
     netlog.info("SMSG_PLAYER_CHAT {}".format(data.message))
 
 
+@extendable
 def smsg_player_equipment(data):
     netlog.info("SMSG_PLAYER_EQUIPMENT {}".format(data))
 
 
+@extendable
 def smsg_player_inventory(data):
     netlog.info("SMSG_PLAYER_INVENTORY {}".format(data))
 
 
+@extendable
 def smsg_player_inventory_add(data):
     netlog.info("SMSG_PLAYER_INVENTORY_ADD index={} id={} amount={}".format(data.index, data.id, data.amount))
 
 
+@extendable
 def smsg_player_inventory_remove(data):
     netlog.info("SMSG_PLAYER_INVENTORY_REMOVE index={} amount={}".format(data.index, data.amount))
 
 
+@extendable
 def smsg_player_move(data):
     beings_cache.add(data.id, data.job)
     netlog.info("SMSG_PLAYER_MOVE (id={}, job={})".format(data.id, data.job))
 
 
+@extendable
 def smsg_player_stop(data):
     beings_cache.add(data.id, 1)
     netlog.info("SMSG_PLAYER_STOP (id={}, x={}, y={}".format(data.id, data.x, data.y))
 
 
+@extendable
 def smsg_player_update(data):
     beings_cache.add(data.id, data.job)
     netlog.info("SMSG_PLAYER_UPDATE_ (id={}, job={})".format(data.id, data.job))
 
 
+@extendable
 def smsg_player_warp(data):
     netlog.info("SMSG_PLAYER_WARP (map={}, x={}, y={}".format(data.map, data.x, data.y))
 
 
+@extendable
 def smsg_ip_response(data):
     netlog.info("SMSG_IP_RESPONSE id={} ip={}".format(data.id, data.ip))
 
 
+@extendable
 def smsg_connection_problem(data):
     error_codes = {
         2 : "Account already in use"
@@ -107,44 +121,54 @@ def smsg_connection_problem(data):
     netlog.error("SMSG_CONNECTION_PROBLEM {}".format(msg))
 
 
+@extendable
 def smsg_gm_chat(data):
     netlog.info("SMSG_GM_CHAT {}".format(data.message))
 
 
+@extendable
 def smsg_party_info(data):
     netlog.info("SMSG_PARTY_INFO {}".format(data))
 
 
+@extendable
 def smsg_party_chat(data):
     netlog.info("SMSG_PARTY_CHAT {} : {}".format(data.id, data.message))
 
 
+@extendable
 def smsg_trade_request(data):
     netlog.info("SMSG_TRADE_REQUEST {}".format(data.nick))
     cmsg_trade_response("DECLINE")
 
 
+@extendable
 def smsg_trade_response(data):
     netlog.info("SMSG_TRADE_RESPONSE {}".format(data.code))
 
 
+@extendable
 def smsg_trade_item_add(data):
     netlog.info("SMSG_TRADE_ITEM_ADD id={} amount={}".format(data.id, data.amount))
 
 
+@extendable
 def smsg_trade_item_add_response(data):
     netlog.info("SMSG_TRADE_ITEM_ADD_RESPONSE index={} amount={} code={}".format(
         data.index, data.amount, data.code))
 
 
+@extendable
 def smsg_trade_cancel(data):
     netlog.info("SMSG_TRADE_CANCEL")
 
 
+@extendable
 def smsg_trade_ok(data):
     netlog.info("SMSG_TRADE_OK who={}".format(data.who))
 
 
+@extendable
 def smsg_trade_complete(data):
     netlog.info("SMSG_TRADE_COMPLETE")
 
@@ -154,15 +178,18 @@ def smsg_whisper(data):
     netlog.info("SMSG_WHISPER {} : {}".format(data.nick, data.message))
 
 
+@extendable
 def smsg_whisper_response(data):
     m = {0: "OK", 1: "Recepient is offline"}
     netlog.info("SMSG_WHISPER_RESPONSE {}".format(m.get(data.code, "error")))
 
 
+@extendable
 def smsg_server_ping(data):
     netlog.info("SMSG_SERVER_PING tick={}".format(data.tick))
 
 
+@extendable
 def smsg_map_login_success(data):
     netlog.info("SMSG_MAP_LOGIN_SUCCESS {}".format(data))
     cmsg_map_loaded()

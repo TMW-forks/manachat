@@ -13,15 +13,18 @@ username = ''
 password = ''
 
 
+@extendable
 def smsg_server_version(data):
     netlog.info("SMSG_SERVER_VERSION {}.{}".format(data.hi, data.lo))
     cmsg_login_register(username, password)
 
 
+@extendable
 def smsg_update_host(data):
     netlog.info("SMSG_UPDATE_HOST {}".format(data.host))
 
 
+@extendable
 def smsg_login_data(data):
     netlog.info("SMSG_LOGIN_DATA {}".format(data))
     server.close()
@@ -32,6 +35,7 @@ def smsg_login_data(data):
     charserv.cmsg_char_server_connect(data)
 
 
+@extendable
 def smsg_login_error(data):
     error_codes = {
         0: "Unregistered ID",

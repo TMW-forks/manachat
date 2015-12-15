@@ -15,6 +15,7 @@ def smsg_ignore(data):
     pass
 
 
+@extendable
 def smsg_char_login(data):
     netlog.info("SMSG_CHAR_LOGIN {}".format(data))
 
@@ -28,11 +29,13 @@ def smsg_char_login(data):
     cmsg_char_select(char_slot)
 
 
+@extendable
 def smsg_char_login_error(data):
     netlog.error("SMSG_CHAR_LOGIN_ERROR (code={})".format(data.code))
     server.close()
 
 
+@extendable
 def smsg_char_map_info(data):
     netlog.info("SMSG_CHAR_MAP_INFO CID={} map={} addr={} port={}".format(
         data.char_id, data.map_name, data.address, data.port))

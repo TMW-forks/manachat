@@ -46,7 +46,7 @@ if __name__ == "__main__":
     t.start()
 
     # cui.input_loop(cui.chatlog_append)
-    cui.input_loop(commands.curses_general_chat)
+    cui.input_loop(commands.process_line)
     cui.finalize()
 
     raise asyncore.ExitNow('Terminating asyncore loop')

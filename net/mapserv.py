@@ -441,7 +441,7 @@ def connect(host, port):
     beings_cache = BeingsCache(cmsg_name_request)
     server = SocketWrapper(host=host, port=port, protodef=protodef)
     timers.append(Schedule(15, 30, cmsg_map_server_ping))
-    timers.append(Schedule(10, 15, cmsg_chat_message, "Global message"))
+    # timers.append(Schedule(10, 15, cmsg_chat_message, "Global message"))
     # timers.append(Schedule(15, 60, cmsg_chat_whisper, "guild", "!listonline"))
     # timers.append(Schedule(25, 17, cmsg_chat_whisper, "TestChar2", "hello there!"))
     return server

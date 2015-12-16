@@ -7,16 +7,19 @@ from utils import *
 import charserv
 from common import netlog, SocketWrapper
 
+# from .. import config
+import config
+
 
 server = None
-username = ''
-password = ''
+# username = ''
+# password = ''
 
 
 @extendable
 def smsg_server_version(data):
     netlog.info("SMSG_SERVER_VERSION {}.{}".format(data.hi, data.lo))
-    cmsg_login_register(username, password)
+    cmsg_login_register(config.username, config.password)
 
 
 @extendable
@@ -29,9 +32,8 @@ def smsg_login_data(data):
     netlog.info("SMSG_LOGIN_DATA {}".format(data))
     server.close()
 
-    charserv.connect('server.themanaworld.org',
-                     data.worlds[0].port,
-                     'Trav2')                      # FIXME move to config
+    charserv.connect(config.server,
+                     data.worlds[0].port)
     charserv.cmsg_char_server_connect(data)
 
 
@@ -106,22 +108,7 @@ def cmsg_login_register(username, password):
                 (Byte("flags"),             3))
 
 
-def connect(host, port, username_, password_):
-    global server, username, password
-    username = username_
-    password = password_
+def connect(host, port):
+    global server
     server = SocketWrapper(host=host, port=port, protodef=protodef)
     return server
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S')
-    connect('server.themanaworld.org', 6902, 'john_doe', '123456')
-    cmsg_server_version_request()
-    try:
-        asyncore.loop()
-    except KeyboardInterrupt:
-        import mapserv
-        mapserv.cleanup()

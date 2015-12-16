@@ -6,6 +6,8 @@ from utils import *
 import mapserv
 from common import netlog, SocketWrapper
 
+# from .. import config
+import config
 
 server = None
 char_name = ""
@@ -47,7 +49,7 @@ def smsg_char_map_info(data):
     data.session2 = server.session2
     data.gender = server.gender
 
-    mapserv.connect('server.themanaworld.org', data.port)
+    mapserv.connect(config.server, data.port)
     mapserv.cmsg_map_server_connect(data)
 
 
@@ -83,13 +85,6 @@ protodef = {
 }
 
 
-def connect(host, port, char_name_):
-    global server, char_name
-    char_name = char_name_
-    server = SocketWrapper(host=host, port=port, protodef=protodef)
-    return server
-
-
 def cmsg_char_server_connect(data):
     data_def = Struct("packet",
                       ULInt16("opcode"),
@@ -118,3 +113,10 @@ def cmsg_char_server_connect(data):
 def cmsg_char_select(slot):
     netlog.info("CMSG_CHAR_SELECT slot={}".format(slot))
     send_packet(server, CMSG_CHAR_SELECT, (Byte("slot"), slot))
+
+
+def connect(host, port):
+    global server, char_name
+    char_name = config.charname
+    server = SocketWrapper(host=host, port=port, protodef=protodef)
+    return server

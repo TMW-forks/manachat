@@ -10,6 +10,7 @@ from time import gmtime, strftime
 
 # add ../net to PYTHONPATH
 parent, _ = os.path.split(os.getcwd())
+sys.path.append(parent)
 sys.path.append(os.path.join(parent, "net"))
 del parent
 
@@ -19,30 +20,25 @@ from common import netlog
 import cui
 import handlers
 import commands
-
-# def print_time():
-#     now = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-#     cui.chatlog_append(now)
-
-    # s = Schedule(5, 7, print_time)
-    # s.cancel()
-    # sys.exit()
+import config
 
 
 if __name__ == "__main__":
-    # logging.basicConfig(level=logging.ERROR,
-    #                     format='%(asctime)s %(message)s',
-    #                     datefmt='%Y-%m-%d %H:%M:%S')
     rootLogger = logging.getLogger('')
     rootLogger.addHandler(logging.NullHandler())
 
-    netlog.setLevel(logging.ERROR)
+    netlog.setLevel(logging.DEBUG)
+    fh = logging.FileHandler("/tmp/netlog.txt", mode="w")
+    fmt = logging.Formatter("[%(asctime)s] %(message)s",
+                            datefmt="%Y-%m-%d %H:%M:%S")
+    fh.setFormatter(fmt)
+    netlog.addHandler(fh)
 
     handlers.register_all()
 
     cui.init()
 
-    loginsrv.connect('server.themanaworld.org', 6902, 'john_doe', '123456')
+    loginsrv.connect(config.server, config.port)
     loginsrv.cmsg_server_version_request()
 
     t = threading.Thread(target=asyncore.loop)

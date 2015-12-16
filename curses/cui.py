@@ -25,12 +25,12 @@ def init():
     PNW = 20  # player name width
     INH = 4   # input window height
 
-    stdscr.vline(0, w - PNW - 1, curses.ACS_VLINE, h - INH)
-    stdscr.hline(h - INH - 1, 0, curses.ACS_HLINE, w)
+    stdscr.vline(0, w - PNW - 1, curses.ACS_VLINE, h)
+    stdscr.hline(h - INH - 1, 0, curses.ACS_HLINE, w - PNW - 1)
 
     chatlog_win = curses.newwin(h - INH - 1, w - PNW - 1, 0, 0)
-    input_win = curses.newwin(INH, w, h - INH, 0)
-    players_win = curses.newwin(h - INH - 1, PNW, 0, w - PNW)
+    input_win = curses.newwin(INH, w - PNW - 1, h - INH, 0)
+    players_win = curses.newwin(h, PNW, 0, w - PNW)
 
     chatlog_win.idlok(1)
     chatlog_win.scrollok(1)

@@ -78,6 +78,4 @@ class OnlineUsers(threading.Thread):
                 time.sleep(1.0)
 
     def stop(self):
-        if self._active:
-            self._active = False
-            self._thread.join()
+        self._active = False

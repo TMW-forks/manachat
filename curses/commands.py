@@ -1,10 +1,11 @@
 import re
 import mapserv
+from chatlog import chatlog
 
-regex = re.compile('^/(\w+)\s+((?:")[^"]+(?:")|\S+)(\s+(.*))?$')
-last_event = []
+
 whisper_to = ''
 whisper_msg = ''
+
 
 def general_chat(msg):
     mapserv.cmsg_chat_message(msg)
@@ -17,36 +18,43 @@ def send_whisper(to_, msg):
     mapserv.cmsg_chat_whisper(to_, msg)
 
 
-commands = {
-    "w" : send_whisper,
-    "whisper" : send_whisper,
-}
+def send_party_message(msg):
+    mapserv.cmsg_party_message(msg)
 
-def parse_cmdargs(line):
-    cmd = player = args = None
-    m = regex.search(line)
-    if m:
-        cmd = m.group(1)
-        player = m.group(2)
-        if player.startswith('"') and player.endswith('"'):
-            player = player[1:-1]
-        args = m.group(4)
-    return (cmd, player, args)
+
+def parse_player_name(line):
+    line = line.lstrip()
+    if len(line) < 2:
+        return "", ""
+    if line[0] == '"':
+        end = line[1:].find('"')
+        if end < 0:
+            return line[1:], ""
+        else:
+            return line[1:end-1], line[end+1:]
+    else:
+        end = line.find(" ")
+        if end < 0:
+            return line, ""
+        else:
+            return line[:end], line[end+1:]
 
 
 def process_line(line):
-    cmd, player, args = parse_cmdargs(line)
-    if cmd is None:
-        general_chat(line)
-    else:
-        f = commands.get(cmd)
-        if f is not None:
-            f(player, args)
+    if line == "":
+        return
+    elif line[0] == "/":
+        end = line.find(" ")
+        cmd = line[:end]
+        arg = line[end+1:]
+        if cmd in ("/w", "/whisper"):
+            nick, message = parse_player_name(arg)
+            if len(nick) > 0 and len(message) > 0:
+                send_whisper(nick, message)
+        elif cmd in ("/p", "/party"):
+            if len(arg) > 0:
+                send_party_message(arg)
         else:
-            cui.chatlog_append("Command {} not found".format(cmd))
-
-
-
-if __name__ == "__main__":
-    s = raw_input("Enter command: ")
-    print parse_cmdargs(s)
+            chatlog.warning("[warning] command {} not found".format(cmd))
+    else:
+        general_chat(line)

@@ -30,9 +30,12 @@ import commands
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.ERROR,
-                        format='%(asctime)s %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S')
+    # logging.basicConfig(level=logging.ERROR,
+    #                     format='%(asctime)s %(message)s',
+    #                     datefmt='%Y-%m-%d %H:%M:%S')
+    rootLogger = logging.getLogger('')
+    rootLogger.addHandler(logging.NullHandler())
+
     netlog.setLevel(logging.ERROR)
 
     handlers.register_all()
@@ -43,19 +46,11 @@ if __name__ == "__main__":
     loginsrv.cmsg_server_version_request()
 
     t = threading.Thread(target=asyncore.loop)
+    t.setDaemon(True)
     t.start()
 
-    # cui.input_loop(cui.chatlog_append)
     cui.input_loop(commands.process_line)
     cui.finalize()
 
-    raise asyncore.ExitNow('Terminating asyncore loop')
-    t.join()
     import mapserv
     mapserv.cleanup()
-
-    # try:
-    #     asyncore.loop()
-    # except KeyboardInterrupt:
-    #     import mapserv
-    #     mapserv.cleanup()

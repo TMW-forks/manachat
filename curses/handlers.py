@@ -1,33 +1,34 @@
 
-import cui
+# import cui
 import mapserv
 from utils import register_extension
-
 import commands
+from chatlog import chatlog
 
 
 def curses_being_chat(data):
     id_, message = data.id, data.message
     nick = mapserv.beings_cache[id_].name
-    cui.chatlog_append("{} : {}".format(nick, message))
+    # cui.chatlog_append("{} : {}".format(nick, message))
+    chatlog.info("{} : {}".format(nick, message))
 
 
 def curses_player_chat(data):
     message = data.message
-    cui.chatlog_append(message)
+    chatlog.info(message)
 
 
 def curses_got_whisper(data):
     nick, message = data.nick, data.message
-    cui.chatlog_append("[{} ->] {}".format(nick, message))
+    chatlog.info("[{} ->] {}".format(nick, message))
 
 
 def send_whisper_result(data):
     if data.code == 0:
-        cui.chatlog_append("[-> {}] {}".format(
+        chatlog.info("[-> {}] {}".format(
             commands.whisper_to, commands.whisper_msg))
     else:
-        cui.chatlog_append("[error] {} is offline.".format(commands.whisper_to))
+        chatlog.info("[error] {} is offline.".format(commands.whisper_to))
 
 
 def register_all():

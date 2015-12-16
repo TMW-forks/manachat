@@ -4,6 +4,7 @@ import mapserv
 from utils import register_extension
 import commands
 from chatlog import chatlog
+import cui
 
 
 def curses_being_chat(data):
@@ -27,6 +28,9 @@ def send_whisper_result(data):
     if data.code == 0:
         chatlog.info("[-> {}] {}".format(
             commands.whisper_to, commands.whisper_msg))
+        cui.input_win.clear()
+        cui.input_win.addstr('/w "{}" '.format(commands.whisper_to))
+        cui.input_win.refresh()
     else:
         chatlog.info("[error] {} is offline.".format(commands.whisper_to))
 

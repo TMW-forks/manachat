@@ -32,16 +32,16 @@ import config
 
 from common import netlog
 
-class OnlineUsers:
+class OnlineUsers(threading.Thread):
 
     def __init__(self, online_url='http://server.themanaworld.org/online.txt', update_interval=60):
-        self._active = False
+        self._active = True
         self._timer = 0
-        self._thread = threading.Thread(target=self._threadfunc, args=())
         self._url = online_url
         self._update_interval = update_interval
         self.__lock = threading.Lock()
         self.__online_users = []
+        threading.Thread.__init__(self)
 
     @property
     def online_users(self):
@@ -66,7 +66,7 @@ class OnlineUsers:
         return map(lambda n: n[:-5].strip() if n.endswith('(GM) ') else n.strip(),
                    s.split('\n'))
 
-    def _threadfunc(self):
+    def run(self):
         while self._active:
             if (time.time() - self._timer) > self._update_interval:
                 users = self.dl_online_list()
@@ -76,10 +76,6 @@ class OnlineUsers:
                 self._timer = time.time()
             else:
                 time.sleep(1.0)
-
-    def start(self):
-        self._active = True
-        self._thread.start()
 
     def stop(self):
         if self._active:

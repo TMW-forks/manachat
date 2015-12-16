@@ -35,6 +35,10 @@ def init():
     chatlog_win.idlok(1)
     chatlog_win.scrollok(1)
 
+    players_win.idlok(1)
+    players_win.scrollok(1)
+
+
     input_textbox = Textbox(input_win)
     input_textbox.stripspaces = True
 

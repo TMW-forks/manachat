@@ -44,6 +44,8 @@ class SocketWrapper(asyncore.dispatcher_with_send):
                     break
             data = self.read_buffer[:n]
             self.read_buffer = self.read_buffer[n:]
+
+        netlog.debug(":".join("{:02x}".format(ord(c)) for c in data))
         return data
 
     def write(self, data):

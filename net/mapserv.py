@@ -17,6 +17,8 @@ from being import BeingsCache
 server = None
 timers = []
 beings_cache = None
+party_info = []
+party_members = {}
 
 
 def smsg_ignore(data):
@@ -128,6 +130,10 @@ def smsg_gm_chat(data):
 
 @extendable
 def smsg_party_info(data):
+    global party_info, party_members
+    party_info = data
+    for m in data.members:
+        party_members[m.id] = m.nick
     netlog.info("SMSG_PARTY_INFO {}".format(data))
 
 
@@ -355,8 +361,9 @@ protodef = {
               Struct("data",
                      ULInt16("length"),
                      ULInt32("id"),
+                     # Probe("debug", show_stream=False, show_stack=False),
                      StringZ("message", lambda ctx: ctx.length - 8))),
-    0x0109 : (smsg_ignore, Field("data", 4)),     # skill-cast-cancel
+    0x01b9 : (smsg_ignore, Field("data", 4)),     # skill-cast-cancel
     0x013e : (smsg_ignore, Field("data", 22)),    # skill-casting
     0x01de : (smsg_ignore, Field("data", 31)),    # skill-damage
     0x011a : (smsg_ignore, Field("data", 13)),    # skill-no-damage
@@ -465,6 +472,14 @@ def cmsg_chat_whisper(to_, msg):
                 (ULInt16("len"), l + 29),
                 (StringZ("nick", 24), to_),
                 (StringZ("msg", l + 1), msg))
+
+
+def cmsg_party_message(msg):
+    netlog.info("CMSG_PARTY_MESSAGE {}".format(msg))
+    l = len(msg)
+    send_packet(server, CMSG_PARTY_MESSAGE,
+                (ULInt16("len"), l + 4),
+                (String("msg", l), msg))
 
 
 def connect(host, port):

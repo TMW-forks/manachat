@@ -31,7 +31,7 @@ def parse_player_name(line):
         if end < 0:
             return line[1:], ""
         else:
-            return line[1:end-1], line[end+1:]
+            return line[1:end+1], line[end+3:]
     else:
         end = line.find(" ")
         if end < 0:
@@ -45,8 +45,12 @@ def process_line(line):
         return
     elif line[0] == "/":
         end = line.find(" ")
-        cmd = line[:end]
-        arg = line[end+1:]
+        if end < 0:
+            cmd = line
+            arg = ""
+        else:
+            cmd = line[:end]
+            arg = line[end+1:]
         if cmd in ("/w", "/whisper"):
             nick, message = parse_player_name(arg)
             if len(nick) > 0 and len(message) > 0:

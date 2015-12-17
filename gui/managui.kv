@@ -1,0 +1,63 @@
+
+
+<MessagesLog>:
+    canvas.before:
+        Color:
+            rgba: .1, .1, .1, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    msg_log_label: id_msg_log_label
+    ScrollView:
+        Label:
+            id: id_msg_log_label
+            size_hint_y: None
+            pos: root.pos
+            text: 'Welcome to ManaChat'
+            text_size: (root.width, None)
+            size: self.texture_size
+            font_size: '12sp'
+
+
+<PlayersList>:
+    canvas.before:
+        Color:
+            rgba: .25, .1, .9, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+
+<RootWidget>:
+
+    canvas.before:
+        Color:
+            rgba: 0.01, 0.33, 0.32, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    message_box: id_message_box
+    chat_input: id_chat_input
+    players_list: id_players_list
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint: 1, 1
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            MessagesLog:
+                id: id_message_box
+                size_hint: 1, 1
+
+            TextInput:
+                id: id_chat_input
+                size_hint: 1, None
+                height: '60dp'
+
+        PlayersList:
+            id: id_players_list
+            size_hint: None, 1
+            width: '150dp'

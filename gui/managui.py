@@ -33,6 +33,22 @@ class MessagesLog(BoxLayout):
 class PlayersListItem(BoxLayout, ListItemLabel):
     nick = StringProperty(allow_none=False)
 
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return False
+        touch.grab(self)
+        return True
+
+    def on_touch_up(self, touch):
+        if not self.collide_point(*touch.pos):
+            return False
+        if touch.grab_current is self:
+            app = App.get_running_app()
+            app.root.chat_input.text = '/w "{}" '.format(self.nick)
+            app.root.chat_input.focus = True
+            touch.ungrab(self)
+            return True
+
 
 class PlayersList(FloatLayout):
     items = ListProperty([])

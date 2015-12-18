@@ -21,6 +21,11 @@ from kivy.clock import Clock
 from kivy.uix.listview import ListView, ListItemLabel
 from kivy.adapters.listadapter import ListAdapter
 
+from kivy.config import ConfigParser
+
+config = ConfigParser()
+config.read("manachat.ini")
+
 
 class MessagesLog(BoxLayout):
 
@@ -103,6 +108,10 @@ class ManaGuiApp(App):
     def build(self):
         Window.bind(on_keyboard=self.hook_keyboard)
         return RootWidget()
+
+    def build_settings(self, settings):
+        settings.add_json_panel('ManaChat', config,
+                                filename='manachat.json')
 
 
 if __name__ == "__main__":

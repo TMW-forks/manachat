@@ -1,0 +1,52 @@
+[
+  { "type"    : "title",
+    "title"   : "Server" },
+
+  { "type"    : "string",
+    "title"   : "Host",
+    "desc"    : "IP or hostname of the TMWA-compatible server",
+    "section" : "Server",
+    "key"     : "host" },
+
+  { "type"    : "numeric",
+    "title"   : "Port",
+    "desc"    : "Numeric port of the TMWA-compatible login server",
+    "section" : "Server",
+    "key"     : "port" },
+
+  { "type"    : "title",
+    "title"   : "Player" },
+
+  { "type"    : "string",
+    "title"   : "Username",
+    "desc"    : "Account name",
+    "section" : "Player",
+    "key"     : "username" },
+
+  { "type"    : "string",
+    "title"   : "Password",
+    "desc"    : "Account password",
+    "section" : "Player",
+    "key"     : "password" },
+
+  { "type"    : "string",
+    "title"   : "Character name",
+    "desc"    : "Character to use. The character must exist.",
+    "section" : "Player",
+    "key"     : "charname" },
+
+  { "type"    : "title",
+    "title"   : "Other" },
+
+  { "type"    : "string",
+    "title"   : "Online players list source",
+    "desc"    : "The source of online.txt file, containing current online users.",
+    "section" : "Other",
+    "key"     : "online_txt_url" },
+
+  { "type"    : "string",
+    "title"   : "Chat log directory",
+    "desc"    : "Created automatically.",
+    "section" : "Other",
+    "key"     : "chatlog_dir" }
+]

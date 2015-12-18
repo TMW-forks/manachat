@@ -1,4 +1,4 @@
-
+#:import mgui gui.managui
 
 <MessagesLog>:
     canvas.before:
@@ -37,7 +37,7 @@
             pos: self.pos
             size: self.size
 
-    message_box: id_message_box
+    messages_log: id_messages_log
     chat_input: id_chat_input
     players_list: id_players_list
 
@@ -49,13 +49,16 @@
             orientation: 'vertical'
 
             MessagesLog:
-                id: id_message_box
+                id: id_messages_log
                 size_hint: 1, 1
 
             TextInput:
                 id: id_chat_input
                 size_hint: 1, None
                 height: '60dp'
+                focus: True
+                multiline: False
+                on_text_validate: root.on_command_enter(args)
 
         PlayersList:
             id: id_players_list

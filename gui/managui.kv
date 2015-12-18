@@ -1,4 +1,3 @@
-#:import mgui gui.managui
 
 <MessagesLog>:
     canvas.before:
@@ -19,7 +18,20 @@
             font_size: '12sp'
 
 
+<PlayersListItem>:
+
+    canvas.before:
+        Color:
+            rgba: 0.05, 0.05, 0.05, 1
+        Line:
+            points:  [ self.x, self.y, self.x+self.width, self.y ]
+
+    Label:
+        text: root.nick
+
+
 <PlayersList>:
+
     canvas.before:
         Color:
             rgba: .25, .1, .9, 1
@@ -55,7 +67,7 @@
             TextInput:
                 id: id_chat_input
                 size_hint: 1, None
-                height: '60dp'
+                height: '50dp'
                 focus: True
                 multiline: False
                 on_text_validate: root.on_command_enter(args)

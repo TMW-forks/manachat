@@ -2,13 +2,13 @@
 
 import sys
 import datetime
-
+import asyncore
 
 import kivy
 kivy.require('1.9.0')
 
 from kivy.app import App
-from kivy.logger import Logger
+# from kivy.logger import Logger
 # from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 # from kivy.uix.gridlayout import GridLayout
@@ -25,6 +25,10 @@ from kivy.config import ConfigParser
 
 config = ConfigParser()
 config.read("manachat.ini")
+
+from net import loginsrv
+from handlers import register_all
+from commands import process_line
 
 
 class MessagesLog(BoxLayout):
@@ -89,7 +93,8 @@ class RootWidget(FloatLayout):
         self.chat_input.focus = True
 
     def on_command_enter(self, *args):
-        self.messages_log.append_message(self.chat_input.text)
+        # self.messages_log.append_message(self.chat_input.text)
+        process_line(self.chat_input.text)
         self.chat_input.text = ''
         Clock.schedule_once(self._focus_chat_input, 0.1)  # dirty hack :^)
         # app = App.get_running_app()
@@ -97,21 +102,46 @@ class RootWidget(FloatLayout):
 
 
 class ManaGuiApp(App):
-    use_kivy_settings = BooleanProperty(True)
+    use_kivy_settings = BooleanProperty(False)
+
+    def connect(self):
+        loginsrv.connect(config.get('Server', 'host'),
+                         config.getint('Server', 'port'))
+
+        loginsrv.server.username = config.get('Player', 'username')
+        loginsrv.server.password = config.get('Player', 'password')
+        loginsrv.server.char_name = config.get('Player', 'charname')
+
+        loginsrv.cmsg_server_version_request()
 
     def hook_keyboard(self, window, key, *largs):
         if key == 27:
-            sys.exit()
+            self.stop()
             return True
         return False
 
     def build(self):
         Window.bind(on_keyboard=self.hook_keyboard)
+        register_all()
+        self.connect()
+        Clock.schedule_interval(self.update_loop, 0)
         return RootWidget()
 
     def build_settings(self, settings):
         settings.add_json_panel('ManaChat', config,
                                 filename='manachat.json')
+
+    def update_loop(self, *l):
+        asyncore.loop(timeout=0, count=10)
+
+    def on_pause(self):
+        return True
+
+    def on_stop(self):
+        Clock.unschedule(self.update_loop)
+        # raise asyncore.ExitNow('Disconnecting from server')
+        from net import mapserv
+        mapserv.cleanup()
 
 
 if __name__ == "__main__":

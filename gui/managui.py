@@ -29,6 +29,7 @@ config.read("manachat.ini")
 from net import loginsrv
 from handlers import register_all
 from commands import process_line
+from net.onlineusers import OnlineUsers
 
 
 class MessagesLog(BoxLayout):
@@ -114,6 +115,10 @@ class ManaGuiApp(App):
 
         loginsrv.cmsg_server_version_request()
 
+    def update_online_list(self, *l):
+        self.root.players_list.items = OnlineUsers.dl_online_list(
+            config.get('Other', 'online_txt_url'))
+
     def hook_keyboard(self, window, key, *largs):
         if key == 27:
             self.stop()
@@ -124,6 +129,8 @@ class ManaGuiApp(App):
         Window.bind(on_keyboard=self.hook_keyboard)
         register_all()
         self.connect()
+        Clock.schedule_once(self.update_online_list, 0.2)
+        Clock.schedule_interval(self.update_online_list, 35)
         Clock.schedule_interval(self.update_loop, 0)
         return RootWidget()
 
@@ -139,6 +146,7 @@ class ManaGuiApp(App):
 
     def on_stop(self):
         Clock.unschedule(self.update_loop)
+        Clock.unschedule(self.update_online_list)
         # raise asyncore.ExitNow('Disconnecting from server')
         from net import mapserv
         mapserv.cleanup()

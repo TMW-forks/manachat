@@ -49,13 +49,14 @@ class OnlineUsers(threading.Thread):
         self.__lock.release()
         return users
 
-    def dl_online_list(self):
+    @staticmethod
+    def dl_online_list(url):
         """
         Download online.txt, parse it, and return a list of online user nicks.
         If error occurs, return empty list
         """
         try:
-            data = urllib2.urlopen(self._url).read()
+            data = urllib2.urlopen(url).read()
         except urllib2.URLError, e:
             netlog.error("urllib error: %s", e.message)
             return []
@@ -68,7 +69,7 @@ class OnlineUsers(threading.Thread):
     def run(self):
         while self._active:
             if (time.time() - self._timer) > self._update_interval:
-                users = self.dl_online_list()
+                users = self.dl_online_list(self._url)
                 self.__lock.acquire(True)
                 self.__online_users=users
                 self.__lock.release()

@@ -2,9 +2,8 @@
 from construct import *
 from construct.protocols.layer3.ipv4 import IpAddress
 from protocol import *
-from dispatcher import dispatch
 from utils import *
-from common import netlog, SocketWrapper
+from common import netlog, SocketWrapper, send_packet
 import charserv
 from being import BeingsCache
 
@@ -46,13 +45,15 @@ def smsg_being_move(data):
 @extendable
 def smsg_being_name_response(data):
     beings_cache[data.id].name = data.name
-    netlog.info("SMSG_BEING_NAME_RESPONSE id={} name={}".format(data.id, data.name))
+    netlog.info("SMSG_BEING_NAME_RESPONSE id={} name={}".format(
+        data.id, data.name))
 
 
 @extendable
 def smsg_being_remove(data):
     beings_cache[data.id].nearby = False
-    netlog.info("SMSG_BEING_REMOVE (id={}, deadflag={})".format(data.id, data.deadflag))
+    netlog.info("SMSG_BEING_REMOVE (id={}, deadflag={})".format(
+        data.id, data.deadflag))
 
 
 @extendable
@@ -78,12 +79,14 @@ def smsg_player_inventory(data):
 
 @extendable
 def smsg_player_inventory_add(data):
-    netlog.info("SMSG_PLAYER_INVENTORY_ADD index={} id={} amount={}".format(data.index, data.id, data.amount))
+    netlog.info("SMSG_PLAYER_INVENTORY_ADD index={} id={} amount={}".format(
+        data.index, data.id, data.amount))
 
 
 @extendable
 def smsg_player_inventory_remove(data):
-    netlog.info("SMSG_PLAYER_INVENTORY_REMOVE index={} amount={}".format(data.index, data.amount))
+    netlog.info("SMSG_PLAYER_INVENTORY_REMOVE index={} amount={}".format(
+        data.index, data.amount))
 
 
 @extendable
@@ -95,18 +98,21 @@ def smsg_player_move(data):
 @extendable
 def smsg_player_stop(data):
     beings_cache.add(data.id, 1)
-    netlog.info("SMSG_PLAYER_STOP (id={}, x={}, y={}".format(data.id, data.x, data.y))
+    netlog.info("SMSG_PLAYER_STOP (id={}, x={}, y={}".format(
+        data.id, data.x, data.y))
 
 
 @extendable
 def smsg_player_update(data):
     beings_cache.add(data.id, data.job)
-    netlog.info("SMSG_PLAYER_UPDATE_ (id={}, job={})".format(data.id, data.job))
+    netlog.info("SMSG_PLAYER_UPDATE_ (id={}, job={})".format(
+        data.id, data.job))
 
 
 @extendable
 def smsg_player_warp(data):
-    netlog.info("SMSG_PLAYER_WARP (map={}, x={}, y={}".format(data.map, data.x, data.y))
+    netlog.info("SMSG_PLAYER_WARP (map={}, x={}, y={}".format(
+        data.map, data.x, data.y))
 
 
 @extendable
@@ -155,7 +161,8 @@ def smsg_trade_response(data):
 
 @extendable
 def smsg_trade_item_add(data):
-    netlog.info("SMSG_TRADE_ITEM_ADD id={} amount={}".format(data.id, data.amount))
+    netlog.info("SMSG_TRADE_ITEM_ADD id={} amount={}".format(
+        data.id, data.amount))
 
 
 @extendable
@@ -338,8 +345,9 @@ protodef = {
     0x0081 : (smsg_connection_problem,
               Struct("data", Byte("code"))),
     0x009a : (smsg_gm_chat,
+              Struct("data",
                      ULInt16("length"),
-                     StringZ("message", lambda ctx: ctx.length - 4)),
+                     StringZ("message", lambda ctx: ctx.length - 4))),
     0x009e : (smsg_ignore, Field("data", 15)),    # item-dropped
     0x00a1 : (smsg_ignore, Field("data", 4)),     # item-remove
     0x009d : (smsg_ignore, Field("data", 15)),    # item-visible
@@ -409,21 +417,17 @@ protodef = {
 }
 
 
-def cmsg_map_server_connect(data):
-    data_def = Struct("packet",
-                      ULInt16("opcode"),
-                      ULInt32("account"),
-                      ULInt32("char_id"),
-                      ULInt32("session1"),
-                      ULInt32("session2"),
-                      Enum(Byte("gender"),
-                           BOY = 1,
-                           GIRL = 0))
+def cmsg_map_server_connect(account, char_id, session1, session2, gender):
+    netlog.info(("CMSG_MAP_SERVER_CONNECT account={} char_id={} "
+                 "session1={} session2={} gender={}").format(account,
+                    char_id, session1, session2, gender))
 
-    data.opcode = CMSG_MAP_SERVER_CONNECT
-    netlog.info("CMSG_MAP_SERVER_CONNECT account={} char_id={} session1={} session2={} gender={}".format(
-        data.account, data.char_id, data.session1, data.session2, data.gender))
-    data_def.build_stream(data, server)
+    send_packet(server, CMSG_MAP_SERVER_CONNECT,
+                (ULInt32("account"), account),
+                (ULInt32("char_id"), char_id),
+                (ULInt32("session1"), session1),
+                (ULInt32("session2"), session2),
+                (Gender("gender"), gender))
 
 
 def cmsg_map_loaded():
@@ -487,7 +491,6 @@ def connect(host, port):
     beings_cache = BeingsCache(cmsg_name_request)
     server = SocketWrapper(host=host, port=port, protodef=protodef)
     timers.append(Schedule(15, 30, cmsg_map_server_ping))
-    return server
 
 
 def cleanup():

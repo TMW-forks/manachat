@@ -4,13 +4,9 @@ from construct.protocols.layer3.ipv4 import IpAddress
 from protocol import *
 from utils import *
 import mapserv
-from common import netlog, SocketWrapper
-
-# from .. import config
-import config
+from common import netlog, SocketWrapper, send_packet
 
 server = None
-char_name = ""
 
 
 def smsg_ignore(data):
@@ -23,10 +19,10 @@ def smsg_char_login(data):
 
     char_slot = -1
     for c in data.chars:
-        if c.name == char_name:
+        if c.name == server.char_name:
             char_slot = c.slot
     if char_slot < 0:
-        raise Exception("CharName {} not found".format(char_name))
+        raise Exception("CharName {} not found".format(server.char_name))
 
     cmsg_char_select(char_slot)
 
@@ -39,18 +35,14 @@ def smsg_char_login_error(data):
 
 @extendable
 def smsg_char_map_info(data):
-    netlog.info("SMSG_CHAR_MAP_INFO CID={} map={} addr={} port={}".format(
+    netlog.info("SMSG_CHAR_MAP_INFO CID={} map={} address={} port={}".format(
         data.char_id, data.map_name, data.address, data.port))
     server.close()
 
-    # restore session data
-    data.account = server.account
-    data.session1 = server.session1
-    data.session2 = server.session2
-    data.gender = server.gender
-
-    mapserv.connect(config.server, data.port)
-    mapserv.cmsg_map_server_connect(data)
+    mapserv.connect(data.address, data.port)
+    mapserv.cmsg_map_server_connect(server.account, data.char_id,
+                                    server.session1, server.session2,
+                                    server.gender)
 
 
 protodef = {
@@ -85,29 +77,23 @@ protodef = {
 }
 
 
-def cmsg_char_server_connect(data):
-    data_def = Struct("packet",
-                      ULInt16("opcode"),
-                      ULInt32("account"),
-                      ULInt32("session1"),
-                      ULInt32("session2"),
-                      ULInt16("proto"),
-                      Enum(Byte("gender"),
-                           BOY = 1,
-                           GIRL = 0))
+def cmsg_char_server_connect(account, session1, session2, proto, gender):
+    netlog.info(("CMSG_CHAR_SERVER_CONNECT account={} session1={} "
+                 "session2={} proto={} gender={}").format(
+        account, session1, session2, proto, gender))
 
     # save session data
-    server.account = data.account
-    server.session1 = data.session1
-    server.session2 = data.session2
-    server.gender = data.gender
+    server.account = account
+    server.session1 = session1
+    server.session2 = session2
+    server.gender = gender
 
-    data.opcode = CMSG_CHAR_SERVER_CONNECT
-    data.proto = 1
-
-    logging.info("CMSG_CHAR_SERVER_CONNECT account={} session1={} session2={} proto={} gender={}".format(
-        data.account, data.session1, data.session2, data.proto, data.gender))
-    data_def.build_stream(data, server)
+    send_packet(server, CMSG_CHAR_SERVER_CONNECT,
+                (ULInt32("account"), account),
+                (ULInt32("session1"), session1),
+                (ULInt32("session2"), session2),
+                (ULInt16("proto"), proto),
+                (Gender("gender"), gender))
 
 
 def cmsg_char_select(slot):
@@ -116,7 +102,5 @@ def cmsg_char_select(slot):
 
 
 def connect(host, port):
-    global server, char_name
-    char_name = config.charname
+    global server
     server = SocketWrapper(host=host, port=port, protodef=protodef)
-    return server

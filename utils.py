@@ -1,13 +1,17 @@
 import time
 import threading
 import logging
-from construct import String, ULInt16, Struct
+from construct import String, ULInt16, Struct, Enum, Byte
 
 
 def StringZ(name, length, **kw):
     kw['padchar'] = "\x00"
     kw['paddir'] = "right"
     return String(name, length, **kw)
+
+
+def Gender(name):
+    return Enum(Byte(name), BOY=1, GIRL=0)
 
 
 def log_method(fun):
@@ -49,31 +53,17 @@ class Schedule:
             self._thread.join()
 
 
-def send_packet(srv, opcode_, *fields):
-    class C:
-        opcode = opcode_
-
-    ms = [ULInt16("opcode")]
-
-    for macro, value in fields:
-        setattr(C, macro.name, value)
-        ms.append(macro)
-
-    d = Struct("packet", *ms)
-    d.build_stream(C, srv)
-
-
 # The following group of functions is to provide a way to extend
 # a module's functions by decorating them with @extendable
 
-extensions = {}
+_extensions = {}
 
 
 def register_extension(name, func):
-    if name in extensions:
-        extensions[name].append(func)
+    if name in _extensions:
+        _extensions[name].append(func)
     else:
-        extensions[name] = [func]
+        _extensions[name] = [func]
 
 
 def extendable(fun):
@@ -81,8 +71,8 @@ def extendable(fun):
     def wrapper(*args, **kwargs):
         name = fun.__name__
         fun(*args, **kwargs)
-        if name in extensions:
-            for f in extensions[name]:
+        if name in _extensions:
+            for f in _extensions[name]:
                 f(*args, **kwargs)
 
     return wrapper

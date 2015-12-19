@@ -1,25 +1,17 @@
-import asyncore
-import logging
 from construct import *
 from construct.protocols.layer3.ipv4 import IpAddress
 from protocol import *
 from utils import *
 import charserv
-from common import netlog, SocketWrapper
-
-# from .. import config
-import config
-
+from common import netlog, SocketWrapper, send_packet
 
 server = None
-# username = ''
-# password = ''
 
 
 @extendable
 def smsg_server_version(data):
     netlog.info("SMSG_SERVER_VERSION {}.{}".format(data.hi, data.lo))
-    cmsg_login_register(config.username, config.password)
+    cmsg_login_register(server.username, server.password)
 
 
 @extendable
@@ -32,9 +24,10 @@ def smsg_login_data(data):
     netlog.info("SMSG_LOGIN_DATA {}".format(data))
     server.close()
 
-    charserv.connect(config.server,
-                     data.worlds[0].port)
-    charserv.cmsg_char_server_connect(data)
+    charserv.connect(data.worlds[0].address, data.worlds[0].port)
+    charserv.server.char_name = server.char_name
+    charserv.cmsg_char_server_connect(data.account, data.session1,
+                                      data.session2, 1, data.gender)
 
 
 @extendable
@@ -53,7 +46,9 @@ def smsg_login_error(data):
         11: "Incurrect email",
         99: "Username permanently erased" }
 
-    netlog.error("SMSG_LOGIN_ERROR {}".format(error_codes.get(data.code, "Unknown error")))
+    netlog.error("SMSG_LOGIN_ERROR {}".format(
+        error_codes.get(data.code, "Unknown error")))
+
     server.close()
 
 
@@ -76,9 +71,7 @@ protodef = {
                      IpAddress("oldip"),
                      StringZ("lastlogin", 24),
                      Padding(2),
-                     Enum(Byte("gender"),
-                          BOY = 1,
-                          GIRL = 0),
+                     Gender("gender"),
                      Array(lambda ctx: (ctx.length - 47) / 32,
                            Struct("worlds",
                                   IpAddress("address"),
@@ -100,7 +93,8 @@ def cmsg_server_version_request():
 
 
 def cmsg_login_register(username, password):
-    netlog.info("CMSG_LOGIN_REGISTER username={} password={}".format(username, password))
+    netlog.info("CMSG_LOGIN_REGISTER username={} password={}".format(
+        username, password))
     send_packet(server, CMSG_LOGIN_REGISTER,
                 (ULInt32("clientversion"),  3),
                 (StringZ("username", 24),   username),
@@ -111,4 +105,3 @@ def cmsg_login_register(username, password):
 def connect(host, port):
     global server
     server = SocketWrapper(host=host, port=port, protodef=protodef)
-    return server

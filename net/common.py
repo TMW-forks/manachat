@@ -1,11 +1,11 @@
 import socket
 import asyncore
 import logging
+from construct import Struct, ULInt16
 from dispatcher import dispatch
 
 
 netlog = logging.getLogger("ManaChat.Net")
-netlog.setLevel(logging.DEBUG)
 
 
 class SocketWrapper(asyncore.dispatcher_with_send):
@@ -50,3 +50,17 @@ class SocketWrapper(asyncore.dispatcher_with_send):
 
     def write(self, data):
         self.send(data)
+
+
+def send_packet(srv, opcode_, *fields):
+    class C:
+        opcode = opcode_
+
+    ms = [ULInt16("opcode")]
+
+    for macro, value in fields:
+        setattr(C, macro.name, value)
+        ms.append(macro)
+
+    d = Struct("packet", *ms)
+    d.build_stream(C, srv)

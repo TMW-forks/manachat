@@ -462,7 +462,7 @@ def cmsg_name_request(id_):
 
 def cmsg_chat_message(msg):
     netlog.info("CMSG_CHAT_MESSAGE {}".format(msg))
-    m = "{} : {}".format(charserv.char_name, msg)
+    m = "{} : {}".format(server.char_name, msg)
     l = len(m)
     send_packet(server, CMSG_CHAT_MESSAGE,
                 (ULInt16("len"), l + 5),

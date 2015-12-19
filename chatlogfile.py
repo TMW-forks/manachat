@@ -1,6 +1,5 @@
 import os
 import logging
-import config
 
 
 class ChatLogFiles:
@@ -30,8 +29,9 @@ class ChatLogFiles:
         logger.info(message)
 
 
-root_logger = ChatLogFiles(config.chatlog_dir)
+# root_logger = ChatLogFiles('/tmp/mana')
 
 
 def log(message, user="General"):
-    root_logger.log(message, user=user)
+    pass
+    # root_logger.log(message, user=user)

@@ -28,7 +28,6 @@ import string
 import datetime
 import threading
 import time
-import config
 
 from common import netlog
 

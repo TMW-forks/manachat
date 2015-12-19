@@ -1,6 +1,6 @@
 
 # import cui
-import mapserv
+from net import mapserv
 from utils import register_extension
 import commands
 from chatlog import chatlog

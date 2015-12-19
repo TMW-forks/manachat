@@ -1,7 +1,0 @@
-server = "server.themanaworld.org"
-port = 6901
-username = "user"
-password = "pass"
-charname = "Char"
-online_txt_url = 'http://server.themanaworld.org/online.txt'
-chatlog_dir = ''

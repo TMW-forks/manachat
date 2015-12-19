@@ -1,5 +1,6 @@
 import re
-import mapserv
+
+from net import mapserv
 from chatlog import chatlog
 
 

@@ -5,24 +5,21 @@ import sys
 import logging
 import time
 import asyncore
-import curses
 import threading
-from time import gmtime, strftime
 
-# add ../net to PYTHONPATH
+# add .. to PYTHONPATH
 parent, _ = os.path.split(os.getcwd())
 sys.path.append(parent)
-sys.path.append(os.path.join(parent, "net"))
 del parent
 
-import loginsrv
-from common import netlog
-# from utils import Schedule
+from net import loginsrv
+from ConfigParser import ConfigParser
+from net.common import netlog
+
 import cui
 import handlers
 import commands
-import config
-from onlineusers import OnlineUsers
+from net.onlineusers import OnlineUsers
 
 
 class SideBarUpdater(threading.Thread):
@@ -56,7 +53,7 @@ if __name__ == "__main__":
     rootLogger = logging.getLogger('')
     rootLogger.addHandler(logging.NullHandler())
 
-    netlog.setLevel(logging.DEBUG)
+    netlog.setLevel(logging.INFO)
     fh = logging.FileHandler("/tmp/netlog.txt", mode="w")
     fmt = logging.Formatter("[%(asctime)s] %(message)s",
                             datefmt="%Y-%m-%d %H:%M:%S")
@@ -65,14 +62,23 @@ if __name__ == "__main__":
 
     handlers.register_all()
 
+    config = ConfigParser()
+    config.read('../manachat.ini')
+
     cui.init()
 
-    online_users = OnlineUsers(config.online_txt_url)
+    online_users = OnlineUsers(config.get('Other', 'online_txt_url'))
     online_users.start()
     side_bar_updater = SideBarUpdater(cui.players_win, online_users)
     side_bar_updater.start()
 
-    loginsrv.connect(config.server, config.port)
+    loginsrv.connect(config.get('Server', 'host'),
+                     config.getint('Server', 'port'))
+
+    loginsrv.server.username = config.get('Player', 'username')
+    loginsrv.server.password = config.get('Player', 'password')
+    loginsrv.server.char_name = config.get('Player', 'charname')
+
     loginsrv.cmsg_server_version_request()
 
     t = threading.Thread(target=asyncore.loop)
@@ -85,5 +91,5 @@ if __name__ == "__main__":
     online_users.stop()
     cui.finalize()
 
-    import mapserv
+    from net import mapserv
     mapserv.cleanup()

@@ -14,12 +14,12 @@ del parent
 
 from net import loginsrv
 from ConfigParser import ConfigParser
-from net.common import netlog
 
 import cui
 import handlers
 import commands
 from net.onlineusers import OnlineUsers
+from loggers import netlog, debuglog
 
 
 class SideBarUpdater(threading.Thread):
@@ -49,16 +49,27 @@ class SideBarUpdater(threading.Thread):
         self._active = False
 
 
+class CursesDebugLogHandler(logging.Handler):
+    def emit(self, record):
+        msg = self.format(record)
+        cui.chatlog_append(msg)
+
+
 if __name__ == "__main__":
     rootLogger = logging.getLogger('')
     rootLogger.addHandler(logging.NullHandler())
 
-    netlog.setLevel(logging.INFO)
+    dbgh = CursesDebugLogHandler()
+    dbgh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s",
+                                        datefmt="%H:%M"))
+    debuglog.addHandler(dbgh)
+    debuglog.setLevel(logging.INFO)
+
     fh = logging.FileHandler("/tmp/netlog.txt", mode="w")
-    fmt = logging.Formatter("[%(asctime)s] %(message)s",
-                            datefmt="%Y-%m-%d %H:%M:%S")
-    fh.setFormatter(fmt)
+    fh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s",
+                                      datefmt="%Y-%m-%d %H:%M:%S"))
     netlog.addHandler(fh)
+    netlog.setLevel(logging.INFO)
 
     handlers.register_all()
 

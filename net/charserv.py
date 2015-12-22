@@ -1,10 +1,11 @@
 
 from construct import *
 from construct.protocols.layer3.ipv4 import IpAddress
+import mapserv
 from protocol import *
 from utils import *
-import mapserv
-from common import netlog, SocketWrapper, send_packet
+from common import *
+from loggers import netlog
 
 server = None
 

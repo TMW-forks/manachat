@@ -2,9 +2,10 @@
 from construct import *
 from construct.protocols.layer3.ipv4 import IpAddress
 from protocol import *
+from common import *
 from utils import *
-from common import netlog, SocketWrapper, send_packet
 from being import BeingsCache
+from loggers import netlog
 
 server = None
 timers = []

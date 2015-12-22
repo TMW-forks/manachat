@@ -4,22 +4,17 @@ from construct.protocols.layer3.ipv4 import IpAddress
 from protocol import *
 from utils import *
 from common import netlog, SocketWrapper, send_packet
-import charserv
 from being import BeingsCache
-
-# migrate to asyncore
-# Struct("data"...) should be Struct("functionname"...)
-# Session class with it's own asyncore loop and state (???)
-# chatlog (where, message)     where=General|Party|Nick|Guild
-# move all global variables to g.py
 
 server = None
 timers = []
 beings_cache = None
 party_info = []
 party_members = {}
+player_pos = {'x': 0, 'y': 0, 'dir': 0}
 
 
+# --------------------------------------------------------------------
 def smsg_ignore(data):
     pass
 
@@ -205,9 +200,18 @@ def smsg_server_ping(data):
 @extendable
 def smsg_map_login_success(data):
     netlog.info("SMSG_MAP_LOGIN_SUCCESS {}".format(data))
+    player_pos['x'] = data.coor.x
+    player_pos['y'] = data.coor.y
+    player_pos['dir'] = data.coor.dir
     cmsg_map_loaded()
 
 
+@extendable
+def smsg_walk_response(data):
+    netlog.info("SMSG_WALK_RESPONSE {}".format(data))
+
+
+# --------------------------------------------------------------------
 protodef = {
     0x8000 : (smsg_ignore, Field("data", 2)),      # ignore
     0x008a : (smsg_ignore, Field("data", 27)),     # being-action
@@ -413,10 +417,20 @@ protodef = {
                      Padding(2))),
     0x007f : (smsg_server_ping,
               Struct("data",
-                     ULInt32("tick")))
+                     ULInt32("tick"))),
+    0x0087 : (smsg_walk_response,
+              Struct("data",
+                     ULInt32("tick"),
+                     BitStruct("coor_pair",
+                               BitField("src_x", 10),
+                               BitField("src_y", 10),
+                               BitField("dst_x", 10),
+                               BitField("dst_y", 10)),
+                     Padding(1)))
 }
 
 
+# --------------------------------------------------------------------
 def cmsg_map_server_connect(account, char_id, session1, session2, gender):
     netlog.info(("CMSG_MAP_SERVER_CONNECT account={} char_id={} "
                  "session1={} session2={} gender={}").format(account,
@@ -486,6 +500,45 @@ def cmsg_party_message(msg):
                 (String("msg", l), msg))
 
 
+def cmsg_player_change_dest(x_, y_, dir_):
+    netlog.info("CMSG_PLAYER_CHANGE_DEST x={} y={} dir={}".format(x_, y_, dir_))
+
+    class C:
+        opcode = CMSG_PLAYER_CHANGE_DEST
+
+        class coor:
+            x = x_
+            y = y_
+            dir = dir_
+
+    d = Struct("packet",
+               ULInt16("opcode"),
+               BitStruct("coor", BitField("x", 10),
+                         BitField("y", 10), Nibble("dir")))
+
+    d.build_stream(C, server)
+
+
+def cmsg_player_change_dir(new_dir):
+    netlog.info("CMSG_PLAYER_CHANGE_DIR {}".format(new_dir))
+    send_packet(server, CMSG_PLAYER_CHANGE_DIR,
+                (ULInt16("unused"), 0),
+                (ULInt8("dir"), new_dir))
+
+
+def cmsg_player_change_act(action):
+    netlog.info("CMSG_PLAYER_CHANGE_ACT {}".format(action))
+    send_packet(server, CMSG_PLAYER_CHANGE_ACT,
+                (ULInt32("unused"), 0),
+                (Byte("action"), action))
+
+
+def cmsg_player_respawn():
+    netlog.info("CMSG_PLAYER_RESPAWN")
+    ULInt16("opcode").build_stream(CMSG_PLAYER_RESPAWN, server)
+
+
+# --------------------------------------------------------------------
 def connect(host, port):
     global server, beings_cache
     beings_cache = BeingsCache(cmsg_name_request)

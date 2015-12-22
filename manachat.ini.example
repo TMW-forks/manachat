@@ -11,3 +11,4 @@ charname = Char
 [Other]
 online_txt_url = http://server.themanaworld.org/online.txt
 chatlog_dir = /tmp/mana
+use_mobile_interface = no

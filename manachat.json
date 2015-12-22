@@ -48,5 +48,17 @@
     "title"   : "Chat log directory",
     "desc"    : "Created automatically.",
     "section" : "Other",
-    "key"     : "chatlog_dir" }
+    "key"     : "chatlog_dir" },
+
+  { "type"    : "bool",
+    "title"   : "Use mobile interface",
+    "desc"    : "Use mobile UI. If disabled, use desktop UI. Changing it requires restart.",
+    "section" : "Other",
+    "key"     : "use_mobile_interface" },
+
+  { "type"    : "bool",
+    "title"   : "Log network packets",
+    "desc"    : "Used for debugging. Log file will be saved in $TEMP/netlog.txt",
+    "section" : "Other",
+    "key"     : "log_network_packets" }
 ]

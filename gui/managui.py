@@ -102,6 +102,12 @@ class RootWidget(FloatLayout):
         # app.root.players_list.items = ["one", "two", "three"]
 
 
+class RootWidgetMobile(FloatLayout):
+
+    def on_command_enter(self, *args):
+        pass
+
+
 class ManaGuiApp(App):
     use_kivy_settings = BooleanProperty(False)
 
@@ -125,6 +131,21 @@ class ManaGuiApp(App):
             return True
         return False
 
+    def on_start(self):
+        if config.getboolean('Other', 'log_network_packets'):
+            import os
+            import logging
+            import tempfile
+            from net.common import netlog
+
+            logfile = os.path.join(tempfile.gettempdir(), "netlog.txt")
+            netlog.setLevel(logging.INFO)
+            fh = logging.FileHandler(logfile, mode="w")
+            fmt = logging.Formatter("[%(asctime)s] %(message)s",
+                                    datefmt="%Y-%m-%d %H:%M:%S")
+            fh.setFormatter(fmt)
+            netlog.addHandler(fh)
+
     def build(self):
         Window.bind(on_keyboard=self.hook_keyboard)
         register_all()
@@ -132,7 +153,12 @@ class ManaGuiApp(App):
         Clock.schedule_once(self.update_online_list, 0.2)
         Clock.schedule_interval(self.update_online_list, 35)
         Clock.schedule_interval(self.update_loop, 0)
-        return RootWidget()
+
+        use_mobile = config.getboolean('Other', 'use_mobile_interface')
+        if use_mobile:
+            return RootWidgetMobile()
+        else:
+            return RootWidget()
 
     def build_settings(self, settings):
         settings.add_json_panel('ManaChat', config,

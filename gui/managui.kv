@@ -76,3 +76,36 @@
             id: id_players_list
             size_hint: None, 1
             width: '150dp'
+
+
+<RootWidgetMobile>:
+
+    canvas.before:
+        Color:
+            rgba: 0.01, 0.33, 0.32, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    messages_log: id_messages_log
+    chat_input: id_chat_input
+    players_list: id_players_list
+
+    Carousel:
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            MessagesLog:
+                id: id_messages_log
+
+            TextInput:
+                id: id_chat_input
+                size_hint_y: None
+                height: '50dp'
+                focus: True
+                multiline: False
+                on_text_validate: root.on_command_enter(args)
+
+        PlayersList:
+            id: id_players_list

@@ -1,7 +1,7 @@
 import time
 import threading
 import logging
-from construct import String, ULInt16, Struct, Enum, Byte
+from construct import String, Enum, Byte
 
 
 def StringZ(name, length, **kw):

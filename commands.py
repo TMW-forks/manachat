@@ -35,7 +35,7 @@ def sit_or_stand(cmd):
 def set_destination(arg):
     try:
         x, y = map(int, arg.split())
-        mapserv.cmsg_player_change_dest(x, y, 0)
+        mapserv.cmsg_player_change_dest(x, y)
     except ValueError:
         pass
 

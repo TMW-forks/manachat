@@ -501,7 +501,7 @@ def cmsg_party_message(msg):
                 (String("msg", l), msg))
 
 
-def cmsg_player_change_dest(x_, y_, dir_):
+def cmsg_player_change_dest(x_, y_):
     netlog.info("CMSG_PLAYER_CHANGE_DEST x={} y={} dir={}".format(x_, y_, dir_))
 
     class C:
@@ -510,7 +510,7 @@ def cmsg_player_change_dest(x_, y_, dir_):
         class coor:
             x = x_
             y = y_
-            dir = dir_
+            dir = 0
 
     d = Struct("packet",
                ULInt16("opcode"),

@@ -1,11 +1,18 @@
 import socket
 import asyncore
-import logging
-from construct import Struct, ULInt16
+from construct import Struct, ULInt16, String, Enum, Byte
 from dispatcher import dispatch
+from loggers import netlog
 
 
-netlog = logging.getLogger("ManaChat.Net")
+def StringZ(name, length, **kw):
+    kw['padchar'] = "\x00"
+    kw['paddir'] = "right"
+    return String(name, length, **kw)
+
+
+def Gender(name):
+    return Enum(Byte(name), BOY=1, GIRL=0)
 
 
 class SocketWrapper(asyncore.dispatcher_with_send):
@@ -31,7 +38,7 @@ class SocketWrapper(asyncore.dispatcher_with_send):
         while len(self.read_buffer) > 0:
             dispatch(self, self.protodef)
 
-    def read(self, n = -1):
+    def read(self, n=-1):
         data = ''
         if n < 0:
             data = self.read_buffer

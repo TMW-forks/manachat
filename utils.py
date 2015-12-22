@@ -1,17 +1,6 @@
 import time
 import threading
 import logging
-from construct import String, Enum, Byte
-
-
-def StringZ(name, length, **kw):
-    kw['padchar'] = "\x00"
-    kw['paddir'] = "right"
-    return String(name, length, **kw)
-
-
-def Gender(name):
-    return Enum(Byte(name), BOY=1, GIRL=0)
 
 
 def log_method(fun):

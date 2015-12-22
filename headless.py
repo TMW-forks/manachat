@@ -18,9 +18,9 @@ if __name__ == '__main__':
     loginsrv.server.username = config.get('Player', 'username')
     loginsrv.server.password = config.get('Player', 'password')
     loginsrv.server.char_name = config.get('Player', 'charname')
-    
+
     loginsrv.cmsg_server_version_request()
-                                 
+
     try:
         asyncore.loop()
     except KeyboardInterrupt:

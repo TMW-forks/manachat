@@ -1,5 +1,5 @@
 
-from net import mapserv
+import net.mapserv as mapserv
 
 whisper_to = ''
 whisper_msg = ''

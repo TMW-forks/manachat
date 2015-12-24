@@ -1,6 +1,5 @@
 
-# import cui
-from net import mapserv
+import net.mapserv as mapserv
 from utils import register_extension
 import commands
 import cui
@@ -8,22 +7,21 @@ import chatlogfile
 from loggers import debuglog
 
 
-def curses_being_chat(data):
+def being_chat(data):
     id_, message = data.id, data.message
     nick = mapserv.beings_cache[id_].name
-    # cui.chatlog_append("{} : {}".format(nick, message))
     m = "{} : {}".format(nick, message)
     debuglog.info(m)
     chatlogfile.log(m)
 
 
-def curses_player_chat(data):
+def player_chat(data):
     message = data.message
     debuglog.info(message)
     chatlogfile.log(message)
 
 
-def curses_got_whisper(data):
+def got_whisper(data):
     nick, message = data.nick, data.message
     m = "[{} ->] {}".format(nick, message)
     debuglog.info(m)
@@ -42,7 +40,7 @@ def send_whisper_result(data):
         debuglog.info("[error] {} is offline.".format(commands.whisper_to))
 
 
-def curses_party_chat(data):
+def party_chat(data):
     nick = mapserv.party_members.get(data.id, str(data.id))
     msg = data.message
     m = "[Party] {} : {}".format(nick, msg)
@@ -50,9 +48,14 @@ def curses_party_chat(data):
     chatlogfile.log(m, "Party")
 
 
+def player_warp(data):
+    mapserv.cmsg_map_loaded()
+
+
 def register_all():
-    register_extension("smsg_being_chat", curses_being_chat)
-    register_extension("smsg_player_chat", curses_player_chat)
-    register_extension("smsg_whisper", curses_got_whisper)
+    register_extension("smsg_being_chat", being_chat)
+    register_extension("smsg_player_chat", player_chat)
+    register_extension("smsg_whisper", got_whisper)
     register_extension("smsg_whisper_response", send_whisper_result)
-    register_extension("smsg_party_chat", curses_party_chat)
+    register_extension("smsg_party_chat", party_chat)
+    register_extension("smsg_player_warp", player_warp)

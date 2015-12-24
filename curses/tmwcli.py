@@ -6,18 +6,18 @@ import logging
 import time
 import asyncore
 import threading
+from ConfigParser import ConfigParser
 
 # add .. to PYTHONPATH
 parent, _ = os.path.split(os.getcwd())
-sys.path.append(parent)
+sys.path.insert(0, parent)
 del parent
-
-from net import loginsrv
-from ConfigParser import ConfigParser
 
 import cui
 import handlers
-import commands
+import net.loginsrv as loginsrv
+import net.mapserv as mapserv
+from commands import process_line
 from net.onlineusers import OnlineUsers
 from loggers import netlog, debuglog
 
@@ -27,7 +27,6 @@ class SideBarUpdater(threading.Thread):
     def __init__(self, window, online_users_obj, update_interval=20):
         self._active = True
         self._timer = 0
-        # self._thread = threading.Thread(target=self._threadfunc, args=())
         self._update_interval = update_interval
         self._online_users_obj = online_users_obj
         self._window = window
@@ -96,11 +95,10 @@ if __name__ == "__main__":
     t.setDaemon(True)
     t.start()
 
-    cui.input_loop(commands.process_line)
+    cui.input_loop(process_line)
 
     side_bar_updater.stop()
     online_users.stop()
     cui.finalize()
 
-    from net import mapserv
     mapserv.cleanup()

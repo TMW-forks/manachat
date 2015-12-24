@@ -1,7 +1,7 @@
 
 from kivy.app import App
+import net.mapserv as mapserv
 import commands
-from net import mapserv
 from utils import register_extension
 
 
@@ -48,9 +48,17 @@ def party_chat(data):
     app.root.messages_log.append_message(m)
 
 
+def player_warp(data):
+    mapserv.cmsg_map_loaded()
+    m = "[warp] {} ({},{})".format(data.map, data.x, data.y)
+    app = App.get_running_app()
+    app.root.messages_log.append_message(m)
+
+
 def register_all():
     register_extension("smsg_being_chat", being_chat)
     register_extension("smsg_player_chat", player_chat)
     register_extension("smsg_whisper", got_whisper)
     register_extension("smsg_whisper_response", send_whisper_result)
     register_extension("smsg_party_chat", party_chat)
+    register_extension("smsg_player_warp", player_warp)

@@ -2,3 +2,4 @@ syntax: glob
 
 config.py
 manachat.ini
+tmx/

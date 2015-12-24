@@ -1,6 +1,5 @@
 #!/usr/bin/python2
 
-import sys
 import datetime
 import asyncore
 
@@ -26,7 +25,8 @@ from kivy.config import ConfigParser
 config = ConfigParser()
 config.read("manachat.ini")
 
-from net import loginsrv
+import net.loginsrv as loginsrv
+import net.mapserv as mapserv
 from handlers import register_all
 from commands import process_line
 from net.onlineusers import OnlineUsers
@@ -173,8 +173,6 @@ class ManaGuiApp(App):
     def on_stop(self):
         Clock.unschedule(self.update_loop)
         Clock.unschedule(self.update_online_list)
-        # raise asyncore.ExitNow('Disconnecting from server')
-        from net import mapserv
         mapserv.cleanup()
 
 

@@ -516,7 +516,7 @@ def cmsg_map_server_ping(tick_=-1):
     netlog.info("CMSG_MAP_SERVER_PING tick={}".format(tick))
     if tick_ < 0:
         tick_ = tick + 1
-    send_packet(server, CMSG_NAME_REQUEST,
+    send_packet(server, CMSG_MAP_SERVER_PING,
                 (ULInt32("tick"), tick_))
 
 

@@ -89,7 +89,7 @@ def smsg_player_inventory_remove(data):
 @extendable
 def smsg_player_move(data):
     beings_cache.add(data.id, data.job)
-    netlog.info("SMSG_PLAYER_MOVE (id={}, job={})".format(data.id, data.job))
+    netlog.info("SMSG_PLAYER_MOVE {}".format(data))
 
 
 @extendable
@@ -337,9 +337,18 @@ protodef = {
     0x01da : (smsg_player_move,
               Struct("data",
                      ULInt32("id"),
-                     Padding(8),
+                     ULInt16("speed"),
+                     Padding(6),
                      ULInt16("job"),
-                     Padding(44))),
+                     Padding(8),
+                     ULInt32("tick"),
+                     Padding(22),
+                     BitStruct("coor_pair",
+                               BitField("src_x", 10),
+                               BitField("src_y", 10),
+                               BitField("dst_x", 10),
+                               BitField("dst_y", 10)),
+                     Padding(5))),
     0x0139 : (smsg_ignore, Field("data", 14)),    # player-move-to-attack
     0x010f : (smsg_ignore,                        # player-skills
               Struct("data",

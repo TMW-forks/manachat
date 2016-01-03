@@ -3,3 +3,5 @@ syntax: glob
 config.py
 manachat.ini
 tmx/
+client-data/
+eproject.cfg

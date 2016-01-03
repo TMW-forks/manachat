@@ -50,9 +50,10 @@ def smsg_being_name_response(data):
 
 @extendable
 def smsg_being_remove(data):
-    if data.deadflag != 1:
+    try:
         del beings_cache[data.id]
-
+    except KeyError:
+        pass
     netlog.info("SMSG_BEING_REMOVE (id={}, deadflag={})".format(
         data.id, data.deadflag))
 

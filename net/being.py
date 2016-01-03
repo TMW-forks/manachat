@@ -54,5 +54,6 @@ class BeingsCache:
     def findName(self, id_, job=1):
         if id_ not in self._beings:
             self._beings[id_] = Being(id_, job)
-            self._name_request_func(id_)
+            if job_type(job) in ("player", "npc"):
+                self._name_request_func(id_)
         return self._beings[id_].name

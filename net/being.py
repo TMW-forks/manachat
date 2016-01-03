@@ -14,10 +14,8 @@ class Being:
     def __init__(self, being_id, job):
         self.id = being_id
         self._name = ""
-        self.x = 0
-        self.y = 0
         self.job = job
-        self.nearby = True
+        self.speed = 0
 
     @property
     def name(self):

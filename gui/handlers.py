@@ -109,8 +109,13 @@ def being_move(data):
                                          pos=npos)
         mw.add_widget(mw.beings[data.id])
 
+    try:
+        speed = data.speed
+    except AttributeError:
+        speed = mapserv.beings_cache[data.id].speed
+
     mw.move_being(mw.beings[data.id], data.coor_pair.dst_x,
-                  data.coor_pair.dst_y)
+                  data.coor_pair.dst_y, speed)
 
 
 def player_update(data):
@@ -137,8 +142,13 @@ def player_move(data):
                                          pos=npos)
         mw.add_widget(mw.beings[data.id])
 
+    try:
+        speed = data.speed
+    except AttributeError:
+        speed = mapserv.beings_cache[data.id].speed
+
     mw.move_being(mw.beings[data.id], data.coor_pair.dst_x,
-                  data.coor_pair.dst_y)
+                  data.coor_pair.dst_y, speed)
 
 
 def being_remove(data):

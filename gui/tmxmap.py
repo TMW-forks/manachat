@@ -92,7 +92,7 @@ class MapWidget(Image):
         y = (height - pos[1] - 1) * ts
         return x, y
 
-    def move_being(self, being, gx, gy):
+    def move_being(self, being, gx, gy, speed=150):
         ts = self.tile_size
         ox = int(being.x // ts)
         oy = int(being.y // ts)
@@ -114,7 +114,7 @@ class MapWidget(Image):
             px, py = path[i]
             distance = max(abs(cx - px), abs(cy - py))
             being.anim += Animation(x=cx * ts, y=cy * ts,
-                                    duration=distance * 0.1)
+                                    duration=distance * speed / 1000.)
 
         being.anim.start(being)
 

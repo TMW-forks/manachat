@@ -61,6 +61,7 @@ def smsg_being_remove(data):
 @extendable
 def smsg_being_visible(data):
     beings_cache.findName(data.id, data.job)
+    beings_cache[data.id].speed = data.speed
     netlog.info("SMSG_BEING_VISIBLE {}".format(data))
 
 
@@ -109,6 +110,7 @@ def smsg_player_stop(data):
 @extendable
 def smsg_player_update(data):
     beings_cache.findName(data.id, data.job)
+    beings_cache[data.id].speed = data.speed
     netlog.info("SMSG_PLAYER_UPDATE_ {}".format(data))
 
 

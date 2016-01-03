@@ -13,6 +13,7 @@ beings_cache = None
 party_info = []
 party_members = {}
 player_pos = {'x': 0, 'y': 0, 'dir': 0}
+tick = 0
 
 
 # --------------------------------------------------------------------
@@ -35,7 +36,7 @@ def smsg_being_emotion(data):
 @extendable
 def smsg_being_move(data):
     beings_cache.add(data.id, 1)
-    netlog.info("SMSG_BEING_MOVE id={}".format(data.id))
+    netlog.info("SMSG_BEING_MOVE {}".format(data))
 
 
 @extendable
@@ -195,12 +196,16 @@ def smsg_whisper_response(data):
 
 @extendable
 def smsg_server_ping(data):
+    global tick
+    tick = data.tick
     netlog.info("SMSG_SERVER_PING tick={}".format(data.tick))
 
 
 @extendable
 def smsg_map_login_success(data):
     netlog.info("SMSG_MAP_LOGIN_SUCCESS {}".format(data))
+    global tick
+    tick = data.tick
     player_pos['x'] = data.coor.x
     player_pos['y'] = data.coor.y
     player_pos['dir'] = data.coor.dir
@@ -231,13 +236,32 @@ protodef = {
     0x007b : (smsg_being_move,
               Struct("data",
                      ULInt32("id"),
-                     Padding(8),
+                     ULInt16("speed"),
+                     Padding(6),
                      ULInt16("job"),
-                     Padding(44))),
+                     Padding(6),
+                     ULInt32("tick"),
+                     Padding(10),
+                     ULInt32("hp"),
+                     ULInt32("max_hp"),
+                     # Probe("debug", show_stream=False, show_stack=False),
+                     Padding(6),
+                     BitStruct("coor_pair",
+                               BitField("src_x", 10),
+                               BitField("src_y", 10),
+                               BitField("dst_x", 10),
+                               BitField("dst_y", 10)),
+                     Padding(5))),
     0x0086 : (smsg_being_move,
               Struct("data",
                      ULInt32("id"),
-                     Padding(10))),
+                     # Padding(10)
+                     BitStruct("coor_pair",
+                               BitField("src_x", 10),
+                               BitField("src_y", 10),
+                               BitField("dst_x", 10),
+                               BitField("dst_y", 10)),
+                     ULInt32("tick"))),  # NOTE 1 byte missing?
     0x0095 : (smsg_being_name_response,
               Struct("data",
                      ULInt32("id"),
@@ -450,10 +474,12 @@ def cmsg_map_loaded():
     ULInt16("opcode").build_stream(CMSG_MAP_LOADED, server)
 
 
-def cmsg_map_server_ping(tick=1):
+def cmsg_map_server_ping(tick_=-1):
     netlog.info("CMSG_MAP_SERVER_PING tick={}".format(tick))
+    if tick_ < 0:
+        tick_ = tick
     send_packet(server, CMSG_NAME_REQUEST,
-                (ULInt32("tick"), tick))
+                (ULInt32("tick"), tick_))
 
 
 def cmsg_trade_response(answer):
@@ -502,7 +528,7 @@ def cmsg_party_message(msg):
 
 
 def cmsg_player_change_dest(x_, y_):
-    netlog.info("CMSG_PLAYER_CHANGE_DEST x={} y={} dir={}".format(x_, y_, dir_))
+    netlog.info("CMSG_PLAYER_CHANGE_DEST x={} y={}".format(x_, y_))
 
     class C:
         opcode = CMSG_PLAYER_CHANGE_DEST

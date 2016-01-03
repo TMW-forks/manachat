@@ -80,8 +80,8 @@
 
             ScrollView:
                 effect_cls: ScrollEffect
-                scroll_x: 0
-                scroll_y: 0.5
+                scroll_x: id_player.x / id_map_image.width
+                scroll_y: id_player.y / id_map_image.height
                 size_hint: 1, 0.8
                 id: id_map_scroller
 

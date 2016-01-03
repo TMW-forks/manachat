@@ -152,6 +152,9 @@ class ManaGuiApp(App):
             fh.setFormatter(fmt)
             netlog.addHandler(fh)
 
+        import monsterdb
+        monsterdb.read_monster_db()
+
     def build(self):
         Window.bind(on_keyboard=self.hook_keyboard)
         register_all()

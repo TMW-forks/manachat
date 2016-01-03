@@ -3,6 +3,7 @@ from kivy.app import App
 import net.mapserv as mapserv
 from gui.tmxmap import BeingWidget
 import commands
+import monsterdb
 from utils import register_extension
 
 _map_name = ""
@@ -82,10 +83,14 @@ def being_visible(data):
 
     app = App.get_running_app()
     mw = app.root.map_w
+    if data.id in mw.beings:
+        return
+
     npos = mw.from_game_coords((data.coor.x, data.coor.y))
+    name = monsterdb.monster_db.get(data.job, str(data.job))
     mw.beings[data.id] = BeingWidget(size_hint=(None, None),
                                      size=(16, 20),
-                                     name=str(data.id),
+                                     name=name,
                                      pos=npos)
     mw.add_widget(mw.beings[data.id])
 
@@ -97,9 +102,10 @@ def being_move(data):
     if data.id not in mw.beings:
         npos = mw.from_game_coords((data.coor_pair.src_x,
                                     data.coor_pair.src_y))
+        name = monsterdb.monster_db.get(data.job, str(data.job))
         mw.beings[data.id] = BeingWidget(size_hint=(None, None),
                                          size=(16, 20),
-                                         name=str(data.id),
+                                         name=name,
                                          pos=npos)
         mw.add_widget(mw.beings[data.id])
 

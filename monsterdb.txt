@@ -1,0 +1,127 @@
+1002 Maggot
+1003 Scorpion
+1004 Red Scorpion
+1005 Green Slime
+1006 Giant Maggot
+1007 Yellow Slime
+1008 Red Slime
+1009 Black Scorpion
+1010 Snake
+1011 Fire Goblin
+1012 Spider
+1013 Evil Mushroom
+1014 Pink Flower
+1015 Santa Slime
+1016 Rudolph Slime
+1017 Bat
+1018 Pinkie
+1019 Spiky Mushroom
+1020 Fluffy
+1021 Cave Snake
+1022 Jack O
+1023 Fire Skull
+1024 Poison Skull
+1025 Log Head
+1026 Mountain Snake
+1027 Easter Fluffy
+1028 Mouboo
+1029 Mauve Plant
+1030 Cobalt Plant
+1031 Gamboge Plant
+1032 Alizarin Plant
+1033 Sea Slime
+1034 Grass Snake
+1035 Silkworm
+1036 Zombie
+1037 Clover Patch
+1038 Squirrel
+1039 Fire Lizard
+1040 Wisp
+1041 Snail
+1042 Spectre
+1043 Skeleton
+1044 Lady Skeleton
+1045 Fallen
+1046 Tame Scorpion
+1047 Poltergeist
+1048 Duck
+1049 Bee
+1050 House Maggot
+1054 Troll
+1055 Butterfly
+1056 Cave Maggot
+1057 Angry Scorpion
+1058 Ice Goblin
+1059 Giant Cave Maggot
+1060 Archant
+1061 Moggun
+1062 Terranite
+1063 Pumpkin
+1064 Bandit
+1065 Bandit Lord
+1066 Vampire Bat
+1067 Reaper
+1068 Reaper
+1069 Scythe
+1070 Ball Lightning
+1071 Ice Element
+1072 Yeti
+1073 The Lost
+1074 Red Bone
+1075 Stalker
+1077 Drunken Skeleton
+1078 Tipsy Skeleton
+1079 Drunken Lady Skeleton
+1080 Blue Spark
+1081 Red Spark
+1082 Serqet
+1083 Huntsman Spider
+1084 Crotcher Scorpion
+1085 Ice Skull
+1086 Fey Element
+1087 Larvern
+1088 Hyvern
+1089 Hungry Fluffy
+1090 Wolvern
+1091 Blue Slime
+1092 Slime Blast
+1093 White Slime
+1094 Reinboo
+1095 White Bell
+1096 Soul Snake
+1097 Soul Eater
+1098 Copper Slime
+1099 Sleeping Bandit
+1100 Azul Slime
+1101 Demonic Spirit
+1102 Luvia
+1103 Witch Guard
+1104 Demonic Mouboo
+1105 Vicious Squirrel
+1106 Wicked Mushroom
+1107 Bluepar
+1108 Angry Fire Goblin
+1109 Angry Sea Slime
+1110 Angry Green Slime
+1111 Candied Slime
+1112 Santaboo
+1113 Pollett
+1114 Nut Cracker
+1115 Sea Slime Mother
+1116 Undead Witch
+1117 Undead Troll
+1118 Green Slime Mother
+1119 Thug
+1120 Swashbuckler
+1121 Grenadier
+1122 The Dread Pirate Marley
+1123 The Dread Pirate Marley
+1124 Wight
+1125 Mana Ghost
+1126 Psi-Brain
+1127 General Krukan
+1128 General Razha
+1129 General Terogan
+1130 Moonshroom
+1131 Mana Bug
+1132 Lava Slime

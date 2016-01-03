@@ -102,8 +102,7 @@ def smsg_player_stop(data):
 @extendable
 def smsg_player_update(data):
     beings_cache.add(data.id, data.job)
-    netlog.info("SMSG_PLAYER_UPDATE_ (id={}, job={})".format(
-        data.id, data.job))
+    netlog.info("SMSG_PLAYER_UPDATE_ {}".format(data))
 
 
 @extendable
@@ -370,15 +369,27 @@ protodef = {
     0x01d8 : (smsg_player_update,
               Struct("data",
                      ULInt32("id"),
-                     Padding(8),
+                     ULInt16("speed"),
+                     Padding(6),
                      ULInt16("job"),
-                     Padding(38))),
+                     Padding(30),
+                     BitStruct("coor",
+                               BitField("x", 10),
+                               BitField("y", 10),
+                               Nibble("dir")),
+                     Padding(5))),
     0x01d9 : (smsg_player_update,
               Struct("data",
                      ULInt32("id"),
-                     Padding(8),
+                     ULInt16("speed"),
+                     Padding(6),
                      ULInt16("job"),
-                     Padding(37))),
+                     Padding(30),
+                     BitStruct("coor",
+                               BitField("x", 10),
+                               BitField("y", 10),
+                               Nibble("dir")),
+                     Padding(4))),
     0x0091 : (smsg_player_warp,
               Struct("data",
                      StringZ("map", 16),

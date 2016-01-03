@@ -56,7 +56,7 @@ def smsg_being_remove(data):
 @extendable
 def smsg_being_visible(data):
     beings_cache.add(data.id, data.job)
-    netlog.info("SMSG_BEING_VISIBLE (id={}, job={})".format(data.id, data.job))
+    netlog.info("SMSG_BEING_VISIBLE {}".format(data))
 
 
 @extendable
@@ -280,9 +280,18 @@ protodef = {
     0x0078 : (smsg_being_visible,
               Struct("data",
                      ULInt32("id"),
-                     Padding(8),
+                     ULInt16("speed"),
+                     Padding(6),
                      ULInt16("job"),
-                     Padding(38))),
+                     Padding(16),
+                     ULInt32("hp"),
+                     ULInt32("max_hp"),
+                     Padding(6),
+                     BitStruct("coor",
+                               BitField("x", 10),
+                               BitField("y", 10),
+                               Nibble("dir")),
+                     Padding(5))),
     0x013c : (smsg_ignore, Field("data", 2)),   # arrow-equip
     0x013b : (smsg_ignore, Field("data", 2)),   # arrow-message
     0x013a : (smsg_ignore, Field("data", 2)),   # attack-range

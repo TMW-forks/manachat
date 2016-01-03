@@ -23,19 +23,21 @@ def smsg_ignore(data):
 
 @extendable
 def smsg_being_chat(data):
-    beings_cache.add(data.id, 1)
+    beings_cache.findName(data.id)
     netlog.info("SMSG_BEING_CHAT {} : {}".format(data.id, data.message))
 
 
 @extendable
 def smsg_being_emotion(data):
-    beings_cache.add(data.id, 1)
+    beings_cache.findName(data.id)
     netlog.info("SMSG_BEING_EMOTION {} : {}".format(data.id, data.emote))
 
 
 @extendable
 def smsg_being_move(data):
-    beings_cache.add(data.id, 1)
+    global tick
+    tick = data.tick
+    beings_cache.findName(data.id, data.job)
     netlog.info("SMSG_BEING_MOVE {}".format(data))
 
 
@@ -48,14 +50,16 @@ def smsg_being_name_response(data):
 
 @extendable
 def smsg_being_remove(data):
-    beings_cache[data.id].nearby = False
+    if data.deadflag != 1:
+        del beings_cache[data.id]
+
     netlog.info("SMSG_BEING_REMOVE (id={}, deadflag={})".format(
         data.id, data.deadflag))
 
 
 @extendable
 def smsg_being_visible(data):
-    beings_cache.add(data.id, data.job)
+    beings_cache.findName(data.id, data.job)
     netlog.info("SMSG_BEING_VISIBLE {}".format(data))
 
 
@@ -88,20 +92,22 @@ def smsg_player_inventory_remove(data):
 
 @extendable
 def smsg_player_move(data):
-    beings_cache.add(data.id, data.job)
+    global tick
+    tick = data.tick
+    beings_cache.findName(data.id, data.job)
     netlog.info("SMSG_PLAYER_MOVE {}".format(data))
 
 
 @extendable
 def smsg_player_stop(data):
-    beings_cache.add(data.id, 1)
+    beings_cache.findName(data.id)
     netlog.info("SMSG_PLAYER_STOP (id={}, x={}, y={}".format(
         data.id, data.x, data.y))
 
 
 @extendable
 def smsg_player_update(data):
-    beings_cache.add(data.id, data.job)
+    beings_cache.findName(data.id, data.job)
     netlog.info("SMSG_PLAYER_UPDATE_ {}".format(data))
 
 
@@ -213,6 +219,8 @@ def smsg_map_login_success(data):
 
 @extendable
 def smsg_walk_response(data):
+    global tick
+    tick = data.tick
     netlog.info("SMSG_WALK_RESPONSE {}".format(data))
 
 
@@ -506,7 +514,7 @@ def cmsg_map_loaded():
 def cmsg_map_server_ping(tick_=-1):
     netlog.info("CMSG_MAP_SERVER_PING tick={}".format(tick))
     if tick_ < 0:
-        tick_ = tick
+        tick_ = tick + 1
     send_packet(server, CMSG_NAME_REQUEST,
                 (ULInt32("tick"), tick_))
 

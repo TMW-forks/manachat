@@ -1,4 +1,3 @@
-# from mapserv import cmsg_name_request
 
 def job_type(job):
     if (job <= 25 or (job >= 4001 and job <= 4049)):
@@ -43,24 +42,17 @@ class BeingsCache:
     def __init__(self, name_request_func):
         self._beings = {}
         self.__getitem__ = self._beings.__getitem__
+        self.__delitem__ = self._beings.__delitem__
         self._name_request_func = name_request_func
 
     def findId(self, name, type_="player"):
-        for id_ in self.keys():
-            being = self._beings[id_]
+        for id_, being in self._beings.iteritems():
             if being.name == name and being.type == type_:
                 return id_
         return -10
 
-    def findName(self, id_):
-        if self._beings.has_key(id_):
-            return self._beings[id_].name
-        
-
-    def add(self, id_, job):
-        if id_ in self._beings:
-            return
-        else:
+    def findName(self, id_, job=1):
+        if id_ not in self._beings:
             self._beings[id_] = Being(id_, job)
             self._name_request_func(id_)
-
+        return self._beings[id_].name

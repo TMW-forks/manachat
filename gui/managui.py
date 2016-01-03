@@ -7,13 +7,13 @@ import kivy
 kivy.require('1.9.0')
 
 from kivy.app import App
-# from kivy.logger import Logger
+from kivy.logger import Logger
 # from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 # from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import ObjectProperty, NumericProperty, \
-    StringProperty, BooleanProperty, ListProperty, OptionProperty
+from kivy.properties import (ObjectProperty, NumericProperty,
+        StringProperty, BooleanProperty, ListProperty, OptionProperty)
 
 from kivy.core.window import Window
 from kivy.clock import Clock
@@ -30,6 +30,7 @@ import net.mapserv as mapserv
 from handlers import register_all
 from commands import process_line
 from net.onlineusers import OnlineUsers
+from tmxmap import BeingWidget, MapWidget
 
 
 class MessagesLog(BoxLayout):
@@ -124,6 +125,11 @@ class ManaGuiApp(App):
     def update_online_list(self, *l):
         self.root.players_list.items = OnlineUsers.dl_online_list(
             config.get('Other', 'online_txt_url'))
+
+    def move_player(self, sender, touch):
+        gx, gy = self.root.map_w.to_game_coords(touch.pos)
+        Logger.info("move_player (%s, %s)", gx, gy)
+        mapserv.cmsg_player_change_dest(gx, gy)
 
     def hook_keyboard(self, window, key, *largs):
         if key == 27:

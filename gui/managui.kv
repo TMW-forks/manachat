@@ -1,3 +1,4 @@
+#:import ScrollEffect kivy.effects.scroll.ScrollEffect
 
 <MessagesLog>:
     canvas.before:
@@ -40,6 +41,20 @@
             size: self.size
 
 
+<BeingWidget>:
+
+    canvas.before:
+        Color:
+            rgba: 0.1, 0.5, 0.1, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    Label:
+        text: root.name
+        pos: root.pos
+
+
 <RootWidget>:
 
     canvas.before:
@@ -52,6 +67,9 @@
     messages_log: id_messages_log
     chat_input: id_chat_input
     players_list: id_players_list
+    map_w: id_map_image
+    player: id_player
+    map_scroller: id_map_scroller
 
     BoxLayout:
         orientation: 'horizontal'
@@ -60,9 +78,32 @@
         BoxLayout:
             orientation: 'vertical'
 
+            ScrollView:
+                effect_cls: ScrollEffect
+                scroll_x: 0
+                scroll_y: 0.5
+                size_hint: 1, 0.8
+                id: id_map_scroller
+
+                FloatLayout:
+                    size_hint: None, None
+                    size: id_map_image.size
+
+                    MapWidget:
+                        id: id_map_image
+                        player: id_player
+                        size_hint: None, None
+                        on_touch_down: app.move_player(*args)
+
+                    BeingWidget:
+                        id: id_player
+                        name: "Player"
+                        size_hint: None, None
+                        size: 16, 32
+
             MessagesLog:
                 id: id_messages_log
-                size_hint: 1, 1
+                size_hint: 1, 0.2
 
             TextInput:
                 id: id_chat_input

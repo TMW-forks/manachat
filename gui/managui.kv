@@ -131,8 +131,34 @@
     messages_log: id_messages_log
     chat_input: id_chat_input
     players_list: id_players_list
+    map_w: id_map_image
+    player: id_player
+    map_scroller: id_map_scroller
 
     Carousel:
+
+        ScrollView:
+            effect_cls: ScrollEffect
+            scroll_x: self.convert_distance_to_scroll(id_player.x - self.width / 2, 0)[0]
+            scroll_y: self.convert_distance_to_scroll(0, id_player.y - self.height / 2)[1]
+            size_hint: 1, 1
+            id: id_map_scroller
+
+            FloatLayout:
+                size_hint: None, None
+                size: id_map_image.size
+
+                MapWidget:
+                    id: id_map_image
+                    player: id_player
+                    size_hint: None, None
+                    on_touch_down: app.move_player(*args)
+
+                    BeingWidget:
+                        id: id_player
+                        name: "Player"
+                        size_hint: None, None
+                        size: 16, 32
 
         BoxLayout:
             orientation: 'vertical'
@@ -140,13 +166,23 @@
             MessagesLog:
                 id: id_messages_log
 
-            TextInput:
-                id: id_chat_input
+            BoxLayout:
+                orientation: 'horizontal'
                 size_hint_y: None
                 height: '50dp'
-                focus: True
-                multiline: False
-                on_text_validate: root.on_command_enter(args)
+
+                TextInput:
+                    id: id_chat_input
+                    focus: True
+                    multiline: False
+                    on_text_validate: root.on_command_enter(args)
+
+                Button:
+                    size_hint_x: None
+                    text: '>'
+                    width: self.height
+                    on_press: root.on_command_enter(args)
+
 
         PlayersList:
             id: id_players_list

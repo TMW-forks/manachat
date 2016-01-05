@@ -109,18 +109,13 @@ class RootWidget(FloatLayout):
         self.chat_input.focus = True
 
     def on_command_enter(self, *args):
-        # self.messages_log.append_message(self.chat_input.text)
         process_line(self.chat_input.text)
         self.chat_input.text = ''
         Clock.schedule_once(self._focus_chat_input, 0.1)  # dirty hack :^)
-        # app = App.get_running_app()
-        # app.root.players_list.items = ["one", "two", "three"]
 
 
-class RootWidgetMobile(FloatLayout):
-
-    def on_command_enter(self, *args):
-        pass
+class RootWidgetMobile(RootWidget):
+    pass
 
 
 class ManaGuiApp(App):

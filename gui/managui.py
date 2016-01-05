@@ -1,6 +1,5 @@
 #!/usr/bin/python2
 
-import datetime
 import asyncore
 import logging
 
@@ -27,12 +26,12 @@ config = ConfigParser()
 config.read("manachat.ini")
 
 import monsterdb
+import net
 import net.loginsrv as loginsrv
 import net.mapserv as mapserv
 import gui.handlers as handlers
 from commands import process_line
 from net.onlineusers import OnlineUsers
-from tmxmap import BeingWidget, MapWidget
 from loggers import netlog, debuglog
 
 
@@ -127,16 +126,6 @@ class RootWidgetMobile(FloatLayout):
 class ManaGuiApp(App):
     use_kivy_settings = BooleanProperty(False)
 
-    def connect(self):
-        loginsrv.connect(config.get('Server', 'host'),
-                         config.getint('Server', 'port'))
-
-        loginsrv.server.username = config.get('Player', 'username')
-        loginsrv.server.password = config.get('Player', 'password')
-        loginsrv.server.char_name = config.get('Player', 'charname')
-
-        loginsrv.cmsg_server_version_request()
-
     def update_online_list(self, *l):
         self.root.players_list.items = OnlineUsers.dl_online_list(
             config.get('Other', 'online_txt_url'))
@@ -175,7 +164,13 @@ class ManaGuiApp(App):
 
         handlers.app = self
         handlers.register_all()
-        self.connect()
+
+        net.login(host=config.get('Server', 'host'),
+                  port=config.getint('Server', 'port'),
+                  username=config.get('Player', 'username'),
+                  password=config.get('Player', 'password'),
+                  charname=config.get('Player', 'charname'))
+
         Clock.schedule_once(self.update_online_list, 0.2)
         Clock.schedule_interval(self.update_online_list, 35)
         Clock.schedule_interval(self.update_loop, 0)

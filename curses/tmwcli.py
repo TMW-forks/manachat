@@ -15,7 +15,7 @@ del parent
 
 import cui
 import handlers
-import net.loginsrv as loginsrv
+import net
 import net.mapserv as mapserv
 from commands import process_line
 from net.onlineusers import OnlineUsers
@@ -82,14 +82,11 @@ if __name__ == "__main__":
     side_bar_updater = SideBarUpdater(cui.players_win, online_users)
     side_bar_updater.start()
 
-    loginsrv.connect(config.get('Server', 'host'),
-                     config.getint('Server', 'port'))
-
-    loginsrv.server.username = config.get('Player', 'username')
-    loginsrv.server.password = config.get('Player', 'password')
-    loginsrv.server.char_name = config.get('Player', 'charname')
-
-    loginsrv.cmsg_server_version_request()
+    net.login(host=config.get('Server', 'host'),
+              port=config.getint('Server', 'port'),
+              username=config.get('Player', 'username'),
+              password=config.get('Player', 'password'),
+              charname=config.get('Player', 'charname'))
 
     t = threading.Thread(target=asyncore.loop)
     t.setDaemon(True)

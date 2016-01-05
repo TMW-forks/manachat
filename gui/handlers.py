@@ -49,6 +49,15 @@ def party_chat(data):
 
 
 def player_warp(data):
+    mw = app.root.map_w
+
+    for b in mw.beings:
+        mw.remove_widget(mw.beings[b])
+    mw.beings.clear()
+
+    mw.load_map("client-data/maps/{}.tmx".format(data.map))
+    app.root.player.pos = mw.from_game_coords((data.x, data.y))
+
     mapserv.cmsg_map_loaded()
     m = "[warp] {} ({},{})".format(data.map, data.x, data.y)
     debuglog.info(m)

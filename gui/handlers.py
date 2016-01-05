@@ -1,6 +1,7 @@
 
 from kivy.app import App
 import net.mapserv as mapserv
+from loggers import debuglog
 from gui.tmxmap import BeingWidget
 import commands
 import monsterdb
@@ -8,40 +9,35 @@ from utils import register_extension
 
 _map_name = ""
 _char_name = ""
+app = None
 
 
 def being_chat(data):
     id_, message = data.id, data.message
     nick = mapserv.beings_cache[id_].name
     m = "{} : {}".format(nick, message)
-    app = App.get_running_app()
-    app.root.messages_log.append_message(m)
+    debuglog.info(m)
 
 
 def player_chat(data):
-    message = data.message
-    app = App.get_running_app()
-    app.root.messages_log.append_message(message)
+    debuglog.info(data.message)
 
 
 def got_whisper(data):
     nick, message = data.nick, data.message
     m = "[{} ->] {}".format(nick, message)
-    app = App.get_running_app()
-    app.root.messages_log.append_message(m)
+    debuglog.info(m)
 
 
 def send_whisper_result(data):
-    app = App.get_running_app()
-
     if data.code == 0:
         m = "[-> {}] {}".format(commands.whisper_to, commands.whisper_msg)
-        app.root.messages_log.append_message(m)
+        debuglog.info(m)
         app.root.chat_input.text = '/w "{}" '.format(commands.whisper_to)
         app.root.chat_input.focus = True
 
     else:
-        app.root.messages_log.append_message("[error] {} is offline.".format(
+        debuglog.warning("[error] {} is offline.".format(
             commands.whisper_to))
 
 
@@ -49,15 +45,13 @@ def party_chat(data):
     nick = mapserv.party_members.get(data.id, str(data.id))
     msg = data.message
     m = "[Party] {} : {}".format(nick, msg)
-    app = App.get_running_app()
-    app.root.messages_log.append_message(m)
+    debuglog.info(m)
 
 
 def player_warp(data):
     mapserv.cmsg_map_loaded()
     m = "[warp] {} ({},{})".format(data.map, data.x, data.y)
-    app = App.get_running_app()
-    app.root.messages_log.append_message(m)
+    debuglog.info(m)
 
 
 def char_map_info(data):
@@ -66,22 +60,18 @@ def char_map_info(data):
 
 
 def map_login_success(data):
-    app = App.get_running_app()
     m = "[map] {} ({},{})".format(_map_name, data.coor.x, data.coor.y)
-    app.root.messages_log.append_message(m)
+    debuglog.info(m)
     app.root.map_w.load_map("client-data/maps/{}.tmx".format(_map_name))
     app.root.player.pos = app.root.map_w.from_game_coords((data.coor.x,
                                                            data.coor.y))
     app.root.player.name = mapserv.server.char_name
-    # app.root.map_scroller.scroll_x = app.root.player.x / app.root.map_w.width
-    # app.root.map_scroller.scroll_y = app.root.player.y / app.root.map_w.height
 
 
 def being_visible(data):
     if mapserv.beings_cache[data.id].type not in ("monster", "player"):
         return
 
-    app = App.get_running_app()
     mw = app.root.map_w
     if data.id in mw.beings:
         return
@@ -96,7 +86,6 @@ def being_visible(data):
 
 
 def being_move(data):
-    app = App.get_running_app()
     mw = app.root.map_w
 
     if data.id not in mw.beings:
@@ -119,7 +108,6 @@ def being_move(data):
 
 
 def player_update(data):
-    app = App.get_running_app()
     mw = app.root.map_w
     npos = mw.from_game_coords((data.coor.x, data.coor.y))
     mw.beings[data.id] = BeingWidget(size_hint=(None, None),
@@ -130,7 +118,6 @@ def player_update(data):
 
 
 def player_move(data):
-    app = App.get_running_app()
     mw = app.root.map_w
 
     if data.id not in mw.beings:
@@ -152,7 +139,6 @@ def player_move(data):
 
 
 def being_remove(data):
-    app = App.get_running_app()
     mw = app.root.map_w
 
     if data.id in mw.beings:
@@ -161,7 +147,6 @@ def being_remove(data):
 
 
 def being_name_response(data):
-    app = App.get_running_app()
     mw = app.root.map_w
 
     if data.id in mw.beings:

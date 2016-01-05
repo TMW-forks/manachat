@@ -2,6 +2,7 @@
 
 import datetime
 import asyncore
+import logging
 
 import kivy
 kivy.require('1.9.0')
@@ -25,19 +26,33 @@ from kivy.config import ConfigParser
 config = ConfigParser()
 config.read("manachat.ini")
 
+import monsterdb
 import net.loginsrv as loginsrv
 import net.mapserv as mapserv
-from handlers import register_all
+import gui.handlers as handlers
 from commands import process_line
 from net.onlineusers import OnlineUsers
 from tmxmap import BeingWidget, MapWidget
+from loggers import netlog, debuglog
+
+
+class DebugLogHandler(logging.Handler):
+
+    def __init__(self, app, **kwargs):
+        self.app = app
+        super(self.__class__, self).__init__(**kwargs)
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.app.root.messages_log.append_message(msg)
 
 
 class MessagesLog(BoxLayout):
 
     def append_message(self, msg):
-        self.msg_log_label.text += '\n{} {}'.format(
-            datetime.datetime.now().strftime('%H:%M:%S'), msg)
+        if not msg.endswith("\n"):
+            msg += "\n"
+        self.msg_log_label.text += msg
         self.msg_log_label.parent.scroll_y = 0.0
 
 
@@ -140,9 +155,7 @@ class ManaGuiApp(App):
     def on_start(self):
         if config.getboolean('Other', 'log_network_packets'):
             import os
-            import logging
             import tempfile
-            from net.common import netlog
 
             logfile = os.path.join(tempfile.gettempdir(), "netlog.txt")
             netlog.setLevel(logging.INFO)
@@ -152,16 +165,23 @@ class ManaGuiApp(App):
             fh.setFormatter(fmt)
             netlog.addHandler(fh)
 
-        import monsterdb
         monsterdb.read_monster_db()
 
-    def build(self):
-        Window.bind(on_keyboard=self.hook_keyboard)
-        register_all()
+        dbgh = DebugLogHandler(self)
+        dbgh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s",
+                                            datefmt="%H:%M"))
+        debuglog.addHandler(dbgh)
+        debuglog.setLevel(logging.INFO)
+
+        handlers.app = self
+        handlers.register_all()
         self.connect()
         Clock.schedule_once(self.update_online_list, 0.2)
         Clock.schedule_interval(self.update_online_list, 35)
         Clock.schedule_interval(self.update_loop, 0)
+
+    def build(self):
+        Window.bind(on_keyboard=self.hook_keyboard)
 
         use_mobile = config.getboolean('Other', 'use_mobile_interface')
         if use_mobile:

@@ -217,7 +217,6 @@ def smsg_map_login_success(data):
     player_pos['x'] = data.coor.x
     player_pos['y'] = data.coor.y
     player_pos['dir'] = data.coor.dir
-    cmsg_map_loaded()
 
 
 @extendable

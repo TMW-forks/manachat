@@ -21,6 +21,10 @@ def player_warp(data):
     mapserv.cmsg_map_loaded()
 
 
+def map_login_success(data):
+    mapserv.cmsg_map_loaded()
+
+
 if __name__ == '__main__':
     logging.basicConfig(format="[%(asctime)s] %(message)s",
                         level=logging.INFO,
@@ -29,6 +33,7 @@ if __name__ == '__main__':
     config.read('manachat.ini')
 
     register_extension('smsg_player_warp', player_warp)
+    register_extension('smsg_map_login_success', map_login_success)
 
     net.login(host=config.get('Server', 'host'),
               port=config.getint('Server', 'port'),

@@ -52,6 +52,10 @@ def player_warp(data):
     mapserv.cmsg_map_loaded()
 
 
+def map_login_success(data):
+    mapserv.cmsg_map_loaded()
+
+
 def register_all():
     register_extension("smsg_being_chat", being_chat)
     register_extension("smsg_player_chat", player_chat)
@@ -59,3 +63,4 @@ def register_all():
     register_extension("smsg_whisper_response", send_whisper_result)
     register_extension("smsg_party_chat", party_chat)
     register_extension("smsg_player_warp", player_warp)
+    register_extension("smsg_map_login_success", map_login_success)

@@ -75,6 +75,7 @@ def map_login_success(data):
     app.root.player.pos = app.root.map_w.from_game_coords((data.coor.x,
                                                            data.coor.y))
     app.root.player.name = mapserv.server.char_name
+    mapserv.cmsg_map_loaded()
 
 
 def being_visible(data):
@@ -119,9 +120,10 @@ def being_move(data):
 def player_update(data):
     mw = app.root.map_w
     npos = mw.from_game_coords((data.coor.x, data.coor.y))
+    name = mapserv.beings_cache[data.id].name
     mw.beings[data.id] = BeingWidget(size_hint=(None, None),
                                      size=(16, 20),
-                                     name=str(data.id),
+                                     name=name,
                                      pos=npos)
     mw.add_widget(mw.beings[data.id])
 

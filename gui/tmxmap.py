@@ -77,19 +77,12 @@ class MapWidget(Image):
     beings = {}
     maps = {}
 
-    def load_all_maps(self, mapdb='mapdb.zip'):
-        Logger.info("Loading mapdb from %s", mapdb)
-        zf = zipfile.ZipFile(mapdb, 'r')
-        f = zf.open('mapdb.pickle')
-        while True:
-            try:
-                m = pickle.load(f)
-                self.maps[m['tag']] = m
-            except EOFError:
-                break
-        zf.close()
-
     def load_map(self, name, *args):
+        if name not in self.maps:
+            Logger.info("Caching map %s", name)
+            zf = zipfile.ZipFile('mapdb.zip', 'r')
+            self.maps[name] = pickle.load(zf.open(name + '.pickle'))
+            zf.close()
         # m = pytmx.TiledMap(filename=filename)
         # data = m.get_layer_by_name('Collision').data
         texture = create_map_texture(self.maps[name]['collisions'],

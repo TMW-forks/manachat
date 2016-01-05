@@ -1,6 +1,11 @@
 
-import pytmx
+# import pytmx
+import zipfile
 from itertools import cycle, islice
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 from kivy.core.image import Image as CoreImage
 from kivy.uix.widget import Widget
@@ -9,6 +14,7 @@ from kivy.graphics.texture import Texture
 from kivy.animation import Animation
 from kivy.properties import (StringProperty, ObjectProperty,
         NumericProperty)
+from kivy.logger import Logger
 
 from pathfind import breadth_first_search
 
@@ -69,14 +75,28 @@ class MapWidget(Image):
     player = ObjectProperty()
     collisions = ObjectProperty(None)
     beings = {}
+    maps = {}
 
-    def load_map(self, filename, *args):
-        m = pytmx.TiledMap(filename=filename)
-        data = m.get_layer_by_name('Collision').data
-        texture = create_map_texture(data, self.tile_size)
+    def load_all_maps(self, mapdb='mapdb.zip'):
+        Logger.info("Loading mapdb from %s", mapdb)
+        zf = zipfile.ZipFile(mapdb, 'r')
+        f = zf.open('mapdb.pickle')
+        while True:
+            try:
+                m = pickle.load(f)
+                self.maps[m['tag']] = m
+            except EOFError:
+                break
+        zf.close()
+
+    def load_map(self, name, *args):
+        # m = pytmx.TiledMap(filename=filename)
+        # data = m.get_layer_by_name('Collision').data
+        texture = create_map_texture(self.maps[name]['collisions'],
+                                     self.tile_size)
         self.texture = texture
         self.size = texture.size
-        self.collisions = data
+        self.collisions = self.maps[name]['collisions']
 
     def to_game_coords(self, pos):
         ts = self.tile_size

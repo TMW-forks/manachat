@@ -157,6 +157,8 @@ class ManaGuiApp(App):
         debuglog.addHandler(dbgh)
         debuglog.setLevel(logging.INFO)
 
+        self.root.map_w.load_all_maps()
+
         handlers.app = self
         handlers.register_all()
 

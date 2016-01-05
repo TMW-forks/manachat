@@ -55,7 +55,7 @@ def player_warp(data):
         mw.remove_widget(mw.beings[b])
     mw.beings.clear()
 
-    mw.load_map("client-data/maps/{}.tmx".format(data.map))
+    mw.load_map(data.map)
     app.root.player.pos = mw.from_game_coords((data.x, data.y))
 
     mapserv.cmsg_map_loaded()
@@ -71,7 +71,7 @@ def char_map_info(data):
 def map_login_success(data):
     m = "[map] {} ({},{})".format(_map_name, data.coor.x, data.coor.y)
     debuglog.info(m)
-    app.root.map_w.load_map("client-data/maps/{}.tmx".format(_map_name))
+    app.root.map_w.load_map(_map_name)
     app.root.player.pos = app.root.map_w.from_game_coords((data.coor.x,
                                                            data.coor.y))
     app.root.player.name = mapserv.server.char_name

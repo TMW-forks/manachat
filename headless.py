@@ -4,6 +4,14 @@ import asyncore
 import logging
 from ConfigParser import ConfigParser
 
+try:
+    import construct
+    del construct
+except ImportError:
+    import sys
+    import os
+    sys.path.insert(0, os.path.join(os.getcwd(), "external"))
+
 import net
 import net.mapserv as mapserv
 from utils import register_extension

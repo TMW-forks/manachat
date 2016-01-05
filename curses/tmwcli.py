@@ -11,6 +11,13 @@ from ConfigParser import ConfigParser
 # add .. to PYTHONPATH
 parent, _ = os.path.split(os.getcwd())
 sys.path.insert(0, parent)
+
+try:
+    import construct
+    del construct
+except ImportError:
+    sys.path.insert(1, os.path.join(parent, "external"))
+
 del parent
 
 import cui

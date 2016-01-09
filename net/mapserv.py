@@ -604,6 +604,11 @@ def cmsg_player_respawn():
     ULInt16("opcode").build_stream(CMSG_PLAYER_RESPAWN, server)
 
 
+def cmsg_player_emote(emote):
+    netlog.info("CMSG_PLAYER_EMOTE {}".format(emote))
+    send_packet(server, CMSG_PLAYER_EMOTE,
+                (Byte("emote"), emote))
+
 # --------------------------------------------------------------------
 def connect(host, port):
     global server, beings_cache

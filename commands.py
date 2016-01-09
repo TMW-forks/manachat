@@ -40,6 +40,10 @@ def set_destination(arg):
         pass
 
 
+def show_emote(emote):
+    mapserv.cmsg_player_emote(int(emote))
+
+
 def parse_player_name(line):
     line = line.lstrip()
     if len(line) < 2:
@@ -76,6 +80,12 @@ def process_line(line):
         elif cmd in ("/p", "/party"):
             if len(arg) > 0:
                 send_party_message(arg)
+        elif cmd in ("/e", "/emote"):
+            if len(arg) > 0:
+                show_emote(arg)
+        elif cmd in ("/me", "/action"):
+            if len(arg) > 0:
+                general_chat("*{}*".format(arg))
         elif cmd == "/respawn":
             mapserv.cmsg_player_respawn()
         elif cmd in ("/dir", "/direction", "/turn"):

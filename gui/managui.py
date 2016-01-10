@@ -27,12 +27,12 @@ config.read("manachat.ini")
 
 import monsterdb
 import net
-import net.loginsrv as loginsrv
 import net.mapserv as mapserv
 import gui.handlers as handlers
 from commands import process_line
 from net.onlineusers import OnlineUsers
-from loggers import netlog, debuglog
+from loggers import netlog, debuglog, chatlog
+from chatlogfile import ChatLogHandler
 
 
 class DebugLogHandler(logging.Handler):
@@ -156,6 +156,14 @@ class ManaGuiApp(App):
                                             datefmt="%H:%M"))
         debuglog.addHandler(dbgh)
         debuglog.setLevel(logging.INFO)
+
+        chatlog_dir = config.get('Other', 'chatlog_dir')
+        if len(chatlog_dir) > 0:
+            clh = ChatLogHandler(chatlog_dir)
+            clh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s",
+                                               datefmt="%Y-%m-%d %H:%M:%S"))
+            chatlog.addHandler(clh)
+            chatlog.setLevel(logging.INFO)
 
         handlers.app = self
         handlers.register_all()

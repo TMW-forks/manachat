@@ -63,6 +63,7 @@ def player_warp(data):
     mw.beings.clear()
 
     mw.load_map(data.map)
+    app.root.player.anim.stop(app.root.player)
     app.root.player.pos = mw.from_game_coords((data.x, data.y))
 
     mapserv.cmsg_map_loaded()
@@ -171,6 +172,12 @@ def being_name_response(data):
         mw.beings[data.id].name = data.name
 
 
+def player_walk_response(data):
+    mw = app.root.map_w
+    mw.move_being(mw.player, data.coor_pair.dst_x,
+                  data.coor_pair.dst_y)
+
+
 def register_all():
     register_extension("smsg_being_chat", being_chat)
     register_extension("smsg_player_chat", player_chat)
@@ -186,3 +193,4 @@ def register_all():
     register_extension("smsg_player_move", player_move)
     register_extension("smsg_being_remove", being_remove)
     register_extension("smsg_being_name_response", being_name_response)
+    register_extension("smsg_walk_response", player_walk_response)

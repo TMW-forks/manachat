@@ -609,6 +609,7 @@ def cmsg_player_emote(emote):
     send_packet(server, CMSG_PLAYER_EMOTE,
                 (Byte("emote"), emote))
 
+
 # --------------------------------------------------------------------
 def connect(host, port):
     global server, beings_cache

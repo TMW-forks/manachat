@@ -1,6 +1,10 @@
 import os
 import logging
+
+import net.mapserv as mapserv
+import commands
 from loggers import chatlog
+from utils import register_extension
 
 
 class ChatLogHandler(logging.Handler):
@@ -36,3 +40,50 @@ class ChatLogHandler(logging.Handler):
 
 def log(message, user='General'):
     chatlog.info(message, extra={'user': user})
+
+
+def being_chat(data):
+    id_, message = data.id, data.message
+    nick = mapserv.beings_cache[id_].name
+    m = "{} : {}".format(nick, message)
+    log(m)
+
+
+def player_chat(data):
+    message = data.message
+    log(message)
+
+
+def got_whisper(data):
+    nick, message = data.nick, data.message
+    m = "[{} ->] {}".format(nick, message)
+    log(m, nick)
+
+
+def send_whisper_result(data):
+    if data.code == 0:
+        m = "[-> {}] {}".format(commands.whisper_to, commands.whisper_msg)
+        log(m, commands.whisper_to)
+
+
+def party_chat(data):
+    nick = mapserv.party_members.get(data.id, str(data.id))
+    msg = data.message
+    m = "[Party] {} : {}".format(nick, msg)
+    log(m, "Party")
+
+
+def init(config):
+    chatlog_dir = config.get('Other', 'chatlog_dir')
+
+    clh = ChatLogHandler(chatlog_dir)
+    clh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s",
+                                       datefmt="%Y-%m-%d %H:%M:%S"))
+    chatlog.addHandler(clh)
+    chatlog.setLevel(logging.INFO)
+
+    register_extension("smsg_being_chat", being_chat)
+    register_extension("smsg_player_chat", player_chat)
+    register_extension("smsg_whisper", got_whisper)
+    register_extension("smsg_whisper_response", send_whisper_result)
+    register_extension("smsg_party_chat", party_chat)

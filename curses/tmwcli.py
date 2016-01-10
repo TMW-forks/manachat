@@ -24,10 +24,10 @@ import cui
 import handlers
 import net
 import net.mapserv as mapserv
+import chatlogfile
 from commands import process_line
 from net.onlineusers import OnlineUsers
-from loggers import netlog, debuglog, chatlog
-from chatlogfile import ChatLogHandler
+from loggers import netlog, debuglog
 
 
 class SideBarUpdater(threading.Thread):
@@ -81,11 +81,7 @@ if __name__ == "__main__":
     netlog.addHandler(fh)
     netlog.setLevel(logging.INFO)
 
-    clh = ChatLogHandler(config.get('Other', 'chatlog_dir'))
-    clh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s",
-                                       datefmt="%Y-%m-%d %H:%M:%S"))
-    chatlog.addHandler(clh)
-    chatlog.setLevel(logging.INFO)
+    chatlogfile.init(config)
 
     handlers.register_all()
 

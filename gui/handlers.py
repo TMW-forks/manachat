@@ -5,7 +5,6 @@ from gui.tmxmap import BeingWidget
 import commands
 import monsterdb
 from utils import register_extension
-from chatlogfile import log as chat_log
 
 
 _map_name = ""
@@ -18,27 +17,22 @@ def being_chat(data):
     nick = mapserv.beings_cache[id_].name
     m = "{} : {}".format(nick, message)
     debuglog.info(m)
-    chat_log(m)
 
 
 def player_chat(data):
-    message = data.message
     debuglog.info(data.message)
-    chat_log(message)
 
 
 def got_whisper(data):
     nick, message = data.nick, data.message
     m = "[{} ->] {}".format(nick, message)
     debuglog.info(m)
-    chat_log(m, nick)
 
 
 def send_whisper_result(data):
     if data.code == 0:
         m = "[-> {}] {}".format(commands.whisper_to, commands.whisper_msg)
         debuglog.info(m)
-        chat_log(m, commands.whisper_to)
         app.root.chat_input.text = '/w "{}" '.format(commands.whisper_to)
         app.root.chat_input.focus = True
 
@@ -52,7 +46,6 @@ def party_chat(data):
     msg = data.message
     m = "[Party] {} : {}".format(nick, msg)
     debuglog.info(m)
-    chat_log(m, "Party")
 
 
 def player_warp(data):

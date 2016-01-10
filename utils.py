@@ -65,3 +65,30 @@ def extendable(fun):
                 f(*args, **kwargs)
 
     return wrapper
+
+
+def preprocess_argument(pp_fun, arg=0):
+    """
+    Make a decorator that modifies 1 argument of a given function
+    before calling it.
+    pp_fun accepts this argument and returns the modified.
+    arg can be either int, then args[arg] is modified, or it
+    can be str, then kwargs[arg] is modified
+    """
+
+    def decorator(fun):
+
+        def wrapper(*args, **kwargs):
+            if isinstance(arg, int):
+                if arg < len(args):
+                    args = list(args)
+                    args[arg] = pp_fun(args[arg])
+                elif isinstance(arg, str):
+                    if arg in kwargs:
+                        kwargs[arg] = pp_fun(kwargs[arg])
+
+            return fun(*args, **kwargs)
+
+        return wrapper
+
+    return decorator

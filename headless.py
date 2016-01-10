@@ -14,6 +14,7 @@ except ImportError:
 
 import net
 import net.mapserv as mapserv
+import plugins
 from utils import register_extension
 
 
@@ -31,6 +32,9 @@ if __name__ == '__main__':
                         datefmt="%Y-%m-%d %H:%M:%S")
     config = ConfigParser()
     config.read('manachat.ini')
+
+    # chatbot.init(config)
+    plugins.load_plugins(config, ('chatbot',))
 
     register_extension('smsg_player_warp', player_warp)
     register_extension('smsg_map_login_success', map_login_success)

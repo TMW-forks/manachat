@@ -16,15 +16,15 @@ def remove_formatting(text):
 def replace_emotes(text):
 
     emotes = ( ":-D", ":-)", ";-)", ":-(", ":-o", ":-|", ":-/", "B-)",
-        ":-D", ":-[", ":-P", "*blush*", ":'-(", "*evil grin*",
+        ":-D", ":-[", ":-P", "*blush*", ":'-(", "*:-]*",
         "*weird emote*", "*ninja*", ":-)", "*star*", "*?*", "*!*", "*idea*",
-        "*->*", "*heart*", "^_^", ":-)", ";-)", ":-(", ":-O", ":-(",
-        "*mimi*", "*epic*", "*32 teeth*", "*perturbed*", ":-P",
-        "*shame*", "*sad*", "*evil*", "0_o", "*ninja*", "*bad geek*",
+        "*->*", "<3", "^_^", ":-)", ";-)", ":-(", ":-O", ":-(",
+        "*mimi*", ":-D", ":-D", "*perturbed*", ":-P",
+        "*shame*", ":-(", ">:-D", "0_o", "*ninja*", "*bad geek*",
         "*star*", "*?*", "*!*", "*bubble*", ">_>", "*in love*",
-        "*disgust*", "*devil*", "*upset*", "xD", "u.u", "x_x",
-        "*facepalm*", "*evvil*", "*angry*", "*epic*", "*metal*",
-        "*crying*", "*...*", "*@:=*", "*cat*", "*sleeping*", "-.-'",
+        "*disgust*", ">:-D", ":-(", "xD", "u.u", "x_x",
+        "*facepalm*", ">:-D", "*angry*", ":-D", "*metal*",
+        ":'-(", "*...*", "*@:=*", ":3", "*zZzZz*", "-.-'",
         "*alien*")
 
     def emote_repl(m):

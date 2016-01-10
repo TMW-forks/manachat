@@ -4,25 +4,28 @@ from utils import register_extension
 import commands
 import cui
 import chatlogfile
+import textutils
 from loggers import debuglog
 
 
 def being_chat(data):
     id_, message = data.id, data.message
     nick = mapserv.beings_cache[id_].name
+    message = textutils.preprocess(message)
     m = "{} : {}".format(nick, message)
     debuglog.info(m)
     chatlogfile.log(m)
 
 
 def player_chat(data):
-    message = data.message
+    message = textutils.preprocess(data.message)
     debuglog.info(message)
     chatlogfile.log(message)
 
 
 def got_whisper(data):
     nick, message = data.nick, data.message
+    message = textutils.preprocess(message)
     m = "[{} ->] {}".format(nick, message)
     debuglog.info(m)
     chatlogfile.log(m, nick)
@@ -30,7 +33,8 @@ def got_whisper(data):
 
 def send_whisper_result(data):
     if data.code == 0:
-        m = "[-> {}] {}".format(commands.whisper_to, commands.whisper_msg)
+        message = textutils.preprocess(commands.whisper_msg)
+        m = "[-> {}] {}".format(commands.whisper_to, message)
         chatlogfile.log(m, commands.whisper_to)
         debuglog.info(m)
         cui.input_win.clear()
@@ -42,8 +46,8 @@ def send_whisper_result(data):
 
 def party_chat(data):
     nick = mapserv.party_members.get(data.id, str(data.id))
-    msg = data.message
-    m = "[Party] {} : {}".format(nick, msg)
+    message = textutils.preprocess(data.message)
+    m = "[Party] {} : {}".format(nick, message)
     debuglog.info(m)
     chatlogfile.log(m, "Party")
 

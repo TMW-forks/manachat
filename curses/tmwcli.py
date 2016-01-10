@@ -26,7 +26,8 @@ import net
 import net.mapserv as mapserv
 from commands import process_line
 from net.onlineusers import OnlineUsers
-from loggers import netlog, debuglog
+from loggers import netlog, debuglog, chatlog
+from chatlogfile import ChatLogHandler
 
 
 class SideBarUpdater(threading.Thread):
@@ -62,6 +63,9 @@ class CursesDebugLogHandler(logging.Handler):
 
 
 if __name__ == "__main__":
+    config = ConfigParser()
+    config.read('../manachat.ini')
+
     rootLogger = logging.getLogger('')
     rootLogger.addHandler(logging.NullHandler())
 
@@ -77,10 +81,13 @@ if __name__ == "__main__":
     netlog.addHandler(fh)
     netlog.setLevel(logging.INFO)
 
-    handlers.register_all()
+    clh = ChatLogHandler(config.get('Other', 'chatlog_dir'))
+    clh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s",
+                                       datefmt="%Y-%m-%d %H:%M:%S"))
+    chatlog.addHandler(clh)
+    chatlog.setLevel(logging.INFO)
 
-    config = ConfigParser()
-    config.read('../manachat.ini')
+    handlers.register_all()
 
     cui.init()
 

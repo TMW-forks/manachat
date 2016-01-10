@@ -20,7 +20,7 @@ def init():
     curses.cbreak()
     curses.noecho()
     stdscr.keypad(1)
-    
+
     h, w = stdscr.getmaxyx()
     PNW = 20  # player name width
     INH = 4   # input window height
@@ -37,7 +37,6 @@ def init():
 
     players_win.idlok(1)
     players_win.scrollok(1)
-
 
     input_textbox = Textbox(input_win)
     input_textbox.stripspaces = True

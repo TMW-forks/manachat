@@ -1,37 +1,38 @@
 import os
 import logging
+from loggers import chatlog
 
 
-class ChatLogFiles:
+class ChatLogHandler(logging.Handler):
 
     def __init__(self, chat_log_dir):
+        logging.Handler.__init__(self, 0)
         self.chat_log_dir = chat_log_dir
         self.loggers = {}
         if not os.path.exists(self.chat_log_dir):
             os.makedirs(self.chat_log_dir)
 
-    def log(self, message, user="General"):
+    def emit(self, record):
+        try:
+            user = record.user
+        except AttributeError:
+            return
+
         user = ''.join(map(lambda c: c if c.isalnum() else '_', user))
 
         if user in self.loggers:
             logger = self.loggers[user]
         else:
-            logger = logging.getLogger("ManaChat.ChatLogFiles." + user)
-            logger.setLevel(logging.INFO)
+            logger = chatlog.getChild(user)
             self.loggers[user] = logger
+            # FIXME: it can open too many files, need cleanup
             handler = logging.FileHandler(os.path.join(
                 self.chat_log_dir, user + ".txt"))
-            formatter = logging.Formatter("[%(asctime)s] %(message)s",
-                                          datefmt="%Y-%m-%d %H:%M:%S")
-            handler.setFormatter(formatter)
             logger.addHandler(handler)
 
+        message = self.format(record)
         logger.info(message)
 
 
-# root_logger = ChatLogFiles('/tmp/mana')
-
-
-def log(message, user="General"):
-    pass
-    # root_logger.log(message, user=user)
+def log(message, user='General'):
+    chatlog.info(message, extra={'user': user})

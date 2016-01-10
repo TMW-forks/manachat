@@ -3,9 +3,9 @@ import net.mapserv as mapserv
 from utils import register_extension
 import commands
 import cui
-import chatlogfile
 import textutils
 from loggers import debuglog
+from chatlogfile import log as chat_log
 
 
 def being_chat(data):
@@ -14,13 +14,13 @@ def being_chat(data):
     message = textutils.preprocess(message)
     m = "{} : {}".format(nick, message)
     debuglog.info(m)
-    chatlogfile.log(m)
+    chat_log(m)
 
 
 def player_chat(data):
     message = textutils.preprocess(data.message)
     debuglog.info(message)
-    chatlogfile.log(message)
+    chat_log(message)
 
 
 def got_whisper(data):
@@ -28,14 +28,14 @@ def got_whisper(data):
     message = textutils.preprocess(message)
     m = "[{} ->] {}".format(nick, message)
     debuglog.info(m)
-    chatlogfile.log(m, nick)
+    chat_log(m, nick)
 
 
 def send_whisper_result(data):
     if data.code == 0:
         message = textutils.preprocess(commands.whisper_msg)
         m = "[-> {}] {}".format(commands.whisper_to, message)
-        chatlogfile.log(m, commands.whisper_to)
+        chat_log(m, commands.whisper_to)
         debuglog.info(m)
         cui.input_win.clear()
         cui.input_win.addstr('/w "{}" '.format(commands.whisper_to))
@@ -49,7 +49,7 @@ def party_chat(data):
     message = textutils.preprocess(data.message)
     m = "[Party] {} : {}".format(nick, message)
     debuglog.info(m)
-    chatlogfile.log(m, "Party")
+    chat_log(m, "Party")
 
 
 def player_warp(data):

@@ -1,8 +1,12 @@
 import logging
+import sys
+
+sys.path.insert(0, "plugins")
 
 
 def load_plugin(config, plugin_name):
     plugin = __import__(plugin_name)
+    print dir(plugin)
     plugin.init(config)
 
 

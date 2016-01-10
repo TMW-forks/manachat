@@ -14,6 +14,7 @@ party_info = []
 party_members = {}
 player_pos = {'x': 0, 'y': 0, 'dir': 0}
 tick = 0
+last_whisper = {'to': '', 'msg': ''}
 
 
 # --------------------------------------------------------------------
@@ -551,6 +552,8 @@ def cmsg_chat_message(msg):
 
 def cmsg_chat_whisper(to_, msg):
     netlog.info("CMSG_CHAT_WHISPER to {} : {}".format(to_, msg))
+    last_whisper['to'] = to_
+    last_whisper['msg'] = msg
     l = len(msg)
     send_packet(server, CMSG_CHAT_WHISPER,
                 (ULInt16("len"), l + 29),

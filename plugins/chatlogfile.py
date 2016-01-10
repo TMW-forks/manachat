@@ -62,8 +62,9 @@ def got_whisper(data):
 
 def send_whisper_result(data):
     if data.code == 0:
-        m = "[-> {}] {}".format(commands.whisper_to, commands.whisper_msg)
-        log(m, commands.whisper_to)
+        m = "[-> {}] {}".format(mapserv.last_whisper['to'],
+                                mapserv.last_whisper['msg'])
+        log(m, mapserv.last_whisper['to'])
 
 
 def party_chat(data):

@@ -71,7 +71,7 @@ class BeingWidget(Widget):
 
 
 class MapWidget(Image):
-    tile_size = NumericProperty(16)
+    tile_size = NumericProperty(32)
     player = ObjectProperty()
     collisions = ObjectProperty(None)
     beings = {}

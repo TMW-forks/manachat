@@ -174,6 +174,8 @@ class ManaGuiApp(App):
                   password=config.get('Player', 'password'),
                   charname=config.get('Player', 'charname'))
 
+        self.root.map_w.tile_size = config.getint('GUI', 'tile_size')
+
         Clock.schedule_once(self.update_online_list, 0.2)
         Clock.schedule_interval(self.update_online_list, 35)
         Clock.schedule_interval(self.update_loop, 0)
@@ -181,7 +183,7 @@ class ManaGuiApp(App):
     def build(self):
         Window.bind(on_keyboard=self.hook_keyboard)
 
-        use_mobile = config.getboolean('Other', 'use_mobile_interface')
+        use_mobile = config.getboolean('GUI', 'use_mobile_interface')
         if use_mobile:
             return RootWidgetMobile()
         else:

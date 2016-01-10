@@ -36,6 +36,21 @@
     "key"     : "charname" },
 
   { "type"    : "title",
+    "title"   : "Interface" },
+
+  { "type"    : "bool",
+    "title"   : "Use mobile interface",
+    "desc"    : "Use mobile UI. If disabled, use desktop UI. Changing it requires restart.",
+    "section" : "GUI",
+    "key"     : "use_mobile_interface" },
+
+  { "type"    : "numeric",
+    "title"   : "Tile size",
+    "desc"    : "Tile size for drawing the map.",
+    "section" : "GUI",
+    "key"     : "tile_size" },
+
+  { "type"    : "title",
     "title"   : "Other" },
 
   { "type"    : "string",
@@ -49,12 +64,6 @@
     "desc"    : "Created automatically.",
     "section" : "Other",
     "key"     : "chatlog_dir" },
-
-  { "type"    : "bool",
-    "title"   : "Use mobile interface",
-    "desc"    : "Use mobile UI. If disabled, use desktop UI. Changing it requires restart.",
-    "section" : "Other",
-    "key"     : "use_mobile_interface" },
 
   { "type"    : "bool",
     "title"   : "Log network packets",

@@ -11,6 +11,7 @@ from ConfigParser import ConfigParser
 # add .. to PYTHONPATH
 parent, _ = os.path.split(os.getcwd())
 sys.path.insert(0, parent)
+sys.path.insert(1, os.path.join(parent, "plugins"))
 
 try:
     import construct
@@ -24,7 +25,7 @@ import cui
 import handlers
 import net
 import net.mapserv as mapserv
-import chatlogfile
+import plugins
 from commands import process_line
 from net.onlineusers import OnlineUsers
 from loggers import netlog, debuglog
@@ -81,11 +82,11 @@ if __name__ == "__main__":
     netlog.addHandler(fh)
     netlog.setLevel(logging.INFO)
 
-    chatlogfile.init(config)
-
     handlers.register_all()
 
     cui.init()
+
+    plugins.load_plugins(config, 'chatlogfile')
 
     online_users = OnlineUsers(config.get('Other', 'online_txt_url'))
     online_users.start()

@@ -34,7 +34,7 @@ if __name__ == '__main__':
     config.read('manachat.ini')
 
     # chatbot.init(config)
-    plugins.load_plugins(config, ('chatbot', 'chatlogfile'))
+    plugins.load_plugins(config, 'chatbot', 'chatlogfile')
 
     register_extension('smsg_player_warp', player_warp)
     register_extension('smsg_map_login_success', map_login_success)

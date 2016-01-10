@@ -29,7 +29,7 @@ import monsterdb
 import net
 import net.mapserv as mapserv
 import gui.handlers as handlers
-import chatlogfile
+import plugins
 from commands import process_line
 from net.onlineusers import OnlineUsers
 from loggers import netlog, debuglog
@@ -157,7 +157,7 @@ class ManaGuiApp(App):
         debuglog.addHandler(dbgh)
         debuglog.setLevel(logging.INFO)
 
-        chatlogfile.init(config)
+        plugins.load_plugins(config, 'chatlogfile')
 
         handlers.app = self
         handlers.register_all()

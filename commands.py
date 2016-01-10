@@ -1,5 +1,6 @@
 
 import net.mapserv as mapserv
+from loggers import debuglog
 
 whisper_to = ''
 whisper_msg = ''
@@ -96,8 +97,13 @@ def process_line(line):
         elif cmd in ("/goto", "/nav", "/navigate", "/dest", "/destination"):
             if len(arg) > 0:
                 set_destination(arg)
+        elif cmd == "/help":
+            debuglog.info(("[help] commands: /w /whisper /p /party /e /emote"
+                           " /me /action /respawn /dir /direction /turn  /sit"
+                           " /stand /goto /nav /navigate /dest /destination"
+                           " /quit /exit"))
         else:
-            pass
-            # chatlog.warning("[warning] command {} not found".format(cmd))
+            debuglog.warning(("[warning] command {} not found. "
+                "Try /help to get list of all commands").format(cmd))
     else:
         general_chat(line)

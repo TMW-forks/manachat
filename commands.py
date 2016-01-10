@@ -1,15 +1,19 @@
 
 import net.mapserv as mapserv
+from utils import preprocess_argument
+from textutils import expand_links
 from loggers import debuglog
 
 whisper_to = ''
 whisper_msg = ''
 
 
+@preprocess_argument(expand_links)
 def general_chat(msg):
     mapserv.cmsg_chat_message(msg)
 
 
+@preprocess_argument(expand_links, 1)
 def send_whisper(to_, msg):
     global whisper_to, whisper_msg
     whisper_to = to_
@@ -17,6 +21,7 @@ def send_whisper(to_, msg):
     mapserv.cmsg_chat_whisper(to_, msg)
 
 
+@preprocess_argument(expand_links)
 def send_party_message(msg):
     mapserv.cmsg_party_message(msg)
 

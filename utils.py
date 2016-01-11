@@ -92,3 +92,18 @@ def preprocess_argument(pp_fun, arg=0):
         return wrapper
 
     return decorator
+
+
+# Encode string - used with 4144 shop compatibility.
+def encode_str(value, size):
+    output = ''
+    base = 94
+    start = 33
+    while value:
+        output += chr(value % base + start)
+        value /= base
+
+    while len(output) < size:
+        output += chr(start)
+
+    return output

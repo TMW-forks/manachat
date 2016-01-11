@@ -5,7 +5,7 @@ from utils import encode_str
 
 PLUGIN = {
     'name': 'shop',
-    'requires': ('chatbot'),
+    'requires': ('chatbot',),
     'blocks': (),
 }
 

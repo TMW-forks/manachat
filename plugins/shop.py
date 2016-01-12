@@ -54,6 +54,13 @@ def selllist(nick, message, is_whisper, match):
     data = '\302\202B1'
 
     for id_, (price, amount) in selling.iteritems():
+        index = get_item_index(id_)
+        if index < 0:
+            continue
+
+        _, curr_amount = mapserv.player_inventory[index]
+        amount = min(curr_amount, amount)
+
         data += encode_str(id_, 2)
         data += encode_str(price, 4)
         data += encode_str(amount, 3)
@@ -69,6 +76,21 @@ def buylist(nick, message, is_whisper, match):
     data = '\302\202S1'
 
     for id_, (price, amount) in buying.iteritems():
+        index = get_item_index(id_)
+        if index > 0:
+            _, curr_amount = mapserv.player_inventory[index]
+            amount -= curr_amount
+
+        try:
+            can_afford = mapserv.player_money / price
+        except ZeroDivisionError:
+            can_afford = 10000000
+
+        amount = min(can_afford, amount)
+
+        if amount <= 0:
+            continue
+
         data += encode_str(id_, 2)
         data += encode_str(price, 4)
         data += encode_str(amount, 3)

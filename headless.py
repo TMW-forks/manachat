@@ -16,6 +16,7 @@ import net
 import net.mapserv as mapserv
 import plugins
 from utils import register_extension
+from itemdb import load_itemdb
 
 
 def player_warp(data):
@@ -33,7 +34,8 @@ if __name__ == '__main__':
     config = ConfigParser()
     config.read('manachat.ini')
 
-    plugins.load_plugins(config, 'shop')
+    load_itemdb('itemdb.txt')
+    plugins.load_plugins(config, 'shop', 'chatlogfile')
 
     register_extension('smsg_player_warp', player_warp)
     register_extension('smsg_map_login_success', map_login_success)

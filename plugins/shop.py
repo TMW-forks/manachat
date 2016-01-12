@@ -4,6 +4,7 @@ import chatbot
 from net.inventory import get_item_index
 from net.trade import reset_trade_state
 from utils import encode_str, register_extension
+from itemdb import item_name
 
 
 __all__ = [ 'PLUGIN', 'init', 'shoplog', 'buying', 'selling' ]
@@ -38,11 +39,6 @@ selling = {
     535:  (100, 50),    # Red Apple
     640:  (1750, 100),  # Iron Ore
 }
-
-
-# placeholder function until itemdb is implemented
-def item_name(item_id):
-    return str(item_id)
 
 
 # =========================================================================

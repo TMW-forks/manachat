@@ -39,7 +39,8 @@ class Schedule:
     def cancel(self):
         if self._active:
             self._active = False
-            self._thread.join()
+            if self._thread is not threading.current_thread():
+                self._thread.join()
 
 
 # The following group of functions is to provide a way to extend

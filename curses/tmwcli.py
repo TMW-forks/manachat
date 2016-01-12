@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     cui.init()
 
-    plugins.load_plugins(config, 'chatlogfile')
+    plugins.load_plugins(config, 'chatlogfile', 'msgqueue')
 
     online_users = OnlineUsers(config.get('Other', 'online_txt_url'))
     online_users.start()

@@ -22,6 +22,8 @@ def smsg_char_login(data):
     for c in data.chars:
         if c.name == server.char_name:
             char_slot = c.slot
+            mapserv.player_money = c.money
+            break
     if char_slot < 0:
         raise Exception("CharName {} not found".format(server.char_name))
 

@@ -5,6 +5,7 @@ from protocol import *
 from common import *
 from utils import *
 from being import BeingsCache
+from inventory import add_to_inventory, remove_from_inventory
 from loggers import netlog
 
 server = None
@@ -15,6 +16,8 @@ party_members = {}
 player_pos = {'x': 0, 'y': 0, 'dir': 0}
 tick = 0
 last_whisper = {'to': '', 'msg': ''}
+player_inventory = {}
+player_money = 0
 
 
 # --------------------------------------------------------------------
@@ -74,23 +77,29 @@ def smsg_player_chat(data):
 @extendable
 def smsg_player_equipment(data):
     netlog.info("SMSG_PLAYER_EQUIPMENT {}".format(data))
+    for item in data.items:
+        player_inventory[item.index] = (item.id, 1)
 
 
 @extendable
 def smsg_player_inventory(data):
     netlog.info("SMSG_PLAYER_INVENTORY {}".format(data))
+    for item in data.items:
+        player_inventory[item.index] = (item.id, item.amount)
 
 
 @extendable
 def smsg_player_inventory_add(data):
     netlog.info("SMSG_PLAYER_INVENTORY_ADD index={} id={} amount={}".format(
         data.index, data.id, data.amount))
+    add_to_inventory(data.index, data.id, data.amount)
 
 
 @extendable
 def smsg_player_inventory_remove(data):
     netlog.info("SMSG_PLAYER_INVENTORY_REMOVE index={} amount={}".format(
         data.index, data.amount))
+    remove_from_inventory(data.index, data.amount)
 
 
 @extendable
@@ -533,6 +542,35 @@ def cmsg_trade_response(answer):
     netlog.info("CMSG_TRADE_RESPONSE {}".format(s[answer]))
     send_packet(server, CMSG_TRADE_RESPONSE,
                 (Byte("answer"), answer))
+
+
+def cmsg_trade_request(player_id):
+    netlog.info("CMSG_TRADE_REQUEST id={}".format(player_id))
+    send_packet(server, CMSG_TRADE_REQUEST,
+                (ULInt32("id"), player_id))
+
+
+def cmsg_trade_item_add_request(index, amount):
+    netlog.info("CMSG_TRADE_ITEM_ADD_REQUEST index={} amount={}".format(
+        index, amount))
+    send_packet(server, CMSG_TRADE_ITEM_ADD_REQUEST,
+                (ULInt16("index"), index),
+                (ULInt32("amount"), amount))
+
+
+def cmsg_trade_ok():
+    netlog.info("CMSG_TRADE_OK")
+    ULInt16("opcode").build_stream(CMSG_TRADE_OK, server)
+
+
+def cmsg_trade_add_complete():
+    netlog.info("CMSG_TRADE_ADD_COMPLETE")
+    ULInt16("opcode").build_stream(CMSG_TRADE_ADD_COMPLETE, server)
+
+
+def cmsg_trade_cancel_request():
+    netlog.info("CMSG_TRADE_CANCEL_REQUEST")
+    ULInt16("opcode").build_stream(CMSG_TRADE_CANCEL_REQUEST, server)
 
 
 def cmsg_name_request(id_):

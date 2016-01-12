@@ -2,9 +2,18 @@ import os
 import logging
 
 import net.mapserv as mapserv
-import commands
 from loggers import chatlog
 from utils import register_extension
+
+
+__all__ = [ 'PLUGIN', 'init', 'ChatLogHandler' ]
+
+
+PLUGIN = {
+    'name': 'chatlogfile',
+    'requires': (),
+    'blocks': (),
+}
 
 
 class ChatLogHandler(logging.Handler):

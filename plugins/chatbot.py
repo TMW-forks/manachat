@@ -5,6 +5,9 @@ import net.mapserv as mapserv
 from utils import register_extension
 
 
+__all__ = [ 'PLUGIN', 'init', 'answer', 'commands' ]
+
+
 PLUGIN = {
     'name': 'chatbot',
     'requires': (),

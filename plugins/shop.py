@@ -3,7 +3,7 @@ import net.mapserv as mapserv
 import chatbot
 from net.inventory import get_item_index
 from net.trade import reset_trade_state
-from utils import encode_str, register_extension
+from utils import encode_str, register_extension, Schedule
 from itemdb import item_name
 
 
@@ -18,6 +18,7 @@ PLUGIN = {
 
 shoplog = logging.getLogger('ManaChat.Shop')
 whisper = mapserv.cmsg_chat_whisper
+trade_timeout = 90
 
 
 class s:
@@ -27,6 +28,7 @@ class s:
     amount = 0
     price = 0
     index = 0
+    timer = None
 
 
 buying = {
@@ -101,6 +103,9 @@ def cleanup():
     s.amount = 0
     s.price = 0
     s.index = 0
+    if s.timer is not None:
+        s.timer.cancel()
+        s.timer = None
 
 
 def sellitem(nick, message, is_whisper, match):
@@ -210,6 +215,11 @@ def buyitem(nick, message, is_whisper, match):
     mapserv.cmsg_trade_request(player_id)
 
 
+def cancel_timer_function():
+    shoplog.warning("%s timed out", s.player)
+    mapserv.cmsg_trade_cancel_request()
+
+
 # =========================================================================
 def trade_request(data):
     shoplog.info("Trade request from %s", data.nick)
@@ -228,8 +238,7 @@ def trade_response(data):
 
     elif code == 3:
         shoplog.info("%s accepts trade", s.player)
-        # TODO run cancel timer
-        # ...
+        s.timer = Schedule(trade_timeout, 30, cancel_timer_function)
         if s.mode == 'sell':
             mapserv.cmsg_trade_item_add_request(s.index, s.amount)
             mapserv.cmsg_trade_add_complete()

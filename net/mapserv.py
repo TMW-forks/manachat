@@ -6,6 +6,7 @@ from common import *
 from utils import *
 from being import BeingsCache
 from inventory import add_to_inventory, remove_from_inventory
+from trade import reset_trade_state
 from loggers import netlog
 
 server = None
@@ -18,6 +19,8 @@ tick = 0
 last_whisper = {'to': '', 'msg': ''}
 player_inventory = {}
 player_money = 0
+trade_state = {'items_give': [], 'items_get': [],
+               'zeny_give': 0, 'zeny_get': 0}
 
 
 # --------------------------------------------------------------------
@@ -166,7 +169,7 @@ def smsg_party_chat(data):
 @extendable
 def smsg_trade_request(data):
     netlog.info("SMSG_TRADE_REQUEST {}".format(data.nick))
-    cmsg_trade_response("DECLINE")
+    # cmsg_trade_response("DECLINE")
 
 
 @extendable
@@ -178,17 +181,35 @@ def smsg_trade_response(data):
 def smsg_trade_item_add(data):
     netlog.info("SMSG_TRADE_ITEM_ADD id={} amount={}".format(
         data.id, data.amount))
+    if data.id == 0:
+        trade_state['zeny_get'] = data.amount
+    else:
+        trade_state['items_get'].append((data.id, data.amount))
 
 
 @extendable
 def smsg_trade_item_add_response(data):
-    netlog.info("SMSG_TRADE_ITEM_ADD_RESPONSE index={} amount={} code={}".format(
+    netlog.info(("SMSG_TRADE_ITEM_ADD_RESPONSE"
+                 " index={} amount={} code={}").format(
         data.index, data.amount, data.code))
+
+    index = data.index
+    amount = data.amount
+    code = data.code
+
+    if code == 0 and amount > 0:
+        if index > 0:
+            item_id, _ = player_inventory[index]
+            remove_from_inventory(index, amount)
+            trade_state['items_give'].append((item_id, amount))
+        elif index == 0:
+            trade_state['zeny_give'] = amount
 
 
 @extendable
 def smsg_trade_cancel(data):
     netlog.info("SMSG_TRADE_CANCEL")
+    reset_trade_state(trade_state)
 
 
 @extendable
@@ -199,6 +220,9 @@ def smsg_trade_ok(data):
 @extendable
 def smsg_trade_complete(data):
     netlog.info("SMSG_TRADE_COMPLETE")
+    global player_money
+    player_money += trade_state['zeny_get'] - trade_state['zeny_give']
+    # reset_trade_state(trade_state)
 
 
 @extendable

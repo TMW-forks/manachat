@@ -54,6 +54,14 @@ def map_login_success(data):
     mapserv.cmsg_map_loaded()
 
 
+def connection_problem(data):
+    error_codes = {
+        2 : "Account already in use"
+    }
+    msg = error_codes.get(data.code, str(data.code))
+    debuglog.error('Connection problem: %s', msg)
+
+
 def register_all():
     register_extension("smsg_being_chat", being_chat)
     register_extension("smsg_player_chat", player_chat)
@@ -62,3 +70,4 @@ def register_all():
     register_extension("smsg_party_chat", party_chat)
     register_extension("smsg_player_warp", player_warp)
     register_extension("smsg_map_login_success", map_login_success)
+    register_extension("smsg_connection_problem", connection_problem)

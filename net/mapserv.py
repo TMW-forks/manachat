@@ -80,14 +80,14 @@ def smsg_player_chat(data):
 @extendable
 def smsg_player_equipment(data):
     netlog.info("SMSG_PLAYER_EQUIPMENT {}".format(data))
-    for item in data.items:
+    for item in data.equipment:
         player_inventory[item.index] = (item.id, 1)
 
 
 @extendable
 def smsg_player_inventory(data):
     netlog.info("SMSG_PLAYER_INVENTORY {}".format(data))
-    for item in data.items:
+    for item in data.inventory:
         player_inventory[item.index] = (item.id, item.amount)
 
 
@@ -351,7 +351,7 @@ protodef = {
               Struct("data",
                      ULInt16("length"),
                      Array(lambda ctx: (ctx.length - 4) / 20,
-                           Struct("items",
+                           Struct("equipment",
                                   ULInt16("index"),
                                   ULInt16("id"),
                                   Padding(16))))),
@@ -360,7 +360,7 @@ protodef = {
               Struct("data",
                      ULInt16("length"),
                      Array(lambda ctx: (ctx.length - 4) / 18,
-                           Struct("items",
+                           Struct("inventory",
                                   ULInt16("index"),
                                   ULInt16("id"),
                                   Padding(2),
@@ -577,6 +577,12 @@ def cmsg_trade_request(player_id):
 def cmsg_trade_item_add_request(index, amount):
     netlog.info("CMSG_TRADE_ITEM_ADD_REQUEST index={} amount={}".format(
         index, amount))
+
+    # Workaround for TMWA, I'm pretty sure it has a bug related to
+    # not sending back the amount of GP player added to trade
+    if index == 0 and amount <= player_money:
+        trade_state['zeny_give'] = amount
+
     send_packet(server, CMSG_TRADE_ITEM_ADD_REQUEST,
                 (ULInt16("index"), index),
                 (ULInt32("amount"), amount))

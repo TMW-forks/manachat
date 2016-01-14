@@ -49,6 +49,13 @@ def smsg_being_move(data):
 
 
 @extendable
+def smsg_being_action(data):
+    global tick
+    tick = data.tick
+    netlog.info("SMSG_BEING_ACTION {}".format(data))
+
+
+@extendable
 def smsg_being_name_response(data):
     beings_cache[data.id].name = data.name
     netlog.info("SMSG_BEING_NAME_RESPONSE id={} name={}".format(
@@ -263,7 +270,17 @@ def smsg_walk_response(data):
 # --------------------------------------------------------------------
 protodef = {
     0x8000 : (smsg_ignore, Field("data", 2)),      # ignore
-    0x008a : (smsg_ignore, Field("data", 27)),     # being-action
+    0x008a : (smsg_being_action,
+              Struct("data",
+                     ULInt32("src_id"),
+                     ULInt32("dst_id"),
+                     ULInt32("tick"),
+                     ULInt32("src_speed"),
+                     ULInt32("dst_speed"),
+                     ULInt16("damage"),
+                     Padding(2),
+                     Byte("type"),
+                     Padding(2))),
     0x009c : (smsg_ignore, Field("data", 7)),      # being-change-direction
     0x00c3 : (smsg_ignore, Field("data", 6)),      # being-change-looks
     0x01d7 : (smsg_ignore, Field("data", 9)),      # being-change-looks2

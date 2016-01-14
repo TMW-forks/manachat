@@ -56,17 +56,40 @@ def register_extension(name, func):
         _extensions[name] = [func]
 
 
-def extendable(fun):
+def extendable(func):
+    """
+    Decorator function. If a function is decorated with
+    @extendable, each call of it will be followed by calls of
+    _extentions[fun.__name__](*args, **kwargs) with same args
+    """
 
     def wrapper(*args, **kwargs):
-        name = fun.__name__
-        fun(*args, **kwargs)
+        name = func.__name__
+        func(*args, **kwargs)
         if name in _extensions:
             for f in _extensions[name]:
                 f(*args, **kwargs)
 
-    wrapper.__name__ = fun.__name__
+    wrapper.__name__ = func.__name__
     return wrapper
+
+
+def extends(func_name):
+    """
+    Return a decorator that registers the wrapped function
+    as an extention to func_name call.
+    See @extendable.
+    """
+
+    def decorator(func):
+
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        register_extension(func_name, func)
+        return wrapper
+
+    return decorator
 
 
 def preprocess_argument(pp_fun, arg=0):

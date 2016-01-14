@@ -160,7 +160,6 @@ class ManaGuiApp(App):
         plugins.load_plugins(config, 'chatlogfile')
 
         handlers.app = self
-        handlers.register_all()
 
         net.login(host=config.get('Server', 'host'),
                   port=config.getint('Server', 'port'),

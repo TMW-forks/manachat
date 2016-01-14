@@ -4,14 +4,17 @@ from loggers import debuglog
 from gui.tmxmap import BeingWidget
 import commands
 import monsterdb
-from utils import register_extension
+from utils import extends
 
 
-_map_name = ""
-_char_name = ""
+__all__ = ['app']
+
+
+map_name = ""
 app = None
 
 
+@extends('smsg_being_chat')
 def being_chat(data):
     id_, message = data.id, data.message
     nick = mapserv.beings_cache[id_].name
@@ -19,16 +22,19 @@ def being_chat(data):
     debuglog.info(m)
 
 
+@extends('smsg_player_chat')
 def player_chat(data):
     debuglog.info(data.message)
 
 
+@extends('smsg_whisper')
 def got_whisper(data):
     nick, message = data.nick, data.message
     m = "[{} ->] {}".format(nick, message)
     debuglog.info(m)
 
 
+@extends('smsg_whisper_response')
 def send_whisper_result(data):
     if data.code == 0:
         m = "[-> {}] {}".format(commands.whisper_to, commands.whisper_msg)
@@ -41,6 +47,7 @@ def send_whisper_result(data):
             commands.whisper_to))
 
 
+@extends('smsg_party_chat')
 def party_chat(data):
     nick = mapserv.party_members.get(data.id, str(data.id))
     msg = data.message
@@ -48,6 +55,7 @@ def party_chat(data):
     debuglog.info(m)
 
 
+@extends('smsg_player_warp')
 def player_warp(data):
     mw = app.root.map_w
 
@@ -64,21 +72,33 @@ def player_warp(data):
     debuglog.info(m)
 
 
+@extends('smsg_char_map_info')
 def char_map_info(data):
-    global _map_name
-    _map_name = data.map_name
+    global map_name
+    map_name = data.map_name
 
 
+@extends('smsg_map_login_success')
 def map_login_success(data):
-    m = "[map] {} ({},{})".format(_map_name, data.coor.x, data.coor.y)
+    m = "[map] {} ({},{})".format(map_name, data.coor.x, data.coor.y)
     debuglog.info(m)
-    app.root.map_w.load_map(_map_name)
+    app.root.map_w.load_map(map_name)
     app.root.player.pos = app.root.map_w.from_game_coords((data.coor.x,
                                                            data.coor.y))
     app.root.player.name = mapserv.server.char_name
     mapserv.cmsg_map_loaded()
 
 
+@extends('smsg_connection_problem')
+def connection_problem(data):
+    error_codes = {
+        2 : "Account already in use"
+    }
+    msg = error_codes.get(data.code, str(data.code))
+    debuglog.error('Connection problem: %s', msg)
+
+
+@extends('smsg_being_visible')
 def being_visible(data):
     if mapserv.beings_cache[data.id].type not in ("monster", "player"):
         return
@@ -96,6 +116,7 @@ def being_visible(data):
     mw.add_widget(mw.beings[data.id])
 
 
+@extends('smsg_being_move')
 def being_move(data):
     mw = app.root.map_w
 
@@ -118,6 +139,7 @@ def being_move(data):
                   data.coor_pair.dst_y, speed)
 
 
+@extends('smsg_player_update')
 def player_update(data):
     mw = app.root.map_w
     npos = mw.from_game_coords((data.coor.x, data.coor.y))
@@ -129,6 +151,7 @@ def player_update(data):
     mw.add_widget(mw.beings[data.id])
 
 
+@extends('smsg_player_move')
 def player_move(data):
     mw = app.root.map_w
 
@@ -150,6 +173,7 @@ def player_move(data):
                   data.coor_pair.dst_y, speed)
 
 
+@extends('smsg_being_remove')
 def being_remove(data):
     mw = app.root.map_w
 
@@ -158,6 +182,7 @@ def being_remove(data):
         del mw.beings[data.id]
 
 
+@extends('smsg_being_name_response')
 def being_name_response(data):
     mw = app.root.map_w
 
@@ -165,32 +190,14 @@ def being_name_response(data):
         mw.beings[data.id].name = data.name
 
 
+@extends('smsg_walk_response')
 def player_walk_response(data):
     mw = app.root.map_w
     mw.move_being(mw.player, data.coor_pair.dst_x,
                   data.coor_pair.dst_y)
 
 
-# @extends('smsg_being_action')
+@extends('smsg_being_action')
 def being_action(data):
     if data.type in (0, 10):
         app.root.map_w.current_attacks[data.src_id, data.dst_id] = data.damage
-
-
-def register_all():
-    register_extension("smsg_being_chat", being_chat)
-    register_extension("smsg_player_chat", player_chat)
-    register_extension("smsg_whisper", got_whisper)
-    register_extension("smsg_whisper_response", send_whisper_result)
-    register_extension("smsg_party_chat", party_chat)
-    register_extension("smsg_player_warp", player_warp)
-    register_extension("smsg_char_map_info", char_map_info)
-    register_extension("smsg_map_login_success", map_login_success)
-    register_extension("smsg_being_visible", being_visible)
-    register_extension("smsg_being_move", being_move)
-    register_extension("smsg_player_update", player_update)
-    register_extension("smsg_player_move", player_move)
-    register_extension("smsg_being_remove", being_remove)
-    register_extension("smsg_being_name_response", being_name_response)
-    register_extension("smsg_walk_response", player_walk_response)
-    register_extension("smsg_being_action", being_action)

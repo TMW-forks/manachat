@@ -15,14 +15,16 @@ except ImportError:
 import net
 import net.mapserv as mapserv
 import plugins
-from utils import register_extension
+from utils import extends
 from itemdb import load_itemdb
 
 
+@extends('smsg_player_warp')
 def player_warp(data):
     mapserv.cmsg_map_loaded()
 
 
+@extends('smsg_map_login_success')
 def map_login_success(data):
     mapserv.cmsg_map_loaded()
 
@@ -35,10 +37,8 @@ if __name__ == '__main__':
     config.read('manachat.ini')
 
     load_itemdb('itemdb.txt')
-    plugins.load_plugins(config, 'shop', 'chatlogfile')
-
-    register_extension('smsg_player_warp', player_warp)
-    register_extension('smsg_map_login_success', map_login_success)
+    plugin_list = config.get('Core', 'plugins').split()
+    plugins.load_plugins(config, *plugin_list)
 
     net.login(host=config.get('Server', 'host'),
               port=config.getint('Server', 'port'),

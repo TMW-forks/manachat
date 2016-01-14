@@ -1,12 +1,16 @@
 
 import net.mapserv as mapserv
-from utils import register_extension
+from utils import extends
 import commands
 import cui
 import textutils
 from loggers import debuglog
 
 
+__all__ = []
+
+
+@extends('smsg_being_chat')
 def being_chat(data):
     id_, message = data.id, data.message
     nick = mapserv.beings_cache[id_].name
@@ -15,11 +19,13 @@ def being_chat(data):
     debuglog.info(m)
 
 
+@extends('smsg_player_chat')
 def player_chat(data):
     message = textutils.preprocess(data.message)
     debuglog.info(message)
 
 
+@extends('smsg_whisper')
 def got_whisper(data):
     nick, message = data.nick, data.message
     message = textutils.preprocess(message)
@@ -27,6 +33,7 @@ def got_whisper(data):
     debuglog.info(m)
 
 
+@extends('smsg_whisper_response')
 def send_whisper_result(data):
     if data.code == 0:
         message = textutils.preprocess(commands.whisper_msg)
@@ -39,6 +46,7 @@ def send_whisper_result(data):
         debuglog.info("[error] {} is offline.".format(commands.whisper_to))
 
 
+@extends('smsg_party_chat')
 def party_chat(data):
     nick = mapserv.party_members.get(data.id, str(data.id))
     message = textutils.preprocess(data.message)
@@ -46,28 +54,22 @@ def party_chat(data):
     debuglog.info(m)
 
 
+@extends('smsg_player_warp')
 def player_warp(data):
     mapserv.cmsg_map_loaded()
+    m = "[warp] {} ({},{})".format(data.map, data.x, data.y)
+    debuglog.info(m)
 
 
+@extends('smsg_map_login_success')
 def map_login_success(data):
     mapserv.cmsg_map_loaded()
 
 
+@extends('smsg_connection_problem')
 def connection_problem(data):
     error_codes = {
         2 : "Account already in use"
     }
     msg = error_codes.get(data.code, str(data.code))
     debuglog.error('Connection problem: %s', msg)
-
-
-def register_all():
-    register_extension("smsg_being_chat", being_chat)
-    register_extension("smsg_player_chat", player_chat)
-    register_extension("smsg_whisper", got_whisper)
-    register_extension("smsg_whisper_response", send_whisper_result)
-    register_extension("smsg_party_chat", party_chat)
-    register_extension("smsg_player_warp", player_warp)
-    register_extension("smsg_map_login_success", map_login_success)
-    register_extension("smsg_connection_problem", connection_problem)

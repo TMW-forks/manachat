@@ -82,8 +82,6 @@ if __name__ == "__main__":
     netlog.addHandler(fh)
     netlog.setLevel(logging.INFO)
 
-    handlers.register_all()
-
     cui.init()
 
     plugins.load_plugins(config, 'chatlogfile', 'msgqueue')

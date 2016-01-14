@@ -13,7 +13,7 @@ from kivy.uix.image import Image
 from kivy.graphics.texture import Texture
 from kivy.animation import Animation
 from kivy.properties import (StringProperty, ObjectProperty,
-        NumericProperty)
+        NumericProperty, DictProperty)
 from kivy.logger import Logger
 
 from pathfind import breadth_first_search
@@ -74,7 +74,8 @@ class MapWidget(Image):
     tile_size = NumericProperty(32)
     player = ObjectProperty()
     collisions = ObjectProperty(None)
-    beings = {}
+    current_attacks = DictProperty()
+    beings = DictProperty()
     maps = {}
 
     def load_map(self, name, *args):
@@ -130,3 +131,16 @@ class MapWidget(Image):
                                     duration=distance * speed / 1000.)
 
         being.anim.start(being)
+
+    def get_attack_points(self, *bind_args):
+        points = []
+        for (id1, id2) in self.current_attacks:
+            try:
+                # Temporary workaround
+                x1, y1 = self.beings[id1].pos
+                x2, y2 = self.beings[id2].pos
+                points.extend([x1, y1, x2, y2])
+            except:
+                pass
+
+        return points

@@ -171,6 +171,12 @@ def player_walk_response(data):
                   data.coor_pair.dst_y)
 
 
+# @extends('smsg_being_action')
+def being_action(data):
+    if data.type in (0, 10):
+        app.root.map_w.current_attacks[data.src_id, data.dst_id] = data.damage
+
+
 def register_all():
     register_extension("smsg_being_chat", being_chat)
     register_extension("smsg_player_chat", player_chat)
@@ -187,3 +193,4 @@ def register_all():
     register_extension("smsg_being_remove", being_remove)
     register_extension("smsg_being_name_response", being_name_response)
     register_extension("smsg_walk_response", player_walk_response)
+    register_extension("smsg_being_action", being_action)

@@ -55,6 +55,15 @@
         pos: root.pos
 
 
+<MapWidget>:
+
+    canvas.after:
+        Color:
+            rgb: 0.85, 0.15, 0.15
+        Line:
+            points: self.get_attack_points(self.current_attacks, self.beings)
+
+
 <RootWidget>:
 
     canvas.before:

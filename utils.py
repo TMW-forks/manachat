@@ -65,6 +65,7 @@ def extendable(fun):
             for f in _extensions[name]:
                 f(*args, **kwargs)
 
+    wrapper.__name__ = fun.__name__
     return wrapper
 
 

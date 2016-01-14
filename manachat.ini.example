@@ -1,3 +1,5 @@
+[Core]
+plugins =
 
 [Server]
 host = server.themanaworld.org

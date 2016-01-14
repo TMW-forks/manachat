@@ -1,4 +1,6 @@
+from types import StringType
 from construct import *
+from loggers import netlog
 
 packet_lengths = [
    10,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -53,11 +55,16 @@ def dispatch(stream, protodef):
         func, macro = protodef[opcode]
         data = macro.parse_stream(stream)
         func(data)
-    elif opcode < len(packet_lengths):
-        pktlen = packet_lengths[opcode]
-        stream.read(pktlen)
     else:
-        datadef = Struct("data",
-                         UBInt16("length"),
-                         MetaField("ignore", lambda ctx: ctx["length"]))
-        datadef.parse_stream(stream)
+        data = ''
+        pktlen = -1
+        if opcode < len(packet_lengths):
+            pktlen = packet_lengths[opcode]
+            if pktlen > 0:
+                data = stream.read(pktlen)
+
+        if pktlen == -1:
+            datadef = Struct("data",
+                             UBInt16("length"),
+                             MetaField("ignore", lambda ctx: ctx["length"]))
+            data = datadef.parse_stream(stream)

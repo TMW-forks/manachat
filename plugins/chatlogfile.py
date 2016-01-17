@@ -3,7 +3,7 @@ import logging
 
 import net.mapserv as mapserv
 from loggers import chatlog
-from utils import register_extension
+from utils import extends
 
 
 __all__ = [ 'PLUGIN', 'init', 'ChatLogHandler' ]
@@ -51,6 +51,7 @@ def log(message, user='General'):
     chatlog.info(message, extra={'user': user})
 
 
+@extends('smsg_being_chat')
 def being_chat(data):
     id_, message = data.id, data.message
     nick = mapserv.beings_cache[id_].name
@@ -58,17 +59,20 @@ def being_chat(data):
     log(m)
 
 
+@extends('smsg_player_chat')
 def player_chat(data):
     message = data.message
     log(message)
 
 
+@extends('smsg_whisper')
 def got_whisper(data):
     nick, message = data.nick, data.message
     m = "[{} ->] {}".format(nick, message)
     log(m, nick)
 
 
+@extends('smsg_whisper_response')
 def send_whisper_result(data):
     if data.code == 0:
         m = "[-> {}] {}".format(mapserv.last_whisper['to'],
@@ -76,6 +80,7 @@ def send_whisper_result(data):
         log(m, mapserv.last_whisper['to'])
 
 
+@extends('smsg_party_chat')
 def party_chat(data):
     nick = mapserv.party_members.get(data.id, str(data.id))
     msg = data.message
@@ -91,9 +96,3 @@ def init(config):
                                        datefmt="%Y-%m-%d %H:%M:%S"))
     chatlog.addHandler(clh)
     chatlog.setLevel(logging.INFO)
-
-    register_extension("smsg_being_chat", being_chat)
-    register_extension("smsg_player_chat", player_chat)
-    register_extension("smsg_whisper", got_whisper)
-    register_extension("smsg_whisper_response", send_whisper_result)
-    register_extension("smsg_party_chat", party_chat)

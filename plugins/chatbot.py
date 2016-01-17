@@ -2,7 +2,7 @@ import re
 import random
 import types
 import net.mapserv as mapserv
-from utils import register_extension
+from utils import extends
 
 
 __all__ = [ 'PLUGIN', 'init', 'answer', 'commands' ]
@@ -49,21 +49,23 @@ def answer(nick, message, is_whisper):
                 raise ValueError("must be either list or function")
 
 
+@extends('smsg_being_chat')
 def being_chat(data):
     id_, message = data.id, data.message
     nick = mapserv.beings_cache[id_].name
     answer(nick, message, False)
 
 
+@extends('smsg_whisper')
 def got_whisper(data):
     nick, message = data.nick, data.message
     answer(nick, message, True)
 
 
+@extends('smsg_whisper_response')
 def send_whisper_result(data):
     pass
 
 
 def init(config):
-    register_extension("smsg_being_chat", being_chat)
-    register_extension("smsg_whisper", got_whisper)
+    pass

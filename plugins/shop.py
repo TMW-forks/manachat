@@ -3,7 +3,7 @@ import net.mapserv as mapserv
 import chatbot
 from net.inventory import get_item_index
 from net.trade import reset_trade_state
-from utils import encode_str, register_extension, Schedule
+from utils import encode_str, extends, Schedule
 from itemdb import item_name
 
 
@@ -221,12 +221,14 @@ def cancel_timer_function():
 
 
 # =========================================================================
+@extends('smsg_trade_request')
 def trade_request(data):
     shoplog.info("Trade request from %s", data.nick)
     mapserv.cmsg_trade_response(False)
     selllist(data.nick, '', True, None)
 
 
+@extends('smsg_trade_response')
 def trade_response(data):
     code = data.code
 
@@ -259,6 +261,7 @@ def trade_response(data):
         cleanup()
 
 
+@extends('smsg_trade_item_add')
 def trade_item_add(data):
     item_id, amount = data.id, data.amount
 
@@ -285,6 +288,7 @@ def trade_item_add(data):
         cleanup()
 
 
+@extends('smsg_trade_item_add_response')
 def trade_item_add_response(data):
     code = data.code
     amount = data.amount
@@ -312,11 +316,13 @@ def trade_item_add_response(data):
         cleanup()
 
 
+@extends('smsg_trade_cancel')
 def trade_cancel(data):
     shoplog.error("Trade with %s canceled", s.player)
     cleanup()
 
 
+@extends('smsg_trade_ok')
 def trade_ok(data):
     who = data.who
 
@@ -356,6 +362,7 @@ def trade_ok(data):
         cleanup()
 
 
+@extends('smsg_trade_complete')
 def trade_complete(data):
     if s.mode == 'sell':
         shoplog.info("Trade with %s completed. I sold %d %s for %d GP",
@@ -392,10 +399,3 @@ def load_shop_list(config):
 def init(config):
     chatbot.commands.update(shop_commands)
     load_shop_list(config)
-    register_extension('smsg_trade_request', trade_request)
-    register_extension('smsg_trade_response', trade_response)
-    register_extension('smsg_trade_item_add', trade_item_add)
-    register_extension('smsg_trade_item_add_response', trade_item_add_response)
-    register_extension('smsg_trade_cancel', trade_cancel)
-    register_extension('smsg_trade_ok', trade_ok)
-    register_extension('smsg_trade_complete', trade_complete)

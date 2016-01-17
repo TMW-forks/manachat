@@ -1,5 +1,6 @@
 
 import net.mapserv as mapserv
+import monsterdb
 from utils import preprocess_argument
 from textutils import expand_links
 from loggers import debuglog
@@ -48,6 +49,30 @@ def set_destination(arg):
 
 def show_emote(emote):
     mapserv.cmsg_player_emote(int(emote))
+
+
+def attack(name_or_id):
+    target_id = -10
+    mob_db = monsterdb.monster_db
+
+    try:
+        target_id = int(name_or_id)
+        if target_id not in mapserv.beings_cache:
+            raise ValueError
+    except ValueError:
+        for b in mapserv.beings_cache:
+            if b.name == name_or_id:
+                target_id = b.id
+                break
+            if b.job in mob_db:
+                if mob_db[b.job] == name_or_id:
+                    target_id = b.id
+                    break
+
+    if target_id > 0:
+        mapserv.cmsg_player_change_act(target_id, 7)
+    else:
+        debuglog.warning("Being %s not found", name_or_id)
 
 
 def parse_player_name(line):
@@ -102,11 +127,13 @@ def process_line(line):
         elif cmd in ("/goto", "/nav", "/navigate", "/dest", "/destination"):
             if len(arg) > 0:
                 set_destination(arg)
+        elif cmd in ("/attack", "/atk"):
+            attack(arg)
         elif cmd == "/help":
             debuglog.info(("[help] commands: /w /whisper /p /party /e /emote"
                            " /me /action /respawn /dir /direction /turn  /sit"
                            " /stand /goto /nav /navigate /dest /destination"
-                           " /quit /exit"))
+                           " /attack /atk /quit /exit"))
         else:
             debuglog.warning(("[warning] command {} not found. "
                 "Try /help to get list of all commands").format(cmd))

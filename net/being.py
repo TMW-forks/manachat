@@ -41,6 +41,7 @@ class BeingsCache:
         self._beings = {}
         self.__getitem__ = self._beings.__getitem__
         self.__delitem__ = self._beings.__delitem__
+        self.__iter__ = self._beings.itervalues
         self._name_request_func = name_request_func
 
     def findId(self, name, type_="player"):

@@ -26,6 +26,7 @@ import handlers
 import net
 import net.mapserv as mapserv
 import plugins
+import monsterdb
 from commands import process_line
 from net.onlineusers import OnlineUsers
 from loggers import netlog, debuglog
@@ -85,6 +86,7 @@ if __name__ == "__main__":
     cui.init()
 
     plugins.load_plugins(config, 'chatlogfile', 'msgqueue')
+    monsterdb.read_monster_db('../monsterdb.txt')
 
     online_users = OnlineUsers(config.get('Other', 'online_txt_url'))
     online_users.start()

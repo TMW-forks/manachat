@@ -177,6 +177,10 @@ def player_move(data):
 def being_remove(data):
     mw = app.root.map_w
 
+    for id1id2 in mw.current_attacks.keys():
+        if data.id in id1id2:
+            del mw.current_attacks[id1id2]
+
     if data.id in mw.beings:
         mw.remove_widget(mw.beings[data.id])
         del mw.beings[data.id]

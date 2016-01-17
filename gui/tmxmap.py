@@ -17,6 +17,7 @@ from kivy.properties import (StringProperty, ObjectProperty,
 from kivy.logger import Logger
 
 from pathfind import breadth_first_search
+import net.mapserv as mapserv
 
 
 def kivy_image_loader(filename, colorkey, **kwargs):
@@ -134,12 +135,40 @@ class MapWidget(Image):
 
     def get_attack_points(self, *bind_args):
         points = []
+        try:
+            player_id = mapserv.server.char_id
+        except AttributeError:
+            player_id = 0
         for (id1, id2) in self.current_attacks:
             try:
                 # Temporary workaround
-                x1, y1 = self.beings[id1].pos
-                x2, y2 = self.beings[id2].pos
+                if id1 == player_id:
+                    x1, y1 = self.player.pos
+                else:
+                    x1, y1 = self.beings[id1].pos
+                if id2 == player_id:
+                    x2, y2 = self.player.pos
+                else:
+                    x2, y2 = self.beings[id2].pos
                 points.extend([x1, y1, x2, y2])
+            except:
+                pass
+
+        return points
+
+    def get_attack_endpoints(self, *bind_args):
+        points = []
+        try:
+            player_id = mapserv.server.char_id
+        except AttributeError:
+            player_id = 0
+        for (_, target) in self.current_attacks:
+            try:
+                if target == player_id:
+                    x, y = self.player.pos
+                else:
+                    x, y = self.beings[target].pos
+                points.extend([x, y])
             except:
                 pass
 

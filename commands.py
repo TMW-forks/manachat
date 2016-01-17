@@ -35,7 +35,7 @@ def set_direction(dir_str):
 def sit_or_stand(cmd):
     a = {"/sit": 2, "/stand": 3}
     action = a[cmd]
-    mapserv.cmsg_player_change_act(action)
+    mapserv.cmsg_player_change_act(0, action)
 
 
 def set_destination(arg):

@@ -680,10 +680,10 @@ def cmsg_player_change_dir(new_dir):
                 (ULInt8("dir"), new_dir))
 
 
-def cmsg_player_change_act(action):
-    netlog.info("CMSG_PLAYER_CHANGE_ACT {}".format(action))
+def cmsg_player_change_act(id_, action):
+    netlog.info("CMSG_PLAYER_CHANGE_ACT id={} action={}".format(id_, action))
     send_packet(server, CMSG_PLAYER_CHANGE_ACT,
-                (ULInt32("unused"), 0),
+                (ULInt32("id"), id_),
                 (Byte("action"), action))
 
 

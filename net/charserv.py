@@ -44,6 +44,7 @@ def smsg_char_map_info(data):
 
     mapserv.connect(data.address, data.port)
     mapserv.server.char_name = server.char_name
+    mapserv.server.char_id = data.char_id
     mapserv.cmsg_map_server_connect(server.account, data.char_id,
                                     server.session1, server.session2,
                                     server.gender)

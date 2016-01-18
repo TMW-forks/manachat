@@ -5,6 +5,7 @@ from protocol import *
 from common import *
 from utils import *
 from being import BeingsCache
+from item import FloorItem
 from inventory import add_to_inventory, remove_from_inventory
 from trade import reset_trade_state
 from loggers import netlog
@@ -21,6 +22,7 @@ player_inventory = {}
 player_money = 0
 trade_state = {'items_give': [], 'items_get': [],
                'zeny_give': 0, 'zeny_get': 0}
+floor_items = {}
 
 
 # --------------------------------------------------------------------
@@ -264,7 +266,30 @@ def smsg_map_login_success(data):
 def smsg_walk_response(data):
     global tick
     tick = data.tick
+    player_pos['x'] = data.coor_pair.dst_x
+    player_pos['y'] = data.coor_pair.dst_y
     netlog.info("SMSG_WALK_RESPONSE {}".format(data))
+
+
+@extendable
+def smsg_item_visible(data):
+    netlog.info("SMSG_ITEM_VISIBLE {}".format(data))
+    item = FloorItem(data.type, data.amount, data.x, data.y)
+    floor_items[data.id] = item
+
+
+@extendable
+def smsg_item_dropped(data):
+    netlog.info("SMSG_ITEM_DROPPED {}".format(data))
+    item = FloorItem(data.type, data.amount, data.x, data.y)
+    floor_items[data.id] = item
+
+
+@extendable
+def smsg_item_remove(data):
+    netlog.info("SMSG_ITEM_REMOVE {}".format(data))
+    if data.id in floor_items:
+        del floor_items[data.id]
 
 
 # --------------------------------------------------------------------
@@ -467,9 +492,28 @@ protodef = {
               Struct("data",
                      ULInt16("length"),
                      StringZ("message", lambda ctx: ctx.length - 4))),
-    0x009e : (smsg_ignore, Field("data", 15)),    # item-dropped
-    0x00a1 : (smsg_ignore, Field("data", 4)),     # item-remove
-    0x009d : (smsg_ignore, Field("data", 15)),    # item-visible
+    0x009e : (smsg_item_dropped,
+              Struct("data",
+                     ULInt32("id"),
+                     ULInt16("type"),
+                     Byte("identify"),
+                     ULInt16("x"),
+                     ULInt16("y"),
+                     Byte("sub_x"),
+                     Byte("sub_y"),
+                     ULInt16("amount"))),
+    0x00a1 : (smsg_item_remove,
+              Struct("data", ULInt32("id"))),
+    0x009d : (smsg_item_visible,
+              Struct("data",
+                     ULInt32("id"),
+                     ULInt16("type"),
+                     Byte("identify"),
+                     ULInt16("x"),
+                     ULInt16("y"),
+                     ULInt16("amount"),
+                     Byte("sub_x"),
+                     Byte("sub_y"))),
     0x00fb : (smsg_party_info,
               Struct("data",
                      ULInt16("length"),
@@ -696,6 +740,12 @@ def cmsg_player_emote(emote):
     netlog.info("CMSG_PLAYER_EMOTE {}".format(emote))
     send_packet(server, CMSG_PLAYER_EMOTE,
                 (Byte("emote"), emote))
+
+
+def cmsg_item_pickup(item_id):
+    netlog.info("CMSG_ITEM_PICKUP id={}".format(item_id))
+    send_packet(server, CMSG_ITEM_PICKUP,
+                (ULInt32("id"), item_id))
 
 
 # --------------------------------------------------------------------

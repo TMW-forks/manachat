@@ -85,7 +85,8 @@ if __name__ == "__main__":
 
     cui.init()
 
-    plugins.load_plugins(config, 'chatlogfile', 'msgqueue')
+    plugin_list = config.get('Core', 'plugins').split()
+    plugins.load_plugins(config, *plugin_list)
     monsterdb.read_monster_db('../monsterdb.txt')
 
     online_users = OnlineUsers(config.get('Other', 'online_txt_url'))

@@ -32,8 +32,10 @@ class Schedule:
         while self._active:
             now = time.time()
             if now >= self._next_event:
-                self._next_event += self._delay
                 self._func(*args, **kwargs)
+                self._next_event += self._delay
+                if self._delay <= 0:
+                    return
             time.sleep(0.1)
 
     def cancel(self):

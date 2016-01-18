@@ -71,3 +71,7 @@ def send_packet(srv, opcode_, *fields):
 
     d = Struct("packet", *ms)
     d.build_stream(C, srv)
+
+
+def distance(x1, y1, x2, y2):
+    return max(abs(x2 - x1), abs(y2 - y1))

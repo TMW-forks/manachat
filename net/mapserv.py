@@ -135,7 +135,7 @@ def smsg_player_move(data):
 @extendable
 def smsg_player_stop(data):
     beings_cache.findName(data.id)
-    netlog.info("SMSG_PLAYER_STOP (id={}, x={}, y={}".format(
+    netlog.info("SMSG_PLAYER_STOP id={} x={} y={}".format(
         data.id, data.x, data.y))
 
 
@@ -297,7 +297,7 @@ def smsg_item_dropped(data):
 
 @extendable
 def smsg_item_remove(data):
-    netlog.info("SMSG_ITEM_REMOVE {}".format(data))
+    netlog.info("SMSG_ITEM_REMOVE id={}".format(data.id))
     if data.id in floor_items:
         del floor_items[data.id]
 
@@ -307,6 +307,23 @@ def smsg_player_stat_update_x(data):
     netlog.info("SMSG_PLAYER_STAT_UPDATE_X type={} value={}".format(
         data.type, data.stat_value))
     player_stats[data.type] = data.stat_value
+
+
+@extendable
+def smsg_being_self_effect(data):
+    netlog.info("SMSG_BEING_SELF_EFFECT id={} effect={}".format(
+        data.id, data.effect))
+
+
+@extendable
+def smsg_being_status_change(data):
+    netlog.info("SMSG_BEING_STATUS_CHANGE id={} status={} flag={}".format(
+        data.id, data.status, data.flag))
+
+
+@extendable
+def smsg_player_status_change(data):
+    netlog.info("SMSG_PLAYER_STATUS_CHANGE {}".format(data))
 
 
 # --------------------------------------------------------------------
@@ -363,7 +380,7 @@ protodef = {
                                BitField("src_y", 10),
                                BitField("dst_x", 10),
                                BitField("dst_y", 10)),
-                     ULInt32("tick"))),  # NOTE 1 byte missing?
+                     ULInt32("tick"))),
     0x0095 : (smsg_being_name_response,
               Struct("data",
                      ULInt32("id"),
@@ -373,12 +390,16 @@ protodef = {
                      ULInt32("id"),
                      Byte("deadflag"))),
     0x0148 : (smsg_ignore, Field("data", 6)),   # being-resurrect
-    0x019b : (smsg_ignore,                      # being-self-effect
+    0x019b : (smsg_being_self_effect,
               Struct("data",
                      ULInt32("id"),
                      ULInt32("effect"))),
     0x007c : (smsg_ignore, Field("data", 39)),  # spawn
-    0x0196 : (smsg_ignore, Field("data", 7)),   # status-change
+    0x0196 : (smsg_being_status_change,
+              Struct("data",
+                     ULInt16("status"),
+                     ULInt32("id"),
+                     Flag("flag"))),
     0x0078 : (smsg_being_visible,
               Struct("data",
                      ULInt32("id"),
@@ -485,7 +506,13 @@ protodef = {
               Struct("data",
                      ULInt16("type"),
                      Byte("stat_value"))),
-    0x0119 : (smsg_ignore, Field("data", 11)),   # player-status-change
+    0x0119 : (smsg_player_status_change,
+              Struct("data",
+                     ULInt32("id"),
+                     ULInt16("stun"),
+                     ULInt16("effect"),
+                     ULInt16("effect_hi"),
+                     Padding(1))),
     0x0088 : (smsg_player_stop,
               Struct("data",
                      ULInt32("id"),

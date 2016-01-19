@@ -116,6 +116,15 @@ def smsg_player_inventory_remove(data):
 
 
 @extendable
+def smsg_player_inventory_use(data):
+    netlog.info("SMSG_PLAYER_INVENTORY_USE {}".format(data))
+    if data.amount > 0:
+        player_inventory[data.index] = (data.item_id, data.amount)
+    else:
+        del player_inventory[data.index]
+
+
+@extendable
 def smsg_player_move(data):
     global tick
     tick = data.tick
@@ -426,7 +435,13 @@ protodef = {
               Struct("data",
                      ULInt16("index"),
                      ULInt16("amount"))),
-    0x01c8 : (smsg_ignore, Field("data", 11)),    # player-inventory-use
+    0x01c8 : (smsg_player_inventory_use,
+              Struct("data",
+                     ULInt16("index"),
+                     ULInt16("item_id"),
+                     Padding(4),
+                     ULInt16("amount"),
+                     Byte("type"))),
     0x01da : (smsg_player_move,
               Struct("data",
                      ULInt32("id"),

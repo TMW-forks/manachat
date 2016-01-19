@@ -5,8 +5,20 @@ from utils import preprocess_argument
 from textutils import expand_links
 from loggers import debuglog
 
+__all__ = [ 'whisper_msg', 'whisper_to', 'commands',
+            'parse_player_name', 'process_line' ]
+
 whisper_to = ''
 whisper_msg = ''
+
+
+def must_have_arg(func):
+
+    def wrapper(cmd, arg):
+        if len(arg) > 0:
+            return func(cmd, arg)
+
+    return wrapper
 
 
 @preprocess_argument(expand_links)
@@ -22,36 +34,58 @@ def send_whisper(to_, msg):
     mapserv.cmsg_chat_whisper(to_, msg)
 
 
+@must_have_arg
+def send_whisper_internal(_, arg):
+    nick, message = parse_player_name(arg)
+    if len(nick) > 0 and len(message) > 0:
+        send_whisper(nick, message)
+
+
 @preprocess_argument(expand_links)
 def send_party_message(msg):
     mapserv.cmsg_party_message(msg)
 
 
-def set_direction(dir_str):
+@must_have_arg
+def send_party_message_internal(_, arg):
+    send_party_message(arg)
+
+
+@must_have_arg
+def set_direction(_, dir_str):
     d = {"down": 0, "left": 2, "up": 4, "right": 6}
     dir_num = d.get(dir_str.lower(), 0)
     mapserv.cmsg_player_change_dir(dir_num)
 
 
-def sit_or_stand(cmd):
-    a = {"/sit": 2, "/stand": 3}
-    action = a[cmd]
-    mapserv.cmsg_player_change_act(0, action)
-
-
-def set_destination(arg):
+def sit_or_stand(cmd, _):
+    a = {"sit": 2, "stand": 3}
     try:
-        x, y = map(int, arg.split())
+        action = a[cmd]
+        mapserv.cmsg_player_change_act(0, action)
+    except KeyError:
+        pass
+
+
+@must_have_arg
+def set_destination(_, xy):
+    try:
+        x, y = map(int, xy.split())
         mapserv.cmsg_player_change_dest(x, y)
     except ValueError:
         pass
 
 
-def show_emote(emote):
-    mapserv.cmsg_player_emote(int(emote))
+@must_have_arg
+def show_emote(_, emote):
+    try:
+        mapserv.cmsg_player_emote(int(emote))
+    except ValueError:
+        pass
 
 
-def attack(name_or_id):
+@must_have_arg
+def attack(_, name_or_id):
     target_id = -10
     mob_db = monsterdb.monster_db
 
@@ -75,6 +109,20 @@ def attack(name_or_id):
         debuglog.warning("Being %s not found", name_or_id)
 
 
+@must_have_arg
+def me_action(_, arg):
+    general_chat("*{}*".format(arg))
+
+
+def print_help(cmd, _):
+    s = ' '.join(commands.keys())
+    debuglog.info("[help] commands: %s", s)
+
+
+def command_not_found(cmd):
+    debuglog.warning("[warning] command not found: %s. Try /help.", cmd)
+
+
 def parse_player_name(line):
     line = line.lstrip()
     if len(line) < 2:
@@ -93,49 +141,45 @@ def parse_player_name(line):
             return line[:end], line[end + 1:]
 
 
+commands = {
+    "w"               : send_whisper_internal,
+    "whisper"         : send_whisper_internal,
+    "p"               : send_party_message_internal,
+    "party"           : send_party_message_internal,
+    "e"               : show_emote,
+    "emote"           : show_emote,
+    "dir"             : set_direction,
+    "direction"       : set_direction,
+    "turn"            : set_direction,
+    "sit"             : sit_or_stand,
+    "stand"           : sit_or_stand,
+    "goto"            : set_destination,
+    "nav"             : set_destination,
+    "dest"            : set_destination,
+    "me"              : me_action,
+    "attack"          : attack,
+    "help"            : print_help,
+}
+
+
 def process_line(line):
     if line == "":
         return
+
     elif line[0] == "/":
         end = line.find(" ")
         if end < 0:
-            cmd = line
+            cmd = line[1:]
             arg = ""
         else:
-            cmd = line[:end]
+            cmd = line[1:end]
             arg = line[end + 1:]
-        if cmd in ("/w", "/whisper"):
-            nick, message = parse_player_name(arg)
-            if len(nick) > 0 and len(message) > 0:
-                send_whisper(nick, message)
-        elif cmd in ("/p", "/party"):
-            if len(arg) > 0:
-                send_party_message(arg)
-        elif cmd in ("/e", "/emote"):
-            if len(arg) > 0:
-                show_emote(arg)
-        elif cmd in ("/me", "/action"):
-            if len(arg) > 0:
-                general_chat("*{}*".format(arg))
-        elif cmd == "/respawn":
-            mapserv.cmsg_player_respawn()
-        elif cmd in ("/dir", "/direction", "/turn"):
-            if len(arg) > 0:
-                set_direction(arg)
-        elif cmd in ("/sit", "/stand"):
-            sit_or_stand(cmd)
-        elif cmd in ("/goto", "/nav", "/navigate", "/dest", "/destination"):
-            if len(arg) > 0:
-                set_destination(arg)
-        elif cmd in ("/attack", "/atk"):
-            attack(arg)
-        elif cmd == "/help":
-            debuglog.info(("[help] commands: /w /whisper /p /party /e /emote"
-                           " /me /action /respawn /dir /direction /turn  /sit"
-                           " /stand /goto /nav /navigate /dest /destination"
-                           " /attack /atk /quit /exit"))
+
+        if cmd in commands:
+            func = commands[cmd]
+            func(cmd, arg)
         else:
-            debuglog.warning(("[warning] command {} not found. "
-                "Try /help to get list of all commands").format(cmd))
+            command_not_found(cmd)
+
     else:
         general_chat(line)

@@ -295,8 +295,9 @@ def smsg_item_remove(data):
 
 @extendable
 def smsg_player_stat_update_x(data):
-    netlog.info("SMSG_PLAYER_STAT_UPDATE_X {}".format(data))
-    player_stats[data.type] = data.value
+    netlog.info("SMSG_PLAYER_STAT_UPDATE_X type={} value={}".format(
+        data.type, data.stat_value))
+    player_stats[data.type] = data.stat_value
 
 
 # --------------------------------------------------------------------
@@ -449,26 +450,26 @@ protodef = {
     0x00b0 : (smsg_player_stat_update_x,
               Struct("data",
                      ULInt16("type"),
-                     ULInt32("value"))),
+                     ULInt32("stat_value"))),
     0x00b1 : (smsg_player_stat_update_x,
               Struct("data",
                      ULInt16("type"),
-                     ULInt32("value"))),
+                     ULInt32("stat_value"))),
     0x0141 : (smsg_player_stat_update_x,
               Struct("data",
                      ULInt32("type"),
-                     ULInt32("base"),
+                     ULInt32("stat_value"),
                      ULInt32("bonus"))),
     0x00bc : (smsg_player_stat_update_x,
               Struct("data",
                      ULInt16("type"),
                      Flag("ok"),
-                     Byte("value"))),
+                     Byte("stat_value"))),
     0x00bd : (smsg_ignore, Field("data", 42)),   # player-stat-update-5
     0x00be : (smsg_player_stat_update_x,
               Struct("data",
                      ULInt16("type"),
-                     Byte("value"))),    # player-stat-update-6
+                     Byte("stat_value"))),
     0x0119 : (smsg_ignore, Field("data", 11)),   # player-status-change
     0x0088 : (smsg_player_stop,
               Struct("data",

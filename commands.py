@@ -1,6 +1,8 @@
 
 import net.mapserv as mapserv
+from net.inventory import get_item_index
 import monsterdb
+import itemdb
 from utils import preprocess_argument
 from textutils import expand_links
 from loggers import debuglog
@@ -114,6 +116,29 @@ def me_action(_, arg):
     general_chat("*{}*".format(arg))
 
 
+@must_have_arg
+def item_use(_, name_or_id):
+    item_id = -10
+    item_db = itemdb.item_names
+
+    try:
+        item_id = int(name_or_id)
+    except ValueError:
+        for id_, name in item_db.iteritems():
+            if name == name_or_id:
+                item_id = id_
+
+    if item_id < 0:
+        debuglog.warning("Unknown item: %s", name_or_id)
+        return
+
+    index = get_item_index(item_id)
+    if index > 0:
+        mapserv.cmsg_player_inventory_use(index, item_id)
+    else:
+        debuglog.error("You don't have %s", name_or_id)
+
+
 def print_help(cmd, _):
     s = ' '.join(commands.keys())
     debuglog.info("[help] commands: %s", s)
@@ -157,6 +182,7 @@ commands = {
     "nav"             : set_destination,
     "dest"            : set_destination,
     "me"              : me_action,
+    "use"             : item_use,
     "attack"          : attack,
     "help"            : print_help,
 }

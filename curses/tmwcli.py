@@ -27,6 +27,7 @@ import net
 import net.mapserv as mapserv
 import plugins
 import monsterdb
+import itemdb
 from commands import process_line
 from net.onlineusers import OnlineUsers
 from loggers import netlog, debuglog
@@ -88,6 +89,7 @@ if __name__ == "__main__":
     plugin_list = config.get('Core', 'plugins').split()
     plugins.load_plugins(config, *plugin_list)
     monsterdb.read_monster_db('../monsterdb.txt')
+    itemdb.load_itemdb('../itemdb.txt')
 
     online_users = OnlineUsers(config.get('Other', 'online_txt_url'))
     online_users.start()

@@ -772,6 +772,11 @@ def cmsg_item_pickup(item_id):
                 (ULInt32("id"), item_id))
 
 
+def cmsg_player_stop_attack():
+    netlog.info("CMSG_PLAYER_STOP_ATTACK")
+    ULInt16("opcode").build_stream(CMSG_PLAYER_STOP_ATTACK, server)
+
+
 # --------------------------------------------------------------------
 def connect(host, port):
     global server, beings_cache

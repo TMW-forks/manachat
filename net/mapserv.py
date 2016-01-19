@@ -19,6 +19,7 @@ player_pos = {'x': 0, 'y': 0, 'dir': 0}
 tick = 0
 last_whisper = {'to': '', 'msg': ''}
 player_inventory = {}
+player_stats = {}
 player_money = 0
 trade_state = {'items_give': [], 'items_get': [],
                'zeny_give': 0, 'zeny_get': 0}
@@ -292,6 +293,12 @@ def smsg_item_remove(data):
         del floor_items[data.id]
 
 
+@extendable
+def smsg_player_stat_update_x(data):
+    netlog.info("SMSG_PLAYER_STAT_UPDATE_X {}".format(data))
+    player_stats[data.type] = data.value
+
+
 # --------------------------------------------------------------------
 protodef = {
     0x8000 : (smsg_ignore, Field("data", 2)),      # ignore
@@ -439,12 +446,29 @@ protodef = {
               Struct("data",
                      ULInt16("length"),
                      Field("data", lambda ctx: ctx.length - 4))),
-    0x00b0 : (smsg_ignore, Field("data", 6)),    # player-stat-update-1
-    0x00b1 : (smsg_ignore, Field("data", 6)),    # player-stat-update-2
-    0x0141 : (smsg_ignore, Field("data", 12)),   # player-stat-update-3
-    0x00bc : (smsg_ignore, Field("data", 4)),    # player-stat-update-4
+    0x00b0 : (smsg_player_stat_update_x,
+              Struct("data",
+                     ULInt16("type"),
+                     ULInt32("value"))),
+    0x00b1 : (smsg_player_stat_update_x,
+              Struct("data",
+                     ULInt16("type"),
+                     ULInt32("value"))),
+    0x0141 : (smsg_player_stat_update_x,
+              Struct("data",
+                     ULInt32("type"),
+                     ULInt32("base"),
+                     ULInt32("bonus"))),
+    0x00bc : (smsg_player_stat_update_x,
+              Struct("data",
+                     ULInt16("type"),
+                     Flag("ok"),
+                     Byte("value"))),
     0x00bd : (smsg_ignore, Field("data", 42)),   # player-stat-update-5
-    0x00be : (smsg_ignore, Field("data", 3)),    # player-stat-update-6
+    0x00be : (smsg_player_stat_update_x,
+              Struct("data",
+                     ULInt16("type"),
+                     Byte("value"))),    # player-stat-update-6
     0x0119 : (smsg_ignore, Field("data", 11)),   # player-status-change
     0x0088 : (smsg_player_stop,
               Struct("data",

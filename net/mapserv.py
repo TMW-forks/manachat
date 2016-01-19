@@ -777,6 +777,35 @@ def cmsg_player_stop_attack():
     ULInt16("opcode").build_stream(CMSG_PLAYER_STOP_ATTACK, server)
 
 
+def cmsg_player_equip(index):
+    netlog.info("CMSG_PLAYER_EQUIP index={}".format(index))
+    send_packet(server, CMSG_PLAYER_EQUIP,
+                (ULInt16("index"), index),
+                (ULInt16("unused"), 0))
+
+
+def cmsg_player_unequip(index):
+    netlog.info("CMSG_PLAYER_UNEQUIP index={}".format(index))
+    send_packet(server, CMSG_PLAYER_UNEQUIP,
+                (ULInt16("index"), index))
+
+
+def cmsg_player_inventory_use(index, item_id):
+    netlog.info("CMSG_PLAYER_INVENTORY_USE index={} id={}".format(
+        index, item_id))
+    send_packet(server, CMSG_PLAYER_INVENTORY_USE,
+                (ULInt16("index"), index),
+                (ULInt32("id"), item_id))
+
+
+def cmsg_player_inventory_drop(index, amount):
+    netlog.info("CMSG_PLAYER_INVENTORY_DROP index={} amount={}".format(
+        index, amount))
+    send_packet(server, CMSG_PLAYER_INVENTORY_DROP,
+                (ULInt16("index"), index),
+                (ULInt32("amount"), amount))
+
+
 # --------------------------------------------------------------------
 def connect(host, port):
     global server, beings_cache

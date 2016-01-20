@@ -139,6 +139,12 @@ def item_use(_, name_or_id):
         debuglog.error("You don't have %s", name_or_id)
 
 
+def print_beings(cmd, _):
+    for being in mapserv.beings_cache.itervalues():
+        debuglog.info("id: %d name: %s type: %s",
+                      being.id, being.name, being.type)
+
+
 def print_help(cmd, _):
     s = ' '.join(commands.keys())
     debuglog.info("[help] commands: %s", s)
@@ -184,6 +190,7 @@ commands = {
     "me"              : me_action,
     "use"             : item_use,
     "attack"          : attack,
+    "beings"          : print_beings,
     "help"            : print_help,
 }
 

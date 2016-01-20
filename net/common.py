@@ -47,7 +47,8 @@ class SocketWrapper(asyncore.dispatcher_with_send):
             while len(self.read_buffer) < n:
                 try:
                     self.read_buffer += self.recv(n - len(self.read_buffer))
-                except socket.error:
+                except socket.error as e:
+                    netlog.error("socket.error %s", e)
                     break
             data = self.read_buffer[:n]
             self.read_buffer = self.read_buffer[n:]

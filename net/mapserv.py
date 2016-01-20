@@ -60,7 +60,10 @@ def smsg_being_action(data):
 
 @extendable
 def smsg_being_name_response(data):
-    beings_cache[data.id].name = data.name
+    try:
+        beings_cache[data.id].name = data.name
+    except KeyError:
+        pass
     netlog.info("SMSG_BEING_NAME_RESPONSE id={} name={}".format(
         data.id, data.name))
 

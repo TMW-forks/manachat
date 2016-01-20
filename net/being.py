@@ -35,24 +35,21 @@ class Being:
         return self.name
 
 
-class BeingsCache:
+class BeingsCache(dict):
 
-    def __init__(self, name_request_func):
-        self._beings = {}
-        self.__getitem__ = self._beings.__getitem__
-        self.__delitem__ = self._beings.__delitem__
-        self.__iter__ = self._beings.itervalues
+    def __init__(self, name_request_func, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
         self._name_request_func = name_request_func
 
     def findId(self, name, type_="player"):
-        for id_, being in self._beings.iteritems():
+        for id_, being in self.iteritems():
             if being.name == name and being.type == type_:
                 return id_
         return -10
 
     def findName(self, id_, job=1):
-        if id_ not in self._beings:
-            self._beings[id_] = Being(id_, job)
+        if id_ not in self:
+            self[id_] = Being(id_, job)
             if job_type(job) in ("player", "npc"):
                 self._name_request_func(id_)
-        return self._beings[id_].name
+        return self[id_].name

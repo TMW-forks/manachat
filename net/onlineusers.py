@@ -1,6 +1,6 @@
 
 """
-Copyright 2015, Joseph Botosh <rumly111@gmail.com>
+Copyright 2015-2016, Joseph Botosh <rumly111@gmail.com>
 
 This file is part of tradey, a trading bot in The Mana World
 see www.themanaworld.org
@@ -18,22 +18,22 @@ more details.
 You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 
-Additionally to the GPL, you are *strongly* encouraged to share any modifications
-you do on these sources.
+Additionally to the GPL, you are *strongly* encouraged to share any
+modifications you do on these sources.
 """
 
-import sys
 import urllib2
 import string
-import datetime
 import threading
 import time
 
 from common import netlog
 
+
 class OnlineUsers(threading.Thread):
 
-    def __init__(self, online_url='http://server.themanaworld.org/online.txt', update_interval=60):
+    def __init__(self, online_url='http://server.themanaworld.org/online.txt',
+                 update_interval=60):
         self._active = True
         self._timer = 0
         self._url = online_url
@@ -63,15 +63,15 @@ class OnlineUsers(threading.Thread):
         start = string.find(data, '------------------------------\n') + 31
         end = string.rfind(data, '\n\n')
         s = data[start:end]
-        return map(lambda n: n[:-5].strip() if n.endswith('(GM) ') else n.strip(),
-                   s.split('\n'))
+        return map(lambda n: n[:-5].strip() if n.endswith('(GM) ')
+                   else n.strip(), s.split('\n'))
 
     def run(self):
         while self._active:
             if (time.time() - self._timer) > self._update_interval:
                 users = self.dl_online_list(self._url)
                 self.__lock.acquire(True)
-                self.__online_users=users
+                self.__online_users = users
                 self.__lock.release()
                 self._timer = time.time()
             else:

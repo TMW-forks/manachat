@@ -33,13 +33,14 @@ from common import netlog
 class OnlineUsers(threading.Thread):
 
     def __init__(self, online_url='http://server.themanaworld.org/online.txt',
-                 update_interval=60):
+                 update_interval=60, refresh_hook=None):
         self._active = True
         self._timer = 0
         self._url = online_url
         self._update_interval = update_interval
         self.__lock = threading.Lock()
         self.__online_users = []
+        self.refresh_hook = refresh_hook
         threading.Thread.__init__(self)
 
     @property
@@ -70,6 +71,10 @@ class OnlineUsers(threading.Thread):
         while self._active:
             if (time.time() - self._timer) > self._update_interval:
                 users = self.dl_online_list(self._url)
+
+                if self.refresh_hook:
+                    self.refresh_hook(set(users), set(self.__online_users))
+
                 self.__lock.acquire(True)
                 self.__online_users = users
                 self.__lock.release()

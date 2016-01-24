@@ -34,8 +34,8 @@ mp_prev_value = 0
 players_taken_damage = {}
 player_damage_heal = 300
 
-auto_pickup = True
-auto_attack = True
+auto_pickup = False
+auto_attack = False
 auto_heal_self = True
 auto_heal_others = True
 

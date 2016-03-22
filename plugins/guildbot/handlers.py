@@ -124,9 +124,10 @@ def disband(nick, _):
         send_whisper(nick, 'Error deleting guild "{}"'.format(guild))
 
 
+# FIXME command signature is wrong
 def addguild(nick, guild_name):
     if not guild_name:
-        send_whisper(nick, "Usage: !addguild Guild Name")
+        send_whisper(nick, "Usage: !addguild Leader Guild")
         return
 
     if db.guild_create(guild_name):
@@ -178,7 +179,7 @@ def showhelp(nick, _):
             continue
 
         if hlp[0] == '+':
-            help_s = '!' + cmd + ' ' + hlp
+            help_s = '!' + cmd + ' ' + hlp[1:]
         else:
             help_s = '!' + cmd + ' -- ' + hlp
 

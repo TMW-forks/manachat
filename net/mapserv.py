@@ -329,6 +329,11 @@ def smsg_player_status_change(data):
     netlog.info("SMSG_PLAYER_STATUS_CHANGE {}".format(data))
 
 
+@extendable
+def smsg_npc_message(data):
+    netlog.info("SMSG_NPC_MESSAGE {}".format(data))
+
+
 # --------------------------------------------------------------------
 protodef = {
     0x8000 : (smsg_ignore, Field("data", 2)),      # ignore
@@ -655,7 +660,12 @@ protodef = {
                                BitField("src_y", 10),
                                BitField("dst_x", 10),
                                BitField("dst_y", 10)),
-                     Padding(1)))
+                     Padding(1))),
+    0x00b5 : (smsg_ignore, Field("data", 6)),          # npc-next
+    0x00b4 : (smsg_npc_message,
+              Struct("data",
+                     ULInt16("length"),
+                     StringZ("message", lambda ctx: ctx.length - 8)))
 }
 
 
@@ -850,6 +860,13 @@ def cmsg_player_inventory_drop(index, amount):
     send_packet(server, CMSG_PLAYER_INVENTORY_DROP,
                 (ULInt16("index"), index),
                 (ULInt32("amount"), amount))
+
+
+def cmsg_npc_talk(npcId):
+    netlog.info("CMSG_NPC_TALK id={}".format(npcId))
+    send_packet(server, CMSG_NPC_TALK,
+                (ULInt32("npcId"), npcId),
+                (Byte("unused"), 0))
 
 
 # --------------------------------------------------------------------

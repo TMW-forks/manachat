@@ -8,7 +8,8 @@ from textutils import expand_links
 from loggers import debuglog
 
 __all__ = [ 'whisper_msg', 'whisper_to', 'commands',
-            'parse_player_name', 'process_line' ]
+            'parse_player_name', 'process_line',
+            'must_have_arg' ]
 
 whisper_to = ''
 whisper_msg = ''
@@ -139,6 +140,21 @@ def item_use(_, name_or_id):
         debuglog.error("You don't have %s", name_or_id)
 
 
+def show_inventory(cmd, _):
+    inv = {}
+    for itemId, amount in mapserv.player_inventory.values():
+        inv[itemId] = inv.setdefault(itemId, 0) + 1
+
+    s = []
+    for itemId, amount in inv.items():
+        if amount > 1:
+            s.append('{} [{}]'.format(amount, itemdb.item_name(itemId)))
+        else:
+            s.append('[{}]'.format(itemdb.item_name(itemId)))
+
+    debuglog.info(', '.join(s))
+
+
 def print_beings(cmd, _):
     for being in mapserv.beings_cache.itervalues():
         debuglog.info("id: %d name: %s type: %s",
@@ -191,6 +207,7 @@ commands = {
     "use"             : item_use,
     "attack"          : attack,
     "beings"          : print_beings,
+    "inv"             : show_inventory,
     "help"            : print_help,
 }
 

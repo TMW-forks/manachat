@@ -78,11 +78,17 @@ if __name__ == "__main__":
     debuglog.addHandler(dbgh)
     debuglog.setLevel(logging.INFO)
 
-    fh = logging.FileHandler("/tmp/netlog.txt", mode="w")
-    fh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s",
-                                      datefmt="%Y-%m-%d %H:%M:%S"))
-    netlog.addHandler(fh)
-    netlog.setLevel(logging.INFO)
+    if config.getboolean('Other', 'log_network_packets'):
+        import os
+        import tempfile
+
+        logfile = os.path.join(tempfile.gettempdir(), "netlog.txt")
+        netlog.setLevel(logging.INFO)
+        fh = logging.FileHandler(logfile, mode="w")
+        fmt = logging.Formatter("[%(asctime)s] %(message)s",
+                                datefmt="%Y-%m-%d %H:%M:%S")
+        fh.setFormatter(fmt)
+        netlog.addHandler(fh)
 
     cui.init()
 

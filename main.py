@@ -2,9 +2,9 @@
 
 try:
     import construct
-    import pytmx
+    # import pytmx
     del construct
-    del pytmx
+    # del pytmx
 except ImportError:
     import os
     import sys

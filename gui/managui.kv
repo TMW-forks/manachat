@@ -41,33 +41,33 @@
             size: self.size
 
 
-<BeingWidget>:
+# <BeingWidget>:
 
-    canvas.before:
-        Color:
-            rgba: 0.1, 0.5, 0.1, 1
-        Rectangle:
-            pos: self.pos
-            size: self.size
+#     canvas.before:
+#         Color:
+#             rgba: 0.1, 0.5, 0.1, 1
+#         Rectangle:
+#             pos: self.pos
+#             size: self.size
 
-    Label:
-        text: root.name
-        pos: root.pos
+#     Label:
+#         text: root.name
+#         pos: root.pos
 
 
-<MapWidget>:
+# <MapWidget>:
 
-    canvas.after:
+#     canvas.after:
 
-        Color:
-            rgb: 0.85, 0.15, 0.15
+#         Color:
+#             rgb: 0.85, 0.15, 0.15
 
-        Line:
-            points: self.get_attack_points(self.current_attacks, self.beings)
+#         Line:
+#             points: self.get_attack_points(self.current_attacks, self.beings)
 
-        Point:
-            points: self.get_attack_endpoints(self.current_attacks, self.beings)
-            pointsize: 7
+#         Point:
+#             points: self.get_attack_endpoints(self.current_attacks, self.beings)
+#             pointsize: 7
 
 
 <RootWidget>:
@@ -82,9 +82,9 @@
     messages_log: id_messages_log
     chat_input: id_chat_input
     players_list: id_players_list
-    map_w: id_map_image
-    player: id_player
-    map_scroller: id_map_scroller
+    # map_w: id_map_image
+    # player: id_player
+    # map_scroller: id_map_scroller
 
     BoxLayout:
         orientation: 'horizontal'
@@ -93,29 +93,29 @@
         BoxLayout:
             orientation: 'vertical'
 
-            ScrollView:
-                effect_cls: ScrollEffect
-                scroll_x: self.convert_distance_to_scroll(id_player.x - self.width / 2, 0)[0]
-                scroll_y: self.convert_distance_to_scroll(0, id_player.y - self.height / 2)[1]
-                scroll_distance: 50
-                size_hint: 1, 0.8
-                id: id_map_scroller
+            # ScrollView:
+            #     effect_cls: ScrollEffect
+            #     scroll_x: self.convert_distance_to_scroll(id_player.x - self.width / 2, 0)[0]
+            #     scroll_y: self.convert_distance_to_scroll(0, id_player.y - self.height / 2)[1]
+            #     scroll_distance: 50
+            #     size_hint: 1, 0.8
+            #     id: id_map_scroller
 
-                FloatLayout:
-                    size_hint: None, None
-                    size: id_map_image.size
+            #     FloatLayout:
+            #         size_hint: None, None
+            #         size: id_map_image.size
 
-                    MapWidget:
-                        id: id_map_image
-                        player: id_player
-                        size_hint: None, None
-                        on_touch_down: app.move_player(*args)
+            #         MapWidget:
+            #             id: id_map_image
+            #             player: id_player
+            #             size_hint: None, None
+            #             on_touch_down: app.move_player(*args)
 
-                    BeingWidget:
-                        id: id_player
-                        name: "Player"
-                        size_hint: None, None
-                        size: 16, 32
+            #         BeingWidget:
+            #             id: id_player
+            #             name: "Player"
+            #             size_hint: None, None
+            #             size: 16, 32
 
             MessagesLog:
                 id: id_messages_log
@@ -147,35 +147,35 @@
     messages_log: id_messages_log
     chat_input: id_chat_input
     players_list: id_players_list
-    map_w: id_map_image
-    player: id_player
-    map_scroller: id_map_scroller
+    # map_w: id_map_image
+    # player: id_player
+    # map_scroller: id_map_scroller
 
     Carousel:
 
-        ScrollView:
-            effect_cls: ScrollEffect
-            scroll_x: self.convert_distance_to_scroll(id_player.x - self.width / 2, 0)[0]
-            scroll_y: self.convert_distance_to_scroll(0, id_player.y - self.height / 2)[1]
-            scroll_distance: 100
-            size_hint: 1, 1
-            id: id_map_scroller
+        # ScrollView:
+        #     effect_cls: ScrollEffect
+        #     scroll_x: self.convert_distance_to_scroll(id_player.x - self.width / 2, 0)[0]
+        #     scroll_y: self.convert_distance_to_scroll(0, id_player.y - self.height / 2)[1]
+        #     scroll_distance: 100
+        #     size_hint: 1, 1
+        #     id: id_map_scroller
 
-            FloatLayout:
-                size_hint: None, None
-                size: id_map_image.size
+        #     FloatLayout:
+        #         size_hint: None, None
+        #         size: id_map_image.size
 
-                MapWidget:
-                    id: id_map_image
-                    player: id_player
-                    size_hint: None, None
-                    on_touch_down: app.move_player(*args)
+        #         MapWidget:
+        #             id: id_map_image
+        #             player: id_player
+        #             size_hint: None, None
+        #             on_touch_down: app.move_player(*args)
 
-                    BeingWidget:
-                        id: id_player
-                        name: "Player"
-                        size_hint: None, None
-                        size: 16, 32
+        #             BeingWidget:
+        #                 id: id_player
+        #                 name: "Player"
+        #                 size_hint: None, None
+        #                 size: 16, 32
 
         BoxLayout:
             orientation: 'vertical'

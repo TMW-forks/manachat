@@ -125,10 +125,10 @@ class ManaGuiApp(App):
         self.root.players_list.items = OnlineUsers.dl_online_list(
             config.get('Other', 'online_txt_url'))
 
-    def move_player(self, sender, touch):
-        gx, gy = self.root.map_w.to_game_coords(touch.pos)
-        Logger.info("move_player (%s, %s)", gx, gy)
-        mapserv.cmsg_player_change_dest(gx, gy)
+    # def move_player(self, sender, touch):
+    #     gx, gy = self.root.map_w.to_game_coords(touch.pos)
+    #     Logger.info("move_player (%s, %s)", gx, gy)
+    #     mapserv.cmsg_player_change_dest(gx, gy)
 
     def hook_keyboard(self, window, key, *largs):
         if key == 27:
@@ -157,7 +157,7 @@ class ManaGuiApp(App):
         debuglog.addHandler(dbgh)
         debuglog.setLevel(logging.INFO)
 
-        plugins.load_plugins(config, 'chatlogfile')
+        # plugins.load_plugins(config, 'chatlogfile')
 
         handlers.app = self
 
@@ -167,7 +167,7 @@ class ManaGuiApp(App):
                   password=config.get('Player', 'password'),
                   charname=config.get('Player', 'charname'))
 
-        self.root.map_w.tile_size = config.getint('GUI', 'tile_size')
+        # self.root.map_w.tile_size = config.getint('GUI', 'tile_size')
 
         Clock.schedule_once(self.update_online_list, 0.2)
         Clock.schedule_interval(self.update_online_list, 35)

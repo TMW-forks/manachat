@@ -104,6 +104,7 @@ class PlayersList(FloatLayout):
 
 
 class RootWidget(FloatLayout):
+    mobile = BooleanProperty(False)
 
     def _focus_chat_input(self, dt):
         self.chat_input.focus = True
@@ -114,8 +115,8 @@ class RootWidget(FloatLayout):
         Clock.schedule_once(self._focus_chat_input, 0.1)  # dirty hack :^)
 
 
-class RootWidgetMobile(RootWidget):
-    pass
+# class RootWidgetMobile(RootWidget):
+#     pass
 
 
 class ManaGuiApp(App):
@@ -175,12 +176,7 @@ class ManaGuiApp(App):
 
     def build(self):
         Window.bind(on_keyboard=self.hook_keyboard)
-
-        use_mobile = config.getboolean('GUI', 'use_mobile_interface')
-        if use_mobile:
-            return RootWidgetMobile()
-        else:
-            return RootWidget()
+        return RootWidget()
 
     def build_settings(self, settings):
         settings.add_json_panel('ManaChat', config,

@@ -158,7 +158,8 @@ class ManaGuiApp(App):
         debuglog.addHandler(dbgh)
         debuglog.setLevel(logging.INFO)
 
-        # plugins.load_plugins(config, 'chatlogfile')
+        plugin_list = config.get('Core', 'plugins').split()
+        plugins.load_plugins(config, *plugin_list)
 
         handlers.app = self
 

@@ -69,5 +69,5 @@ def dispatch(stream, protodef):
                              MetaField("ignore", lambda ctx: ctx["length"]))
             data = datadef.parse_stream(stream)
 
-        netlog.warning('UNIMPLEMENTED opcode={0:x} data={}'.format(
+        netlog.warning('UNIMPLEMENTED opcode={:04x} data={}'.format(
             opcode, data))

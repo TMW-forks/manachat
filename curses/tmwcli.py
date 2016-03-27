@@ -67,7 +67,10 @@ class CursesDebugLogHandler(logging.Handler):
 
 if __name__ == "__main__":
     config = ConfigParser()
-    config.read('../manachat.ini')
+    if len(sys.argv) > 1:
+        config.read(sys.argv[1])
+    else:
+        config.read('../manachat.ini')
 
     rootLogger = logging.getLogger('')
     rootLogger.addHandler(logging.NullHandler())

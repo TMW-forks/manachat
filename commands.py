@@ -143,7 +143,7 @@ def item_use(_, name_or_id):
 def show_inventory(cmd, _):
     inv = {}
     for itemId, amount in mapserv.player_inventory.values():
-        inv[itemId] = inv.setdefault(itemId, 0) + 1
+        inv[itemId] = inv.setdefault(itemId, 0) + amount
 
     s = []
     for itemId, amount in inv.items():

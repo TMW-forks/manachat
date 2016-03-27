@@ -5,7 +5,7 @@ import logging
 import webbrowser
 
 import kivy
-kivy.require('1.9.0')
+kivy.require('1.9.1')
 
 from kivy.app import App
 # from kivy.logger import Logger
@@ -158,6 +158,7 @@ class ManaGuiApp(App):
         Clock.schedule_interval(self.update_loop, 0)
 
     def build(self):
+        self.icon = 'icon.png'
         Window.bind(on_keyboard=self.hook_keyboard)
         return RootWidget()
 

@@ -50,6 +50,18 @@
     "section" : "GUI",
     "key"     : "tile_size" },
 
+  { "type"    : "numeric",
+    "title"   : "Notifications timeout",
+    "desc"    : "Seconds (or milliseconds) before notifications disappear.",
+    "section" : "GUI",
+    "key"     : "notif_timeout" },
+
+  { "type"    : "bool",
+    "title"   : "Notification sound",
+    "desc"    : "Play notification sound.",
+    "section" : "GUI",
+    "key"     : "notif_sound" },
+
   { "type"    : "title",
     "title"   : "Other" },
 

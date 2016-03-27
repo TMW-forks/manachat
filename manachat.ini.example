@@ -17,3 +17,5 @@ chatlog_dir = /tmp/mana
 [GUI]
 use_mobile_interface = no
 tile_size = 32
+notif_timeout = 5000
+notif_sound = 1

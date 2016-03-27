@@ -5,6 +5,9 @@ from loggers import debuglog
 import commands
 # import monsterdb
 from utils import extends
+from plyer import notification
+# from plyer.utils import platform
+# from plyer.compat import PY2
 
 
 __all__ = ['app']
@@ -32,6 +35,10 @@ def got_whisper(data):
     nick, message = data.nick, data.message
     m = "[{} ->] {}".format(nick, message)
     debuglog.info(m)
+
+    if not app.root_window.focus:
+        notification.notify(title=nick, message=message,
+                            timeout=10000)
 
 
 @extends('smsg_whisper_response')

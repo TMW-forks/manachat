@@ -2,8 +2,10 @@
 
 try:
     import construct
+    import plyer
     # import pytmx
     del construct
+    del plyer
     # del pytmx
 except ImportError:
     import os

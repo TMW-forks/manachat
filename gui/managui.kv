@@ -1,22 +1,7 @@
-#:import ScrollEffect kivy.effects.scroll.ScrollEffect
-
-<MessagesLog>:
-    canvas.before:
-        Color:
-            rgba: .1, .1, .1, 1
-        Rectangle:
-            pos: self.pos
-            size: self.size
-    msg_log_label: id_msg_log_label
-    ScrollView:
-        Label:
-            id: id_msg_log_label
-            size_hint_y: None
-            pos: root.pos
-            text: 'Welcome to ManaChat. Press F1 to show settings.'
-            text_size: (root.width, None)
-            size: self.texture_size
-            font_size: '12sp'
+#:import la kivy.adapters.listadapter
+#:import ChatLog gui.chatlog.ChatLog
+#:import ChatLogItem gui.chatlog.ChatLogItem
+#:import deque collections.deque
 
 
 <PlayersListItem>:
@@ -41,35 +26,6 @@
             size: self.size
 
 
-# <BeingWidget>:
-
-#     canvas.before:
-#         Color:
-#             rgba: 0.1, 0.5, 0.1, 1
-#         Rectangle:
-#             pos: self.pos
-#             size: self.size
-
-#     Label:
-#         text: root.name
-#         pos: root.pos
-
-
-# <MapWidget>:
-
-#     canvas.after:
-
-#         Color:
-#             rgb: 0.85, 0.15, 0.15
-
-#         Line:
-#             points: self.get_attack_points(self.current_attacks, self.beings)
-
-#         Point:
-#             points: self.get_attack_endpoints(self.current_attacks, self.beings)
-#             pointsize: 7
-
-
 <RootWidget>:
     mobile: True if self.width < dp(600) else False
 
@@ -80,12 +36,9 @@
             pos: self.pos
             size: self.size
 
-    messages_log: id_messages_log
+    messages_log: id_chat_log
     chat_input: id_chat_input
     players_list: id_players_list
-    # map_w: id_map_image
-    # player: id_player
-    # map_scroller: id_map_scroller
 
     BoxLayout:
         orientation: 'horizontal'
@@ -94,33 +47,8 @@
         BoxLayout:
             orientation: 'vertical'
 
-            # ScrollView:
-            #     effect_cls: ScrollEffect
-            #     scroll_x: self.convert_distance_to_scroll(id_player.x - self.width / 2, 0)[0]
-            #     scroll_y: self.convert_distance_to_scroll(0, id_player.y - self.height / 2)[1]
-            #     scroll_distance: 50
-            #     size_hint: 1, 0.8
-            #     id: id_map_scroller
-
-            #     FloatLayout:
-            #         size_hint: None, None
-            #         size: id_map_image.size
-
-            #         MapWidget:
-            #             id: id_map_image
-            #             player: id_player
-            #             size_hint: None, None
-            #             on_touch_down: app.move_player(*args)
-
-            #         BeingWidget:
-            #             id: id_player
-            #             name: "Player"
-            #             size_hint: None, None
-            #             size: 16, 32
-
-            MessagesLog:
-                id: id_messages_log
-                size_hint: 1, 0.2
+            ChatLog:
+                id: id_chat_log
 
             TextInput:
                 id: id_chat_input
@@ -136,71 +64,35 @@
             width: '150dp'
 
 
-<RootWidgetMobile>:
+<ChatLogItem>:
 
     canvas.before:
         Color:
-            rgba: 0.01, 0.33, 0.32, 1
+            rgba: self.background_color
         Rectangle:
             pos: self.pos
             size: self.size
 
-    messages_log: id_messages_log
-    chat_input: id_chat_input
-    players_list: id_players_list
-    # map_w: id_map_image
-    # player: id_player
-    # map_scroller: id_map_scroller
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: max(lbl_message.height, 10)
 
-    Carousel:
-
-        # ScrollView:
-        #     effect_cls: ScrollEffect
-        #     scroll_x: self.convert_distance_to_scroll(id_player.x - self.width / 2, 0)[0]
-        #     scroll_y: self.convert_distance_to_scroll(0, id_player.y - self.height / 2)[1]
-        #     scroll_distance: 100
-        #     size_hint: 1, 1
-        #     id: id_map_scroller
-
-        #     FloatLayout:
-        #         size_hint: None, None
-        #         size: id_map_image.size
-
-        #         MapWidget:
-        #             id: id_map_image
-        #             player: id_player
-        #             size_hint: None, None
-        #             on_touch_down: app.move_player(*args)
-
-        #             BeingWidget:
-        #                 id: id_player
-        #                 name: "Player"
-        #                 size_hint: None, None
-        #                 size: 16, 32
-
-        BoxLayout:
-            orientation: 'vertical'
-
-            MessagesLog:
-                id: id_messages_log
-
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: None
-                height: '50dp'
-
-                TextInput:
-                    id: id_chat_input
-                    focus: True
-                    multiline: False
-                    on_text_validate: root.on_command_enter(args)
-
-                Button:
-                    size_hint_x: None
-                    text: '>'
-                    width: self.height
-                    on_press: root.on_command_enter(args)
+    Label:
+        id: lbl_message
+        text: root.message
+        size_hint_y: None
+        text_size: self.width, None
+        height: self.texture_size[1] + 10
+        markup: True
+        on_ref_press: app.open_link(args[1])
 
 
-        PlayersList:
-            id: id_players_list
+<ChatLog>:
+    msg_list: msg_list
+    ListView:
+        id: msg_list
+        adapter:
+            la.ListAdapter(data=['Welcome to [ref=https://bitbucket.org/rumly111/manachat/][color=0000ff]ManaChat[/color][/ref]. Press F1 to show settings.'],
+            cls=ChatLogItem,
+            args_converter=root.msg_converter, selection_mode='single',
+            propagate_selection_to_data=False, allow_empty_selection=True)

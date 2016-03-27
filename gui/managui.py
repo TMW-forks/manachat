@@ -2,18 +2,18 @@
 
 import asyncore
 import logging
+import webbrowser
 
 import kivy
 kivy.require('1.9.0')
 
 from kivy.app import App
-from kivy.logger import Logger
+# from kivy.logger import Logger
 # from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 # from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import (ObjectProperty, NumericProperty,
-        StringProperty, BooleanProperty, ListProperty, OptionProperty)
+from kivy.properties import (StringProperty, BooleanProperty, ListProperty)
 
 from kivy.core.window import Window
 from kivy.clock import Clock
@@ -44,15 +44,6 @@ class DebugLogHandler(logging.Handler):
     def emit(self, record):
         msg = self.format(record)
         self.app.root.messages_log.append_message(msg)
-
-
-class MessagesLog(BoxLayout):
-
-    def append_message(self, msg):
-        if not msg.endswith("\n"):
-            msg += "\n"
-        self.msg_log_label.text += msg
-        self.msg_log_label.parent.scroll_y = 0.0
 
 
 class PlayersListItem(BoxLayout, ListItemLabel):
@@ -115,21 +106,12 @@ class RootWidget(FloatLayout):
         Clock.schedule_once(self._focus_chat_input, 0.1)  # dirty hack :^)
 
 
-# class RootWidgetMobile(RootWidget):
-#     pass
-
-
 class ManaGuiApp(App):
     use_kivy_settings = BooleanProperty(False)
 
     def update_online_list(self, *l):
         self.root.players_list.items = OnlineUsers.dl_online_list(
             config.get('Other', 'online_txt_url'))
-
-    # def move_player(self, sender, touch):
-    #     gx, gy = self.root.map_w.to_game_coords(touch.pos)
-    #     Logger.info("move_player (%s, %s)", gx, gy)
-    #     mapserv.cmsg_player_change_dest(gx, gy)
 
     def hook_keyboard(self, window, key, *largs):
         if key == 27:
@@ -193,6 +175,9 @@ class ManaGuiApp(App):
         Clock.unschedule(self.update_loop)
         Clock.unschedule(self.update_online_list)
         mapserv.cleanup()
+
+    def open_link(self, link):
+        webbrowser.open(link)
 
 
 if __name__ == "__main__":

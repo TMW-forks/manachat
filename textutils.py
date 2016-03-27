@@ -1,7 +1,7 @@
 import re
 
 __all__ = ('preprocess', 'remove_formatting', 'replace_emotes',
-           'simplify_links', 'expand_links')
+           'simplify_links', 'expand_links', 'links_to_markup')
 
 formatting_re = re.compile(r'##[0-9bB]')
 emotes_re = re.compile(r'%%[^%]')
@@ -52,6 +52,12 @@ def expand_links(text):
 
     # text = ' ' + text
     return re.sub(url_re, expand, text)
+
+
+def links_to_markup(text):
+    return re.sub(mplus_link_re,
+                  r'[ref=\1][color=2F3Fff]\2[/color][/ref]',
+                  text)
 
 
 def preprocess(text, actions=(simplify_links,

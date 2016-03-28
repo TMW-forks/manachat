@@ -1,5 +1,6 @@
 import socket
 import asyncore
+from logging import DEBUG
 from construct import Struct, ULInt16, String, Enum, Byte
 from dispatcher import dispatch
 from loggers import netlog
@@ -53,10 +54,15 @@ class SocketWrapper(asyncore.dispatcher_with_send):
             data = self.read_buffer[:n]
             self.read_buffer = self.read_buffer[n:]
 
-        # netlog.debug(":".join("{:02x}".format(ord(c)) for c in data))
+        if netlog.isEnabledFor(DEBUG):
+            netlog.debug("read  " +
+                         ":".join("{:02x}".format(ord(c)) for c in data))
         return data
 
     def write(self, data):
+        if netlog.isEnabledFor(DEBUG):
+            netlog.debug("write " +
+                         ":".join("{:02x}".format(ord(c)) for c in data))
         self.send(data)
 
 

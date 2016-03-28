@@ -55,6 +55,12 @@ def party_chat(data):
     debuglog.info(m)
 
 
+@extends('smsg_gm_chat')
+def gm_chat(data):
+    m = "[GM] {}".format(data.message)
+    debuglog.info(m)
+
+
 @extends('smsg_player_warp')
 def player_warp(data):
     # mw = app.root.map_w

@@ -1,4 +1,5 @@
 #!/usr/bin/python2
+# -- coding: utf-8 --
 
 import asyncore
 import logging
@@ -101,7 +102,7 @@ class RootWidget(FloatLayout):
         self.chat_input.focus = True
 
     def on_command_enter(self, *args):
-        process_line(self.chat_input.text)
+        process_line(self.chat_input.text.encode('utf-8'))
         self.chat_input.text = ''
         Clock.schedule_once(self._focus_chat_input, 0.1)  # dirty hack :^)
 

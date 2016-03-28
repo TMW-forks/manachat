@@ -126,7 +126,7 @@ class ManaGuiApp(App):
             import tempfile
 
             logfile = os.path.join(tempfile.gettempdir(), "netlog.txt")
-            netlog.setLevel(logging.INFO)
+            netlog.setLevel(logging.DEBUG)
             fh = logging.FileHandler(logfile, mode="w")
             fmt = logging.Formatter("[%(asctime)s] %(message)s",
                                     datefmt="%Y-%m-%d %H:%M:%S")

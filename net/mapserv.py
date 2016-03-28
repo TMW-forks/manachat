@@ -874,7 +874,7 @@ def connect(host, port):
     global server, beings_cache
     beings_cache = BeingsCache(cmsg_name_request)
     server = SocketWrapper(host=host, port=port, protodef=protodef)
-    timers.append(Schedule(15, 30, cmsg_map_server_ping))
+    timers.append(Schedule(15, 20, cmsg_map_server_ping))
 
 
 def cleanup():

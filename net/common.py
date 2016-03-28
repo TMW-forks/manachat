@@ -26,6 +26,7 @@ class SocketWrapper(asyncore.dispatcher_with_send):
         self.read_buffer = ''
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.protodef = protodef
+        self.raw = False
         if protodef == {}:
             netlog.warning("protodef is empty")
         if host is not None:
@@ -63,7 +64,10 @@ class SocketWrapper(asyncore.dispatcher_with_send):
         if netlog.isEnabledFor(DEBUG):
             netlog.debug("write " +
                          ":".join("{:02x}".format(ord(c)) for c in data))
-        self.send(data)
+        if self.raw:
+            self.socket.sendall(data)
+        else:
+            self.send(data)
 
 
 def send_packet(srv, opcode_, *fields):

@@ -1,4 +1,5 @@
 import logging
+from logging.handlers import RotatingFileHandler
 from collections import OrderedDict
 import net.mapserv as mapserv
 import chatbot
@@ -14,7 +15,7 @@ __all__ = [ 'PLUGIN', 'init', 'shoplog', 'buying', 'selling' ]
 
 PLUGIN = {
     'name': 'crcshop',
-    'requires': ('chatbot',),
+    'requires': ('chatbot', 'msgqueue'),
     'blocks': ('shop'),
 }
 
@@ -411,3 +412,10 @@ def init(config):
     chatbot.commands = shop_commands
     load_shop_list(config)
     crc_members = PlayerList('crc.txt')
+    logfile = 'shoplog.txt'
+    shoplog.setLevel(logging.INFO)
+    h = RotatingFileHandler(logfile, maxBytes=102400, backupCount=3)
+    fmt = logging.Formatter("[%(asctime)s] %(message)s",
+                            datefmt="%Y-%m-%d %H:%M:%S")
+    h.setFormatter(fmt)
+    shoplog.addHandler(h)

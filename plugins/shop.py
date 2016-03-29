@@ -120,6 +120,8 @@ def sellitem(nick, message, is_whisper, match):
         item_id = int(match.group(1))
         # price = int(match.group(2))
         amount = int(match.group(3))
+        if item_id < 1 or amount < 1:
+            raise ValueError
     except ValueError:
         whisper(nick, "usage: !sellitem ID PRICE AMOUNT")
         return
@@ -174,6 +176,8 @@ def buyitem(nick, message, is_whisper, match):
         item_id = int(match.group(1))
         # price = int(match.group(2))
         amount = int(match.group(3))
+        if item_id < 1 or amount < 1:
+            raise ValueError
     except ValueError:
         mapserv.cmsg_chat_whisper(nick, "usage: !buyitem ID PRICE AMOUNT")
         return

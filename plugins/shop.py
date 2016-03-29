@@ -1,4 +1,5 @@
 import logging
+from collections import OrderedDict
 import net.mapserv as mapserv
 import chatbot
 from net.inventory import get_item_index
@@ -31,16 +32,16 @@ class s:
     timer = None
 
 
-buying = {
-    621:  (5000, 1),    # Eyepatch
-    640:  (1450, 100),  # Iron Ore
-    4001: (650, 300),   # Coal
-}
+buying = OrderedDict([
+    (621,  (5000, 1)),    # Eyepatch
+    (640,  (1450, 100)),  # Iron Ore
+    (4001, (650, 300)),   # Coal
+])
 
-selling = {
-    535:  (100, 50),    # Red Apple
-    640:  (1750, 100),  # Iron Ore
-}
+selling = OrderedDict([
+    (535,  (100, 50)),    # Red Apple
+    (640,  (1750, 100)),  # Iron Ore
+])
 
 
 # =========================================================================

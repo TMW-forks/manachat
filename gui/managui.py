@@ -27,6 +27,7 @@ config = ConfigParser()
 config.read("manachat.ini")
 
 import monsterdb
+import itemdb
 import net
 import net.mapserv as mapserv
 import gui.handlers as handlers
@@ -134,6 +135,7 @@ class ManaGuiApp(App):
             netlog.addHandler(fh)
 
         monsterdb.read_monster_db()
+        itemdb.load_itemdb('itemdb.txt')
 
         dbgh = DebugLogHandler(self)
         dbgh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s",

@@ -38,7 +38,7 @@ def answer_random(nick, message, is_whisper, answers):
 
 def answer(nick, message, is_whisper):
     for cmd, action in commands.iteritems():
-        regex = re.compile(cmd)
+        regex = re.compile(cmd)  # FIXME: not optimal to compie re all time
         match = regex.match(message)
         if match:
             if isinstance(action, types.ListType):

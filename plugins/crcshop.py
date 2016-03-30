@@ -1,4 +1,6 @@
 import logging
+import string
+import random
 from logging.handlers import RotatingFileHandler
 from collections import OrderedDict
 import net.mapserv as mapserv
@@ -44,6 +46,10 @@ selling = OrderedDict([
 ])
 
 
+def two_rand_chars():
+    return random.choice(string.letters) + random.choice(string.letters)
+
+
 # =========================================================================
 def selllist(nick, message, is_whisper, match):
     if not is_whisper:
@@ -66,6 +72,8 @@ def selllist(nick, message, is_whisper, match):
         data += encode_str(id_, 2)
         data += encode_str(price, 4)
         data += encode_str(amount, 3)
+
+    data += two_rand_chars()
 
     whisper(nick, data)
 
@@ -96,6 +104,8 @@ def buylist(nick, message, is_whisper, match):
         data += encode_str(id_, 2)
         data += encode_str(price, 4)
         data += encode_str(amount, 3)
+
+    data += two_rand_chars()
 
     whisper(nick, data)
 
@@ -391,13 +401,13 @@ def trade_complete(data):
 
     cleanup()
 
-
 # =========================================================================
 shop_commands = {
     r'^!selllist' : selllist,
     r'^!buylist' : buylist,
     r'^!sellitem (\d+) (\d+) (\d+)' : sellitem,
     r'^!buyitem (\d+) (\d+) (\d+)' : buyitem,
+    r'^!help' : ['[@@https://bitbucket.org/rumly111/manachat|ManaChat@@] by Travolta'],
 }
 
 
@@ -419,3 +429,5 @@ def init(config):
                             datefmt="%Y-%m-%d %H:%M:%S")
     h.setFormatter(fmt)
     shoplog.addHandler(h)
+
+    mapserv.timers.append(Schedule(30, 60, mapserv.cmsg_player_emote, 193))

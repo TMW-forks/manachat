@@ -114,9 +114,6 @@ if __name__ == '__main__':
     debuglog.addHandler(dbgh)
     debuglog.setLevel(logging.INFO)
 
-    shoplog = logging.getLogger('ManaChat.Shop')
-    shoplog.addHandler(dbgh)
-
     config = ConfigParser()
     config.read('manachat.ini')
 

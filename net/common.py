@@ -13,7 +13,7 @@ def StringZ(name, length, **kw):
 
 
 def Gender(name):
-    return Enum(Byte(name), BOY=1, GIRL=0)
+    return Enum(Byte(name), BOY=1, GIRL=0, UNSPECIFIED=2, OTHER=3)
 
 
 class SocketWrapper(asyncore.dispatcher_with_send):

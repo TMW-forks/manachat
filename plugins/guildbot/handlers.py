@@ -1,7 +1,10 @@
 from net.mapserv import cmsg_chat_whisper as send_whisper
 from utils import extends
-from . import online_users, db
+from commands import parse_player_name
 
+
+online_users = None
+db = None
 max_msg_len = 200
 pending_invitations = {}
 
@@ -28,8 +31,25 @@ def listonline(nick, _):
 
 def leave(nick, _):
     info = db.player_info(nick)
+    broadcast(nick, '"{}" left the guild'.format(nick), True)
     db.guild_remove_player(nick)
     send_whisper(nick, 'You left guild {}'.format(info[1]))
+
+
+def showinfo(nick, _):
+    db.player_set_showinfo(nick, True)
+    send_whisper(nick, "Information messages are visible")
+
+
+def hideinfo(nick, _):
+    db.player_set_showinfo(nick, False)
+    send_whisper(nick, "Information messages are hidden")
+
+
+def status(nick, _):
+    _, guild, access = db.player_info(nick)
+    send_whisper(nick, 'Player:{}, Guild:{}, Access:{}'.format(
+        nick, guild, access))
 
 
 # FIXME: not finished
@@ -40,17 +60,19 @@ def invite(nick, player):
 
     pinfo = db.player_info(player)
     if pinfo and pinfo[0]:
-        send_whisper(nick, '{} is already a member of guild "{}"'.format(
+        send_whisper(nick, '"{}" is already a member of guild "{}"'.format(
             player, pinfo[1]))
         return
 
     online = online_users.online_users
     if player not in online:
-        send_whisper(nick, '{} is not online'.format(player))
+        send_whisper(nick, '"{}" is not online'.format(player))
         return
 
     _, guild, _ = db.player_info(nick)
-    invite_msg = 'You were invited to {}. Answer yes or no'.format(guild)
+    invite_msg = ('You have been invited to the "{}" guild chat. '
+                  'If you would like to accept this invitation '
+                  'please reply "yes" and if not then "no"').format(guild)
     send_whisper(player, invite_msg)
     # FIXME: what if player is offline? online_list can be outdated
     pending_invitations[player] = guild
@@ -63,7 +85,7 @@ def remove(nick, player):
 
     pinfo = db.player_info(player)
     if not pinfo:
-        send_whisper(nick, '{} is not in your guild'.format(player))
+        send_whisper(nick, '{} is not in any guild'.format(player))
         return
 
     gid, _, _ = db.player_info(nick)
@@ -71,20 +93,21 @@ def remove(nick, player):
         send_whisper(nick, '{} is not in your guild'.format(player))
         return
 
+    broadcast(player, '{} was removed from your guild'.format(player), True)
     db.guild_remove_player(player)
-    send_whisper(nick, 'Removed "{}" from your guild'.format(player))
+    send_whisper(nick, 'You were removed from "{}" guild'.format(pinfo[1]))
 
 
 def setmotd(nick, motd):
     guild = db.player_info(nick)[1]
     db.setmotd(guild, motd)
-    send_whisper(nick, 'MOTD: ' + motd)
+    broadcast(nick, 'MOTD: ' + motd)
 
 
 def removemotd(nick, _):
     guild = db.player_info(nick)[1]
     db.setmotd(guild, '')
-    send_whisper(nick, 'MOTD removed')
+    broadcast(nick, 'MOTD removed')
 
 
 def setaccess(nick, params):
@@ -124,21 +147,28 @@ def disband(nick, _):
         send_whisper(nick, 'Error deleting guild "{}"'.format(guild))
 
 
-# FIXME command signature is wrong
-def addguild(nick, guild_name):
-    if not guild_name:
-        send_whisper(nick, "Usage: !addguild Leader Guild")
+def addguild(nick, params):
+    usage = 'Usage: !addguild Leader Guild (note: Leader can be quoted)'
+    if not params:
+        send_whisper(nick, usage)
         return
 
-    if db.guild_create(guild_name):
-        send_whisper(nick, 'Created guild "{}"'.format(guild_name))
+    leader, guild = parse_player_name(params)
+
+    if len(leader) < 4 or len(guild) < 4:
+        send_whisper(nick, usage)
+        return
+
+    if db.guild_create(guild):
+        send_whisper(nick, 'Created guild "{}", leader is "{}"'.format(
+            guild, leader))
     else:
         send_whisper(nick, "Error creating guild")
 
 
 def removeguild(nick, guild_name):
     if not guild_name:
-        send_whisper(nick, "Usage: !removeguild Guild Name")
+        send_whisper(nick, "Usage: !removeguild Guild")
         return
 
     if db.guild_delete(guild_name):
@@ -161,7 +191,7 @@ def globalmsg(nick, msg):
 
 def joinguild(nick, guild):
     if not guild:
-        send_whisper(nick, "Usage: !joinguild Guild Name")
+        send_whisper(nick, "Usage: !joinguild Guild")
         return
 
     if db.player_join_guild(nick, guild, 20):
@@ -195,12 +225,12 @@ def showhelp(nick, _):
 
 commands = {
     "help":        (-10, showhelp,    "show help"),
-    "info":        (0,   ignore,      "display guild information"),
+    "info":        (0,   status,      "display guild information"),
     "listonline":  (0,   listonline,  "list online players"),
     "leave":       (0,   leave,       "leave your guild"),
-    "showinfo":    (0,   ignore,      "verbose notifications"),
-    "hideinfo":    (0,   ignore,      "quiet notifications"),
-    "invite":      (5,   ignore,      "+Player -- invite player to guild"),
+    "showinfo":    (0,   showinfo,    "verbose notifications"),
+    "hideinfo":    (0,   hideinfo,    "quiet notifications"),
+    "invite":      (5,   invite,      "+Player -- invite player to guild"),
     "remove":      (5,   remove,      "+Player -- remove player from guild"),
     "setmotd":     (5,   setmotd,     "+MOTD -- set MOTD"),
     "removemotd":  (5,   removemotd,  "remove MOTD"),
@@ -237,19 +267,38 @@ def exec_command(nick, cmdline):
 
 def player_joining(player, guild):
     db.player_join_guild(player, guild)
+    broadcast(player, '{} joined your guild'.format(player), True)
 
 
-def broadcast(nick, msg):
+def broadcast(nick, msg, exclude_nick=False):
     """
     Broadcast message for all players that belong the same guild as nick.
     """
     n = 0
     for prec in db.all_players_same_guild(nick):
+        if exclude_nick and prec[0] == nick:
+            continue
         n += 1
         send_whisper(prec[0], '{} : {}'.format(nick, msg))
 
     if n == 0:
         send_whisper(nick, "You don't belong to any guild")
+
+
+def online_list_update(curr, prev):
+    for p in curr - prev:
+        ginfo = db.player_info(p)
+        if ginfo is not None:
+            if ginfo[0] is not None:
+                allp = set(db.all_players_same_guild(p))
+                n = len(allp.intersection(curr))
+                send_whisper(p,
+                    'Welcome to {}! ({} Members are online)'.format(
+                        ginfo[1], n))
+                broadcast(p, '{} is now Online'.format(p), True)
+
+    for p in prev - curr:
+        broadcast(p, '{} is now Offline'.format(p), True)
 
 
 @extends('smsg_whisper')

@@ -8,12 +8,11 @@ PLUGIN = {
     'blocks': (),
 }
 
-online_users = None
-db = None
+__all__ = ['PLUGIN', 'init']
 
 
 def init(config):
-    global online_users, db
-    online_users = OnlineUsers(config.get('Other', 'online_txt_url'))
-    online_users.start()
-    db = GuildDB(config.get('GuildBot', 'dbfile'))
+    handlers.online_users = OnlineUsers(config.get('Other', 'online_txt_url'),
+                                    refresh_hook=handlers.online_list_update)
+    handlers.online_users.start()
+    handlers.db = GuildDB(config.get('GuildBot', 'dbfile'))

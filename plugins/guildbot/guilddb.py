@@ -80,20 +80,6 @@ class GuildDB:
             self.logger.error('Error setting MOTD for guild: %s', name)
             return False
 
-    # NOTE: might need to remove this
-    def player_create(self, name, guild_name='', access_level=-10):
-        query = '''insert into PLAYERS(NAME, GUILD_ID, ACCESS)
-                   values(?, (select ID from GUILDS where NAME = ?), ?)'''
-        self.cur.execute(query, (name, guild_name, access_level))
-
-        if self.cur.rowcount > 0:
-            self.logger.info('Creted player "%s" in guild "%s" with access %d',
-                            name, guild_name, access_level)
-        else:
-            self.logger.warning('Could not create player "%s"', name)
-
-        self.db.commit()
-
     def player_info(self, name):
         query = '''select GUILDS.ID,GUILDS.NAME,ACCESS
                    from PLAYERS join GUILDS
@@ -143,6 +129,12 @@ class GuildDB:
                          player, guild)
         return True
 
+    def player_set_showinfo(self, player, si=True):
+        query = '''update table PLAYERS set SHOWINFO = ?
+                   where name = ?'''
+        self.cur.execute(query, (player, si))
+        self.db.commit()
+
     def guild_remove_player(self, player_name):
         query = '''update PLAYERS set GUILD_ID = NULL, ACCESS = -10
                    where NAME = ?'''
@@ -153,9 +145,9 @@ class GuildDB:
         query = '''select NAME from PLAYERS
                    where GUILD_ID = (select GUILD_ID from PLAYERS
                                      where NAME = ?)'''
-        return self.cur.execute(query, (player_name,))
+        return self.cur.fetchall(query, (player_name,))
 
     def all_players_any_guild(self):
         query = '''select NAME from PLAYERS
                    where ACCESS >= 0'''
-        return self.cur.execute(query)
+        return self.cur.fetchall(query)

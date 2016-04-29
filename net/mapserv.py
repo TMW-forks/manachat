@@ -34,7 +34,7 @@ def smsg_ignore(data):
 @extendable
 def smsg_being_chat(data):
     beings_cache.findName(data.id)
-    netlog.info("SMSG_BEING_CHAT {} : {}".format(data.id, data.message))
+    netlog.info("SMSG_BEING_CHAT id={} msg={}".format(data.id, data.message))
 
 
 @extendable
@@ -752,11 +752,10 @@ def cmsg_name_request(id_):
 
 def cmsg_chat_message(msg):
     netlog.info("CMSG_CHAT_MESSAGE {}".format(msg))
-    m = "{} : {}".format(server.char_name, msg)
-    l = len(m)
+    l = len(msg)
     send_packet(server, CMSG_CHAT_MESSAGE,
                 (ULInt16("len"), l + 5),
-                (StringZ("msg", l + 1), m))
+                (StringZ("msg", l + 1), msg))
 
 
 def cmsg_chat_whisper(to_, msg):

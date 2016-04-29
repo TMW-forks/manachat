@@ -26,6 +26,7 @@ from utils import extends
 from itemdb import load_itemdb
 from loggers import debuglog
 import commands
+from textutils import preprocess as pp
 
 
 PROMPT = '] '
@@ -68,31 +69,31 @@ def map_login_success(data):
 
 @extends('smsg_being_chat')
 def being_chat(data):
-    debuglog.info(data.message)
+    debuglog.info(pp(data.message))
 
 
 @extends('smsg_player_chat')
 def player_chat(data):
-    debuglog.info(data.message)
+    debuglog.info(pp(data.message))
 
 
 @extends('smsg_whisper')
 def got_whisper(data):
     nick, message = data.nick, data.message
-    m = "[{} ->] {}".format(nick, message)
+    m = "[{} ->] {}".format(nick, pp(message))
     debuglog.info(m)
 
 
 @extends('smsg_gm_chat')
 def gm_chat(data):
-    m = "[GM] {}".format(data.message)
+    m = "[GM] {}".format(pp(data.message))
     debuglog.info(m)
 
 
 @extends('smsg_whisper_response')
 def send_whisper_result(data):
     if data.code == 0:
-        m = "[-> {}] {}".format(commands.whisper_to, commands.whisper_msg)
+        m = "[-> {}] {}".format(commands.whisper_to, pp(commands.whisper_msg))
         debuglog.info(m)
         readline.insert_text('/w "{}" '.format(commands.whisper_to))
         readline.redisplay()

@@ -114,6 +114,15 @@ if __name__ == '__main__':
     config = ConfigParser()
     config.read('manachat.ini')
 
+    if config.getboolean('Other', 'log_network_packets'):
+        from loggers import netlog
+        netlog.setLevel(logging.DEBUG)
+        fh = logging.FileHandler('/tmp/netlog.txt', mode="w")
+        fmt = logging.Formatter("[%(asctime)s] %(message)s",
+                                datefmt="%Y-%m-%d %H:%M:%S")
+        fh.setFormatter(fmt)
+        netlog.addHandler(fh)
+
     load_itemdb('itemdb.txt')
     plugin_list = config.get('Core', 'plugins').split()
     plugins.load_plugins(config, *plugin_list)

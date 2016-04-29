@@ -56,6 +56,7 @@ def selllist(nick, message, is_whisper, match):
         return
 
     if not crc_members.check_player(nick):
+        whisper(nick, "I sell only to CRC members, but I buy bat wings from everybody (100gp)")
         return
 
     # Support for 4144's shop (Sell list)
@@ -246,7 +247,11 @@ def cancel_timer_function():
 def trade_request(data):
     shoplog.info("Trade request from %s", data.nick)
     mapserv.cmsg_trade_response(False)
-    selllist(data.nick, '', True, None)
+
+    if crc_members.check_player(data.nick):
+        selllist(data.nick, '', True, None)
+    else:
+        buylist(data.nick, '', True, None)
 
 
 @extends('smsg_trade_response')

@@ -49,11 +49,7 @@ def being_chat(data):
     if app.root_window.focus:
         return
 
-    id_, message = data.id, data.message
-    nick = mapserv.beings_cache[id_].name
-    m = "{} : {}".format(nick, message)
-
-    notify('General', m, True)
+    notify('General', data.message, True)
 
 
 @extends('smsg_whisper')

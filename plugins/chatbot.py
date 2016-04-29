@@ -51,9 +51,11 @@ def answer(nick, message, is_whisper):
 
 @extends('smsg_being_chat')
 def being_chat(data):
-    id_, message = data.id, data.message
-    nick = mapserv.beings_cache[id_].name
-    answer(nick, message, False)
+    idx = data.message.find(' : ')
+    if idx > -1:
+        nick = data.message[:idx]
+        message = data.message[idx + 3:]
+        answer(nick, message, False)
 
 
 @extends('smsg_whisper')

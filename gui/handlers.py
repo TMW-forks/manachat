@@ -14,10 +14,7 @@ app = None
 
 @extends('smsg_being_chat')
 def being_chat(data):
-    id_, message = data.id, data.message
-    nick = mapserv.beings_cache[id_].name
-    m = "{} : {}".format(nick, message)
-    debuglog.info(m)
+    debuglog.info(data.message)
 
 
 @extends('smsg_player_chat')

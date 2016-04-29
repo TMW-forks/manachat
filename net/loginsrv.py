@@ -97,7 +97,7 @@ def cmsg_login_register(username, password):
     netlog.info("CMSG_LOGIN_REGISTER username={} password={}".format(
         username, password))
     send_packet(server, CMSG_LOGIN_REGISTER,
-                (ULInt32("clientversion"),  3),
+                (ULInt32("clientversion"),  6),
                 (StringZ("username", 24),   username),
                 (StringZ("password", 24),   password),
                 (Byte("flags"),             3))

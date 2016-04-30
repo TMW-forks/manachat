@@ -1,4 +1,4 @@
-from construct import *
+from construct import Struct, ULInt16, MetaField
 from loggers import netlog
 
 packet_lengths = [

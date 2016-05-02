@@ -1,7 +1,8 @@
-#:import la kivy.adapters.listadapter
+#:import la kivy.adapters.simplelistadapter
 #:import ChatLog gui.chatlog.ChatLog
 #:import ChatLogItem gui.chatlog.ChatLogItem
 #:import deque collections.deque
+#:import MyListView gui.chatlog.MyListView
 
 
 <PlayersListItem>:
@@ -46,13 +47,14 @@
 
         BoxLayout:
             orientation: 'vertical'
+            size_hint: 1, 1
 
             ChatLog:
                 id: id_chat_log
 
             TextInput:
                 id: id_chat_input
-                size_hint: 1, None
+                size_hint_y: None
                 height: '50dp'
                 focus: True
                 multiline: False
@@ -73,26 +75,36 @@
             pos: self.pos
             size: self.size
 
-    orientation: 'horizontal'
-    size_hint_y: None
-    height: max(lbl_message.height, 10)
+    # orientation: 'vertical'
+    cols: 1        
+    size_hint: None, None
+    height: lbl_message.height
 
     Label:
         id: lbl_message
         text: root.message
-        size_hint_y: None
         text_size: self.width, None
+        size_hint: None, None
+        width: root.width
         height: self.texture_size[1] + 10
+        # height: '25dp'
         markup: True
         on_ref_press: app.open_link(args[1])
 
 
+[ChatLogItemT@Label]:
+    # size_hint_y: None
+    text_size: self.width, None
+    height: self.texture_size[1] + 10    
+
+
 <ChatLog>:
+    cols: 1
     msg_list: msg_list
-    ListView:
+    
+    MyListView:
         id: msg_list
         adapter:
-            la.ListAdapter(data=['Welcome to [ref=https://bitbucket.org/rumly111/manachat/][color=0000ff]ManaChat[/color][/ref]. Press F1 to show settings.'],
+            la.SimpleListAdapter(data=['Welcome to [ref=https://bitbucket.org/rumly111/manachat/][color=0000ff]ManaChat[/color][/ref]. Press F1 to show settings.', 'aa bbb cccc' * 1],
             cls=ChatLogItem,
-            args_converter=root.msg_converter, selection_mode='single',
-            propagate_selection_to_data=False, allow_empty_selection=True)
+            args_converter=root.msg_converter)

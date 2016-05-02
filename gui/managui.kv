@@ -1,8 +1,6 @@
 #:import la kivy.adapters.simplelistadapter
 #:import ChatLog gui.chatlog.ChatLog
-#:import ChatLogItem gui.chatlog.ChatLogItem
 #:import deque collections.deque
-#:import MyListView gui.chatlog.MyListView
 
 
 <PlayersListItem>:
@@ -43,14 +41,16 @@
 
     BoxLayout:
         orientation: 'horizontal'
-        size_hint: 1, 1
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint: 1, 1
 
             ChatLog:
                 id: id_chat_log
+                adapter:
+                    la.SimpleListAdapter(data=['Welcome to [ref=https://bitbucket.org/rumly111/manachat/][color=0000ff]ManaChat[/color][/ref]. Press F1 to show settings.'],
+                    template='ChatLogItem',
+                    args_converter=self.msg_converter)
 
             TextInput:
                 id: id_chat_input
@@ -62,49 +62,34 @@
 
         PlayersList:
             id: id_players_list
-            size_hint: None, 1
+            size_hint_x: None
             width: '150dp'
 
 
-<ChatLogItem>:
+[ChatLogItem@Label]:
 
     canvas.before:
         Color:
-            rgba: self.background_color
+            rgba: ctx.background_color
         Rectangle:
             pos: self.pos
             size: self.size
 
-    # orientation: 'vertical'
-    cols: 1        
-    size_hint: None, None
-    height: lbl_message.height
-
-    Label:
-        id: lbl_message
-        text: root.message
-        text_size: self.width, None
-        size_hint: None, None
-        width: root.width
-        height: self.texture_size[1] + 10
-        # height: '25dp'
-        markup: True
-        on_ref_press: app.open_link(args[1])
-
-
-[ChatLogItemT@Label]:
-    # size_hint_y: None
+    text: ctx.text
+    width: ctx.width
     text_size: self.width, None
-    height: self.texture_size[1] + 10    
+    size_hint: None, None
+    height: self.texture_size[1] + 10
+    markup: True
+    on_ref_press: app.open_link(args[1])
 
 
 <ChatLog>:
-    cols: 1
-    msg_list: msg_list
-    
-    MyListView:
-        id: msg_list
-        adapter:
-            la.SimpleListAdapter(data=['Welcome to [ref=https://bitbucket.org/rumly111/manachat/][color=0000ff]ManaChat[/color][/ref]. Press F1 to show settings.', 'aa bbb cccc' * 1],
-            cls=ChatLogItem,
-            args_converter=root.msg_converter)
+    container: container
+    ScrollView:
+        pos: root.pos
+        do_scroll_x: False
+        GridLayout:
+            cols: 1
+            id: container
+            size_hint_y: None

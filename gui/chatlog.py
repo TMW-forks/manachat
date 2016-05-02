@@ -1,125 +1,83 @@
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
-from kivy.properties import StringProperty, ListProperty
+from kivy.event import EventDispatcher
+from kivy.uix.abstractview import AbstractView
+from kivy.properties import ListProperty, NumericProperty
+from kivy.adapters.simplelistadapter import SimpleListAdapter
 from kivy.utils import escape_markup
-from kivy.uix.listview import ListView  # , ListItemLabel
-from kivy.uix.widget import Widget
 from kivy.clock import Clock
-# from kivy.uix.label import Label
-from utils import log_method
+from kivy.uix.label import Label
+# from utils import log_method
 
 from textutils import (links_to_markup, replace_emotes, preprocess,
                        remove_formatting)
 
 
-class MyListView(ListView):
+class ChatLog(AbstractView, EventDispatcher):
 
-    # def __init__(self, *args, **kwargs):
-    #     self._views = {}
-    #     ListView.__init__(self, *args, **kwargs)
+    def __init__(self, **kwargs):
+        # Check for adapter argument
+        if 'adapter' not in kwargs:
+            list_adapter = SimpleListAdapter(data=[], cls=Label)
+            kwargs['adapter'] = list_adapter
 
-    @log_method
-    def populate(self, istart=None, iend=None):
+        super(ChatLog, self).__init__(**kwargs)
+
+        self._views = []
+
+        populate = self._trigger_populate = Clock.create_trigger(
+            self._populate, -1)
+
+        fbind = self.fbind
+        fbind('adapter', populate)
+
+    max_lines = NumericProperty(100)
+    cut_lines = NumericProperty(10)
+
+    def _populate(self, *args):
         container = self.container
-        sizes = self._sizes
-        rh = self.row_height
-
-        # ensure we know what we want to show
-        if istart is None:
-            istart = self._wstart
-            iend = self._wend
-
-        # clear the view
+        adapter = self.adapter
         container.clear_widgets()
 
-        def debugw(w):
-            try:
-                print w.children[0].texture_size, w.size, w.size_hint, \
-                    w.children[0].text
-            except Exception as err:
-                print err.message
+        for index in range(adapter.get_count()):
+            item_view = adapter.get_view(index)
+            self.container.add_widget(item_view)
+            self._views.append(item_view)
 
-        # guess only ?
-        if iend is not None and iend != -1:
+        container.height = self._container_height()
 
-            # fill with a "padding"
-            fh = 0
-            for x in range(istart):
-                fh += sizes[x] if x in sizes else rh
-            container.add_widget(Widget(size_hint_y=None, height=fh))
+    def _append(self, msg):
+        container = self.container
+        adapter = self.adapter
+        views = self._views
+        cl = self.cut_lines
 
-            # now fill with real item_view
-            index = istart
-            while index <= iend:
-                # print index, len(self.adapter.data)
-                # item_view = ChatLogItem(message=self.adapter.data[index])
-                item_view = self.adapter.get_view(index)
-                index += 1
-                if item_view is None:
-                    continue
-                container.add_widget(item_view)
-                item_view.children[0].texture_update()
-                sizes[index] = item_view.height
-                debugw(item_view)
+        if len(views) >= self.max_lines:
+            container.clear_widgets(views[:cl])
+            self._views = views[cl:]
+            adapter.data = adapter.data[cl:]
 
-        else:
-            available_height = self.height
-            real_height = 0
-            index = self._index
-            count = 0
-            while available_height > 0:
-                # print index, len(self.adapter.data)
-                item_view = self.adapter.get_view(index)
-                # item_view = ChatLogItem(message=self.adapter.data[index])
-                if item_view is None:
-                    break
+        adapter.data.append(msg)
+        item_view = adapter.get_view(adapter.get_count() - 1)
+        item_view.texture_update()
 
-                container.add_widget(item_view)
-                item_view.children[0].texture_update()
-                sizes[index] = item_view.height
-                index += 1
-                count += 1
+        self._views.append(item_view)
+        container.add_widget(item_view)
 
-                available_height -= item_view.height
-                real_height += item_view.height
-                debugw(item_view)
-
-            self._count = count
-
-            # extrapolate the full size of the container from the size
-            # of view instances in the adapter
-            if count:
-                container.height = \
-                    real_height / count * self.adapter.get_count()
-                if self.row_height is None:
-                    self.row_height = real_height / count
-
-
-class ChatLogItem(GridLayout):
-    message = StringProperty()
-    background_color = ListProperty([0, 0, 0, 1])
-    # text = StringProperty()
-    # timestamp = StringProperty()
-    # channel = StringProperty()
-
-
-# def msg_converter(index, msg):
-#     b = (index % 2) * 0.04
-#     return {'message': msg,
-#             'background_color': (0 + b, 0.17 + b, 0.21 + b, 1)}
-
-
-class ChatLog(GridLayout):
+    def _container_height(self, *args):
+        h = 0
+        for v in self._views:
+            h += v.height
+        return h
 
     def append_message(self, msg):
         msg = preprocess(msg, (replace_emotes,
                                remove_formatting))
         msg = links_to_markup(escape_markup(msg))
-        self.msg_list.adapter.data.append(msg)
-        self.msg_list.children[0].scroll_y = 0
+        self._append(msg)
+        self.container.height = self._container_height()
+        self.children[0].scroll_y = 0
 
     def msg_converter(self, index, msg):
         b = (index % 2) * 0.04
-        return {'message': msg,
+        return {'text': msg,
                 'width': self.width,
                 'background_color': (0 + b, 0.17 + b, 0.21 + b, 1)}

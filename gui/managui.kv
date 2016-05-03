@@ -56,7 +56,7 @@
                 id: id_chat_input
                 size_hint_y: None
                 height: '50dp'
-                focus: True
+                # focus: True
                 multiline: False
                 on_text_validate: root.on_command_enter(args)
 
@@ -93,3 +93,54 @@
             cols: 1
             id: container
             size_hint_y: None
+
+
+<AboutPopup@Popup>:
+    title_size: '14dp'
+    title: 'About'
+    size_hint: 0.9, None
+    height: '140dp'
+
+    Label:
+        id: lbl
+        text_size: self.width, None
+        size_hint_y: None
+        height: self.texture_size[1]
+        text:
+            '''ManaChat is a multi-purpose chat client for The Mana World MMORPG
+            Author: Joseph Botosh <rumly111@gmail.com> (TMW nickname: Travolta)
+            Licence: Gnu General Public Licence, rev. 2
+            Homepage: [ref=https://bitbucket.org/rumly111/manachat/]https://bitbucket.org/rumly111/manachat/[/ref]'''
+
+        markup: True
+        on_ref_press: app.open_link(args[1])
+
+
+<MenuPopup@Popup>:
+    title_size: '14dp'
+    title: 'ManaChat'
+    auto_dismiss: False
+    size_hint: None, None
+    width: "200dp"
+    height: "250dp"
+
+    BoxLayout:
+        spacing: "2dp"
+        padding: "2dp"
+        orientation: "vertical"
+
+        Button:
+            text: "Connect"
+            on_press: app.reconnect()
+
+        Button:
+            text: "Config"
+            on_press: app.open_settings()
+
+        Button:
+            text: "About"
+            on_press: app.show_about()
+
+        Button:
+            text: "Exit"
+            on_press: app.stop()

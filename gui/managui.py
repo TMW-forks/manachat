@@ -19,6 +19,7 @@ from kivy.properties import (StringProperty, BooleanProperty, ListProperty)
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.uix.listview import ListView, ListItemLabel
+from kivy.uix.popup import Popup
 from kivy.adapters.listadapter import ListAdapter
 
 from kivy.config import ConfigParser
@@ -96,6 +97,20 @@ class PlayersList(FloatLayout):
         self.add_widget(list_view)
 
 
+class MenuPopup(Popup):
+    visible = BooleanProperty(False)
+
+    def on_open(self, *args):
+        self.visible = True
+
+    def on_dismiss(self, *args):
+        self.visible = False
+
+
+class AboutPopup(Popup):
+    pass
+
+
 class RootWidget(FloatLayout):
     mobile = BooleanProperty(False)
 
@@ -120,9 +135,34 @@ class ManaGuiApp(App):
 
     def hook_keyboard(self, window, key, *largs):
         if key == 27:
-            self.stop()
+            self.show_menu(not self._menu_popup.visible)
+            # self.stop()
             return True
         return False
+
+    def reconnect(self):
+        if mapserv.server is not None:
+            mapserv.cleanup()
+
+        net.login(host=config.get('Server', 'host'),
+                  port=config.getint('Server', 'port'),
+                  username=config.get('Player', 'username'),
+                  password=config.get('Player', 'password'),
+                  charname=config.get('Player', 'charname'))
+
+        if hasattr(self, '_menu_popup'):
+            self._menu_popup.dismiss()
+
+    def show_about(self):
+        AboutPopup().open()
+
+    def show_menu(self, show=True):
+        if not hasattr(self, '_menu_popup'):
+            self._menu_popup = MenuPopup()
+        if show:
+            self._menu_popup.open()
+        else:
+            self._menu_popup.dismiss()
 
     def on_start(self):
         if config.getboolean('Other', 'log_network_packets'):
@@ -157,17 +197,12 @@ class ManaGuiApp(App):
 
         handlers.app = self
 
-        net.login(host=config.get('Server', 'host'),
-                  port=config.getint('Server', 'port'),
-                  username=config.get('Player', 'username'),
-                  password=config.get('Player', 'password'),
-                  charname=config.get('Player', 'charname'))
-
-        # self.root.map_w.tile_size = config.getint('GUI', 'tile_size')
+        # self.reconnect()
 
         Clock.schedule_once(self.update_online_list, 0.2)
         Clock.schedule_interval(self.update_online_list, 35)
         Clock.schedule_interval(self.update_loop, 0)
+        Clock.schedule_once(self.show_menu, 1.5)
 
     def build(self):
         self.icon = 'icon.png'

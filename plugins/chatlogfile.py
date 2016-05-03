@@ -24,6 +24,7 @@ class ChatLogHandler(logging.Handler):
         self.loggers = {}
         if not os.path.exists(self.chat_log_dir):
             os.makedirs(self.chat_log_dir)
+        self._count = 0
 
     def emit(self, record):
         try:
@@ -38,10 +39,22 @@ class ChatLogHandler(logging.Handler):
         else:
             logger = chatlog.getChild(user)
             self.loggers[user] = logger
-            # FIXME: it can open too many files, need cleanup
             handler = logging.FileHandler(os.path.join(
                 self.chat_log_dir, user + ".txt"))
             logger.addHandler(handler)
+
+        self._count += 1
+        logger.count = self._count
+
+        if len(self.loggers) > 5:
+            min_count = self._count
+            old_user = ''
+            for usr, lgr in self.loggers.items():
+                if lgr.count < min_count:
+                    old_user = user
+                    min_count = lgr.count
+            self.loggers[old_user].handlers[0].close()
+            del self.loggers[old_user]
 
         message = self.format(record)
         logger.info(message)

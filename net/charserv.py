@@ -25,9 +25,10 @@ def smsg_char_login(data):
             mapserv.player_money = c.money
             break
     if char_slot < 0:
-        raise Exception("CharName {} not found".format(server.char_name))
-
-    cmsg_char_select(char_slot)
+        netlog.error("CharName {} not found".format(server.char_name))
+        server.close()
+    else:
+        cmsg_char_select(char_slot)
 
 
 @extendable

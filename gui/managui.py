@@ -146,6 +146,12 @@ class ManaGuiApp(App):
         debuglog.addHandler(dbgh)
         debuglog.setLevel(logging.INFO)
 
+        net2 = DebugLogHandler(self)
+        net2.setFormatter(logging.Formatter("[%(asctime)s] %(message)s",
+                                            datefmt="%H:%M"))
+        net2.setLevel(logging.ERROR)
+        netlog.addHandler(net2)
+
         plugin_list = config.get('Core', 'plugins').split()
         plugins.load_plugins(config, *plugin_list)
 

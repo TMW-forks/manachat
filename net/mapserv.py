@@ -880,4 +880,5 @@ def cleanup():
     global server
     for t in timers:
         t.cancel()
-    server.close()
+    if server is not None:
+        server.close()

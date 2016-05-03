@@ -28,6 +28,8 @@ class ChatLog(AbstractView, EventDispatcher):
 
         fbind = self.fbind
         fbind('adapter', populate)
+        fbind('size', populate)
+        fbind('pos', populate)
 
     max_lines = NumericProperty(100)
     cut_lines = NumericProperty(10)
@@ -36,6 +38,7 @@ class ChatLog(AbstractView, EventDispatcher):
         container = self.container
         adapter = self.adapter
         container.clear_widgets()
+        self._views = []
 
         for index in range(adapter.get_count()):
             item_view = adapter.get_view(index)

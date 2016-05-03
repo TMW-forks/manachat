@@ -112,8 +112,11 @@ class ManaGuiApp(App):
     use_kivy_settings = BooleanProperty(False)
 
     def update_online_list(self, *l):
-        self.root.players_list.items = OnlineUsers.dl_online_list(
-            config.get('Other', 'online_txt_url'))
+        lst = OnlineUsers.dl_online_list(config.get('Other',
+                                                    'online_txt_url'))
+        if lst is not None:
+            lst.sort()
+        self.root.players_list.items = lst
 
     def hook_keyboard(self, window, key, *largs):
         if key == 27:

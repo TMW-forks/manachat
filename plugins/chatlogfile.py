@@ -99,7 +99,7 @@ def party_chat(data):
 
 
 def init(config):
-    chatlog_dir = config.get('Other', 'chatlog_dir')
+    chatlog_dir = config.get('chatlogfile', 'chatlog_dir')
 
     clh = ChatLogHandler(chatlog_dir)
     clh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s",

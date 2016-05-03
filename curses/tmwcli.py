@@ -95,8 +95,8 @@ if __name__ == "__main__":
 
     cui.init()
 
-    plugin_list = config.get('Core', 'plugins').split()
-    plugins.load_plugins(config, *plugin_list)
+    plugins.load_plugins(config)
+
     monsterdb.read_monster_db('../monsterdb.txt')
     itemdb.load_itemdb('../itemdb.txt')
 

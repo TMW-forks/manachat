@@ -36,21 +36,6 @@
     "key"     : "charname" },
 
   { "type"    : "title",
-    "title"   : "Interface" },
-
-  { "type"    : "numeric",
-    "title"   : "Notifications timeout",
-    "desc"    : "Seconds (or milliseconds) before notifications disappear.",
-    "section" : "GUI",
-    "key"     : "notif_timeout" },
-
-  { "type"    : "bool",
-    "title"   : "Notification sound",
-    "desc"    : "Play notification sound.",
-    "section" : "GUI",
-    "key"     : "notif_sound" },
-
-  { "type"    : "title",
     "title"   : "Other" },
 
   { "type"    : "string",
@@ -59,15 +44,54 @@
     "section" : "Other",
     "key"     : "online_txt_url" },
 
-  { "type"    : "string",
-    "title"   : "Chat log directory",
-    "desc"    : "Created automatically.",
-    "section" : "Other",
-    "key"     : "chatlog_dir" },
-
   { "type"    : "bool",
     "title"   : "Log network packets",
     "desc"    : "Used for debugging. Log file will be saved in $TEMP/netlog.txt",
     "section" : "Other",
-    "key"     : "log_network_packets" }
+    "key"     : "log_network_packets" },
+
+  { "type"    : "title",
+    "title"   : "Plugins" },
+
+  { "type"    : "bool",
+    "title"   : "notify",
+    "desc"    : "Desktop notifications.",
+    "section" : "Plugins",
+    "key"     : "notify" },
+
+  { "type"    : "bool",
+    "title"   : "chatlogfile",
+    "desc"    : "Log chat history to files.",
+    "section" : "Plugins",
+    "key"     : "chatlogfile" },
+
+  { "type"    : "bool",
+    "title"   : "shop",
+    "desc"    : "Log chat history to files.",
+    "section" : "Plugins",
+    "key"     : "shop" },
+
+  { "type"    : "title",
+    "title"   : "Notifications" },
+
+  { "type"    : "numeric",
+    "title"   : "Notifications timeout",
+    "desc"    : "Seconds (or milliseconds) before notifications disappear.",
+    "section" : "notify",
+    "key"     : "notif_timeout" },
+
+  { "type"    : "bool",
+    "title"   : "Notification sound",
+    "desc"    : "Play notification sound.",
+    "section" : "notify",
+    "key"     : "notif_sound" },
+
+  { "type"    : "title",
+    "title"   : "Chat logs" },
+
+  { "type"    : "path",
+    "title"   : "Chat log directory",
+    "desc"    : "Created automatically.",
+    "section" : "chatlogfile",
+    "key"     : "chatlog_dir" }
 ]

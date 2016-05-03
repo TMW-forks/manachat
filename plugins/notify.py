@@ -89,7 +89,7 @@ def init(config):
                          re.IGNORECASE))
     guard_words = gw
 
-    timeout = config.getint('GUI', 'notif_timeout')
+    timeout = config.getint('notify', 'notif_timeout')
 
-    if config.getboolean('GUI', 'notif_sound'):
+    if config.getboolean('notify', 'notif_sound'):
         sound = SoundLoader.load('newmessage.wav')

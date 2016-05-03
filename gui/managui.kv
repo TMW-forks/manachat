@@ -48,7 +48,8 @@
             ChatLog:
                 id: id_chat_log
                 adapter:
-                    la.SimpleListAdapter(data=['Welcome to [ref=https://bitbucket.org/rumly111/manachat/][color=0000ff]ManaChat[/color][/ref]. Press F1 to show settings.'],
+                    la.SimpleListAdapter(
+                    data=['Welcome to [ref=https://bitbucket.org/rumly111/manachat/][color=0000ff]ManaChat[/color][/ref]. Press F1 to show settings. Press ESCAPE to toggle menu.'],
                     template='ChatLogItem',
                     args_converter=self.msg_converter)
 

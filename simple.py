@@ -125,8 +125,8 @@ if __name__ == '__main__':
         netlog.addHandler(fh)
 
     load_itemdb('itemdb.txt')
-    plugin_list = config.get('Core', 'plugins').split()
-    plugins.load_plugins(config, *plugin_list)
+
+    plugins.load_plugins(config)
 
     net.login(host=config.get('Server', 'host'),
               port=config.getint('Server', 'port'),

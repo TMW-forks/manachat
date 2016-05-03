@@ -12,6 +12,7 @@ class PluginError(Exception):
 
 
 def load_plugin(config, plugin_name):
+    print 'load_plugin ', plugin_name
     if plugin_name in plugins_loaded:
         return
 
@@ -30,9 +31,10 @@ def load_plugin(config, plugin_name):
     debuglog.info('Plugin %s loaded', plugin_name)
 
 
-def load_plugins(config, *plugin_names):
-    for pn in plugin_names:
-        try:
-            load_plugin(config, pn)
-        except ImportError as e:
-            debuglog.error('Error loading plugin %s: %s', pn, e)
+def load_plugins(config):
+    for pn in config.options('Plugins'):
+        if config.getboolean('Plugins', pn):
+            try:
+                load_plugin(config, pn)
+            except ImportError as e:
+                debuglog.error('Error loading plugin %s: %s', pn, e)

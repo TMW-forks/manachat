@@ -118,7 +118,7 @@ def me_action(_, arg):
 
 
 @must_have_arg
-def item_use(_, name_or_id):
+def item_action(cmd, name_or_id):
     item_id = -10
     item_db = itemdb.item_names
 
@@ -135,7 +135,10 @@ def item_use(_, name_or_id):
 
     index = get_item_index(item_id)
     if index > 0:
-        mapserv.cmsg_player_inventory_use(index, item_id)
+        if cmd == 'use':
+            mapserv.cmsg_player_inventory_use(index, item_id)
+        elif cmd == 'equip':
+            mapserv.cmsg_player_equip(index)
     else:
         debuglog.error("You don't have %s", name_or_id)
 
@@ -204,7 +207,8 @@ commands = {
     "nav"             : set_destination,
     "dest"            : set_destination,
     "me"              : me_action,
-    "use"             : item_use,
+    "use"             : item_action,
+    "equip"           : item_action,
     "attack"          : attack,
     "beings"          : print_beings,
     "inv"             : show_inventory,

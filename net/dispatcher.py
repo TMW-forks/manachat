@@ -60,7 +60,7 @@ def dispatch(stream, protodef):
         if opcode < len(packet_lengths):
             pktlen = packet_lengths[opcode]
             if pktlen > 0:
-                data = stream.read(pktlen)
+                data = stream.read(pktlen - 2)
 
         if pktlen == -1:
             datadef = Struct("data",

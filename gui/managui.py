@@ -122,6 +122,19 @@ class ManaGuiApp(App):
         return RootWidget()
 
     def build_settings(self, settings):
+        from kivy.uix.settings import SettingString
+
+        class SettingPassword(SettingString):
+            def _create_popup(self, instance):
+                SettingString._create_popup(self, instance)
+                self.textinput.password = True
+
+            def add_widget(self, *largs):
+                if self.content is not None:
+                    self.content.clear_widgets()
+                return SettingString.add_widget(self, *largs)
+
+        settings.register_type('password', SettingPassword)
         settings.add_json_panel('ManaChat', config,
                                 filename='manachat.json')
 

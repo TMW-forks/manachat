@@ -146,3 +146,10 @@
         Button:
             text: "Exit"
             on_press: app.stop()
+
+
+<SettingPassword>:
+    Label:
+        text: '*' * len(root.value) if root.value else ''
+        pos: root.pos
+        font_size: '15sp'

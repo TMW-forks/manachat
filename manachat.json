@@ -23,7 +23,7 @@
     "section" : "Player",
     "key"     : "username" },
 
-  { "type"    : "string",
+  { "type"    : "password",
     "title"   : "Password",
     "desc"    : "Account password",
     "section" : "Player",

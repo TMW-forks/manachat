@@ -21,16 +21,19 @@ def must_have_arg(func):
         if len(arg) > 0:
             return func(cmd, arg)
 
+    wrapper.__doc__ = func.__doc__
     return wrapper
 
 
 @preprocess_argument(expand_links)
 def general_chat(msg):
+    '''Send message to #General chat'''
     mapserv.cmsg_chat_message(msg)
 
 
 @preprocess_argument(expand_links, 1)
 def send_whisper(to_, msg):
+    '''Send whisper to player'''
     global whisper_to, whisper_msg
     whisper_to = to_
     whisper_msg = msg
@@ -39,6 +42,9 @@ def send_whisper(to_, msg):
 
 @must_have_arg
 def send_whisper_internal(_, arg):
+    '''Send whisper to player
+/w "Player Name" Message...
+/w NameWithourSpaces Message'''
     nick, message = parse_player_name(arg)
     if len(nick) > 0 and len(message) > 0:
         send_whisper(nick, message)
@@ -46,22 +52,26 @@ def send_whisper_internal(_, arg):
 
 @preprocess_argument(expand_links)
 def send_party_message(msg):
+    '''Sent message to party'''
     mapserv.cmsg_party_message(msg)
 
 
 @must_have_arg
 def send_party_message_internal(_, arg):
+    '''Sent message to party'''
     send_party_message(arg)
 
 
 @must_have_arg
 def set_direction(_, dir_str):
+    '''/turn down|up|left|right'''
     d = {"down": 0, "left": 2, "up": 4, "right": 6}
     dir_num = d.get(dir_str.lower(), 0)
     mapserv.cmsg_player_change_dir(dir_num)
 
 
 def sit_or_stand(cmd, _):
+    '''Use /sit or /stand for corresponding action'''
     a = {"sit": 2, "stand": 3}
     try:
         action = a[cmd]
@@ -72,6 +82,7 @@ def sit_or_stand(cmd, _):
 
 @must_have_arg
 def set_destination(_, xy):
+    '''/goto x y  -- walk to given coordinates'''
     try:
         x, y = map(int, xy.split())
         mapserv.cmsg_player_change_dest(x, y)
@@ -81,6 +92,8 @@ def set_destination(_, xy):
 
 @must_have_arg
 def show_emote(_, emote):
+    '''Smile!
+/emote ID'''
     try:
         mapserv.cmsg_player_emote(int(emote))
     except ValueError:
@@ -89,6 +102,7 @@ def show_emote(_, emote):
 
 @must_have_arg
 def attack(_, name_or_id):
+    '''Attack being (ID or Name)'''
     target_id = -10
     mob_db = monsterdb.monster_db
 
@@ -114,11 +128,15 @@ def attack(_, name_or_id):
 
 @must_have_arg
 def me_action(_, arg):
+    '''You can guess :-)'''
     general_chat("*{}*".format(arg))
 
 
 @must_have_arg
 def item_action(cmd, name_or_id):
+    '''/use <item>
+/equip <item>
+item can be either item name or ID'''
     item_id = -10
     item_db = itemdb.item_names
 
@@ -144,6 +162,7 @@ def item_action(cmd, name_or_id):
 
 
 def show_inventory(cmd, _):
+    '''Show inventory'''
     inv = {}
     for itemId, amount in mapserv.player_inventory.values():
         inv[itemId] = inv.setdefault(itemId, 0) + amount
@@ -158,15 +177,35 @@ def show_inventory(cmd, _):
     debuglog.info(', '.join(s))
 
 
-def print_beings(cmd, _):
+def show_zeny(cmd, _):
+    '''Show player money'''
+    debuglog.info('You have {} GP'.format(mapserv.player_money))
+
+
+def print_beings(cmd, btype):
+    '''Show nearby beings
+/beings -- show all beings
+/beings player|npc|portal --show only given being type'''
     for being in mapserv.beings_cache.itervalues():
+        if btype and being.type != btype:
+            continue
         debuglog.info("id: %d name: %s type: %s",
                       being.id, being.name, being.type)
 
 
-def print_help(cmd, _):
+def print_help(_, hcmd):
+    '''Show help
+/help -- show all commands
+/help CMD  -- show help on CMD'''
     s = ' '.join(commands.keys())
-    debuglog.info("[help] commands: %s", s)
+    if hcmd in commands:
+        docstring = commands[hcmd].__doc__
+        if docstring:
+            debuglog.info(docstring)
+        else:
+            debuglog.info('No help available for command /{}'.format(hcmd))
+    else:
+        debuglog.info("[help] commands: %s", s)
 
 
 def command_not_found(cmd):
@@ -212,6 +251,7 @@ commands = {
     "attack"          : attack,
     "beings"          : print_beings,
     "inv"             : show_inventory,
+    "zeny"            : show_zeny,
     "help"            : print_help,
 }
 

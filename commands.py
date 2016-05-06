@@ -189,8 +189,14 @@ def print_beings(cmd, btype):
     for being in mapserv.beings_cache.itervalues():
         if btype and being.type != btype:
             continue
-        debuglog.info("id: %d name: %s type: %s",
-                      being.id, being.name, being.type)
+        debuglog.info("id: %d | type: %s | pos: (%d, %d) | name: %s",
+                      being.id, being.type, being.x, being.y, being.name)
+
+
+def player_position(cmd, _):
+    '''Show player position'''
+    pp = mapserv.player_pos
+    debuglog.info("Map: %s, coor: %d, %d", pp['map'], pp['x'], pp['y'])
 
 
 def print_help(_, hcmd):
@@ -252,6 +258,7 @@ commands = {
     "beings"          : print_beings,
     "inv"             : show_inventory,
     "zeny"            : show_zeny,
+    "where"           : player_position,
     "help"            : print_help,
 }
 

@@ -16,6 +16,8 @@ class Being:
         self._name = ""
         self.job = job
         self.speed = 0
+        self.x = 0
+        self.y = 0
 
     @property
     def name(self):

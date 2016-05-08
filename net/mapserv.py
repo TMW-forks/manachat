@@ -133,39 +133,40 @@ def smsg_player_inventory_use(data):
 
 @extendable
 def smsg_player_move(data):
+    netlog.info("SMSG_PLAYER_MOVE {}".format(data))
     global tick
     tick = data.tick
     beings_cache.findName(data.id, data.job)
     beings_cache[data.id].x = data.coor_pair.dst_x
     beings_cache[data.id].y = data.coor_pair.dst_y
-    netlog.info("SMSG_PLAYER_MOVE {}".format(data))
 
 
 @extendable
 def smsg_player_stop(data):
+    netlog.info("SMSG_PLAYER_STOP id={} x={} y={}".format(
+        data.id, data.x, data.y))
     beings_cache.findName(data.id)
     beings_cache[data.id].x = data.x
     beings_cache[data.id].y = data.y
-    netlog.info("SMSG_PLAYER_STOP id={} x={} y={}".format(
-        data.id, data.x, data.y))
 
 
 @extendable
 def smsg_player_update(data):
+    netlog.info("SMSG_PLAYER_UPDATE_ {}".format(data))
     beings_cache.findName(data.id, data.job)
     beings_cache[data.id].speed = data.speed
     beings_cache[data.id].x = data.coor.x
     beings_cache[data.id].y = data.coor.y
-    netlog.info("SMSG_PLAYER_UPDATE_ {}".format(data))
 
 
 @extendable
 def smsg_player_warp(data):
+    netlog.info("SMSG_PLAYER_WARP (map={}, x={}, y={}".format(
+        data.map, data.x, data.y))
     player_pos['map'] = data.map
     player_pos['x'] = data.x
     player_pos['y'] = data.y
-    netlog.info("SMSG_PLAYER_WARP (map={}, x={}, y={}".format(
-        data.map, data.x, data.y))
+    beings_cache.clear()
 
 
 @extendable

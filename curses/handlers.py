@@ -1,7 +1,6 @@
 
 import net.mapserv as mapserv
 from utils import extends
-import commands
 import cui
 import textutils
 from loggers import debuglog

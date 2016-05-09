@@ -18,6 +18,7 @@ import plugins
 from utils import extends
 from itemdb import load_itemdb
 from loggers import debuglog
+from logicmanager import logic_manager
 
 
 @extends('smsg_player_warp')
@@ -80,6 +81,8 @@ if __name__ == '__main__':
               charname=config.get('Player', 'charname'))
 
     try:
-        asyncore.loop()
-    except KeyboardInterrupt:
+        while True:
+            asyncore.loop(timeout=0.2, count=5)
+            logic_manager.tick()
+    except Exception:
         mapserv.cleanup()

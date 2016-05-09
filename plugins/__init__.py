@@ -12,7 +12,6 @@ class PluginError(Exception):
 
 
 def load_plugin(config, plugin_name):
-    print 'load_plugin ', plugin_name
     if plugin_name in plugins_loaded:
         return
 

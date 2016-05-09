@@ -1,10 +1,12 @@
+import time
 import logging
 from collections import OrderedDict
 import net.mapserv as mapserv
 import chatbot
+import logicmanager
 from net.inventory import get_item_index
 from net.trade import reset_trade_state
-from utils import encode_str, extends, Schedule
+from utils import encode_str, extends
 from itemdb import item_name
 
 
@@ -19,7 +21,7 @@ PLUGIN = {
 
 shoplog = logging.getLogger('ManaChat.Shop')
 whisper = mapserv.cmsg_chat_whisper
-trade_timeout = 90
+trade_timeout = 60
 
 
 class s:
@@ -29,7 +31,7 @@ class s:
     amount = 0
     price = 0
     index = 0
-    timer = None
+    start_time = 0
 
 
 buying = OrderedDict([
@@ -104,9 +106,7 @@ def cleanup():
     s.amount = 0
     s.price = 0
     s.index = 0
-    if s.timer is not None:
-        s.timer.cancel()
-        s.timer = None
+    s.start_time = 0
 
 
 def sellitem(nick, message, is_whisper, match):
@@ -161,6 +161,7 @@ def sellitem(nick, message, is_whisper, match):
     s.amount = amount
     s.price = total_price
     s.index = index
+    s.start_time = time.time()
 
     mapserv.cmsg_trade_request(player_id)
 
@@ -216,13 +217,9 @@ def buyitem(nick, message, is_whisper, match):
     s.amount = amount
     s.price = total_price
     s.index = index
+    s.start_time = time.time()
 
     mapserv.cmsg_trade_request(player_id)
-
-
-def cancel_timer_function():
-    shoplog.warning("%s timed out", s.player)
-    mapserv.cmsg_trade_cancel_request()
 
 
 # =========================================================================
@@ -245,7 +242,6 @@ def trade_response(data):
 
     elif code == 3:
         shoplog.info("%s accepts trade", s.player)
-        s.timer = Schedule(trade_timeout, 30, cancel_timer_function)
         if s.mode == 'sell':
             mapserv.cmsg_trade_item_add_request(s.index, s.amount)
             mapserv.cmsg_trade_add_complete()
@@ -387,6 +383,14 @@ def trade_complete(data):
 
 
 # =========================================================================
+def shop_logic(ts):
+    if s.start_time > 0:
+        if  ts > s.start_time + trade_timeout:
+            shoplog.warning("%s timed out", s.player)
+            mapserv.cmsg_trade_cancel_request()
+
+
+# =========================================================================
 shop_commands = {
     '!selllist' : selllist,
     '!buylist' : buylist,
@@ -405,3 +409,4 @@ def init(config):
     for cmd, action in shop_commands.items():
         chatbot.add_command(cmd, action)
     load_shop_list(config)
+    logicmanager.logic_manager.add_logic(shop_logic)

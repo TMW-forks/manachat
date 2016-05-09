@@ -5,7 +5,7 @@ import net.mapserv as mapserv
 from utils import extends
 
 
-__all__ = [ 'PLUGIN', 'init', 'answer', 'commands' ]
+__all__ = [ 'PLUGIN', 'init', 'answer', 'add_command' ]
 
 
 PLUGIN = {
@@ -14,18 +14,12 @@ PLUGIN = {
     'blocks': (),
 }
 
+commands = {}
+
 
 def answer_info(nick, message, is_whisper, match):
     if is_whisper:
         mapserv.cmsg_chat_whisper(nick, "answer to !info")
-    else:
-        mapserv.cmsg_chat_message("You are too curious, {}".format(nick))
-
-
-commands = {
-    r'^!help' : ["What do you need help with?"],
-    r'^!info' : answer_info
-}
 
 
 def answer_random(nick, message, is_whisper, answers):
@@ -37,8 +31,7 @@ def answer_random(nick, message, is_whisper, answers):
 
 
 def answer(nick, message, is_whisper):
-    for cmd, action in commands.iteritems():
-        regex = re.compile(cmd)  # FIXME: not optimal to compie re all time
+    for regex, action in commands.iteritems():
         match = regex.match(message)
         if match:
             if isinstance(action, types.ListType):
@@ -69,5 +62,11 @@ def send_whisper_result(data):
     pass
 
 
+def add_command(cmd, action):
+    cmd_re = re.compile(cmd)
+    commands[cmd_re] = action
+
+
 def init(config):
-    pass
+    add_command('!info', answer_info)
+    add_command('!random', ['Random answer #1', 'Random answer #2'])

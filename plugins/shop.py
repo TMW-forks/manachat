@@ -388,10 +388,10 @@ def trade_complete(data):
 
 # =========================================================================
 shop_commands = {
-    r'^!selllist' : selllist,
-    r'^!buylist' : buylist,
-    r'^!sellitem (\d+) (\d+) (\d+)' : sellitem,
-    r'^!buyitem (\d+) (\d+) (\d+)' : buyitem,
+    '!selllist' : selllist,
+    '!buylist' : buylist,
+    '!sellitem (\d+) (\d+) (\d+)' : sellitem,
+    '!buyitem (\d+) (\d+) (\d+)' : buyitem,
 }
 
 
@@ -402,5 +402,6 @@ def load_shop_list(config):
 
 
 def init(config):
-    chatbot.commands.update(shop_commands)
+    for cmd, action in shop_commands.items():
+        chatbot.add_command(cmd, action)
     load_shop_list(config)

@@ -6,7 +6,7 @@ from net.common import distance
 from utils import extends
 
 
-__all__ = [ 'unreachable_ids', 'walkto_and_action', 'target' ]
+__all__ = [ 'unreachable_ids', 'walkto_and_action', 'target', 'state' ]
 
 
 _times = {
@@ -15,7 +15,6 @@ _times = {
 }
 
 unreachable_ids = set()
-min_distance = 2
 target = None
 action = ''
 state = ''
@@ -31,13 +30,16 @@ def reset_walkto():
     action = ''
 
 
-def walkto_and_action(obj, action_):
+def walkto_and_action(obj, action_, min_distance=1):
     if obj.id in unreachable_ids:
         return
 
     global state
     global target
     global action
+
+    if state == 'waiting_confirmation':
+        return
 
     target = obj
     action = action_
@@ -71,6 +73,7 @@ def walkto_logic(ts):
             reset_walkto()
     elif state == 'walking':
         if ts >= _times['arrival_time']:
+            state = ''
             do_action(target, action)
 
 
@@ -90,7 +93,7 @@ def player_warp(data):
 
 
 def calc_walk_time(distance, speed=0.15):
-    return 0.5 + speed * distance
+    return 2.5 + speed * distance
 
 
 @extends('smsg_walk_response')

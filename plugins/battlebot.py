@@ -1,13 +1,17 @@
+import time
 import net.mapserv as mapserv
 import net.charserv as charserv
 import net.stats as stats
+import walkto
+import logicmanager
+import commands
 from net.common import distance
 from net.inventory import get_item_index
-from utils import extends, Schedule
+from utils import extends
 from loggers import debuglog
 
 
-__all__ = [ 'PLUGIN', 'init', 'target_id',
+__all__ = [ 'PLUGIN', 'init',
             'hp_healing_ids', 'hp_heal_at', 'mp_healing_ids', 'mp_heal_at',
             'auto_attack', 'auto_pickup', 'auto_heal_self',
             'auto_heal_others' ]
@@ -19,7 +23,9 @@ PLUGIN = {
     'blocks': (),
 }
 
-target_id = 0
+target = None
+# last_time_attacked = 0
+aa_next_time = 0
 
 hp_healing_ids = [ 535, 541 ]
 hp_heal_at = 0.3
@@ -34,24 +40,24 @@ mp_prev_value = 0
 players_taken_damage = {}
 player_damage_heal = 300
 
+aa_monster_types = []
+
 auto_pickup = False
 auto_attack = False
-auto_heal_self = True
-auto_heal_others = True
+auto_heal_self = False
+auto_heal_others = False
 
 
 @extends('smsg_being_action')
 def being_action(data):
-    if not auto_attack:
-        return
+    # global last_time_attacked
+    global aa_next_time
 
-    global target_id
     if data.type in (0, 10):
 
-        if (auto_attack and target_id == 0 and
-                data.dst_id == charserv.server.account):
-            target_id = data.src_id
-            mapserv.cmsg_player_change_act(target_id, 7)
+        if data.src_id == charserv.server.account:
+            # last_time_attacked = time.time()
+            aa_next_time = time.time() + 5.0
 
         if (auto_heal_others and
                 data.dst_id != charserv.server.account and
@@ -67,37 +73,20 @@ def being_action(data):
                 players_taken_damage[data.dst_id] = 0
 
 
-@extends('smsg_being_remove')
-def being_remove(data):
-    global target_id
-    if target_id == data.id:
-        target_id = 0
-
-
-@extends('smsg_being_move')
-def being_move(data):
-    global target_id
-    if target_id == data.id:
-        target_id = 0
-
-
 @extends('smsg_item_dropped')
 @extends('smsg_item_visible')
 def flooritem_appears(data):
     if not auto_pickup:
         return
 
-    p_x = mapserv.player_pos['x']
-    p_y = mapserv.player_pos['y']
-    dist = distance(p_x, p_y, data.x, data.y)
-    # debuglog.info('p.x=%d p.y=%d i.x=%d i.y=%d dist=%d',
-    #               p_x, p_y, data.x, data.y, dist)
-    if dist < 2:
-        mapserv.cmsg_item_pickup(data.id)
-    else:
-        mapserv.cmsg_player_change_dest(data.x, data.y)
-        # NOTE: will this object be garbage collected?
-        Schedule(dist * 0.4, 0, mapserv.cmsg_item_pickup, data.id)
+    item = mapserv.floor_items[data.id]
+    px = mapserv.player_pos['x']
+    py = mapserv.player_pos['y']
+
+    if distance(px, py, item.x, item.y) > 3:
+        return
+
+    walkto.walkto_and_action(item, 'pickup')
 
 
 @extends('smsg_player_status_change')
@@ -151,5 +140,114 @@ def player_stat_update(data):
         mp_prev_value = data.stat_value
 
 
+@extends('smsg_being_remove')
+def being_remove(data):
+    global target
+    if target is not None and target.id == data.id:
+        target = None
+        aa_next_time = time.time() + 5.0
+
+
+def find_nearest_being(name='', type='', ignored_ids=[], allowed_jobs=[]):
+
+    if mapserv.beings_cache is None:
+        return None
+
+    min_disance = 1000000
+    px = mapserv.player_pos['x']
+    py = mapserv.player_pos['y']
+    nearest = None
+
+    for b in mapserv.beings_cache.values():
+        if b.id in ignored_ids:
+            continue
+        if name and b.name != name:
+            continue
+        if type and b.type != type:
+            continue
+        if allowed_jobs and b.job not in allowed_jobs:
+            continue
+        dist = distance(px, py, b.x, b.y)
+        if dist < min_disance:
+            min_disance = dist
+            nearest = b
+
+    return nearest
+
+
+def battlebot_logic(ts):
+
+    if not auto_attack:
+        return
+
+    global target
+    # global last_time_attacked
+    global aa_next_time
+
+    if ts < aa_next_time:
+        return
+
+    if target is None:
+        if walkto.state:
+            return
+
+        target = find_nearest_being(type='monster',
+                                    ignored_ids=walkto.unreachable_ids,
+                                    allowed_jobs=aa_monster_types)
+        if target is not None:
+            # last_time_attacked = time.time()
+            aa_next_time = time.time() + 5.0
+            walkto.walkto_and_action(target, 'attack')
+
+    elif ts > aa_next_time:
+        walkto.walkto_and_action(target, 'attack')
+
+
+def startbot(_, arg):
+    '''Start autoattacking and autolooting'''
+    global auto_attack
+    global auto_pickup
+    global aa_monster_types
+    auto_attack = True
+    auto_pickup = True
+    try:
+        aa_monster_types = map(int, arg.split())
+    except ValueError:
+        aa_monster_types = []
+
+
+def stopbot(cmd, _):
+    '''Stop battlebot'''
+    global auto_attack
+    global auto_pickup
+    global auto_heal_self
+    global auto_heal_others
+    global target
+    auto_attack = False
+    auto_pickup = False
+    auto_heal_self = False
+    auto_heal_others = False
+    if target is not None:
+        mapserv.cmsg_player_stop_attack()
+        target = None
+
+
+def debugbot(cmd, _):
+    px = mapserv.player_pos['x']
+    py = mapserv.player_pos['y']
+    target_info = '<no_target>'
+    if target is not None:
+        target_info = '{} at ({},{})'.format(target.name, target.x, target.y)
+    debuglog.info('target = %s | player at (%d, %d)', target_info, px, py)
+
+
+bot_commands = {
+    'startbot' : startbot,
+    'stopbot'  : stopbot,
+    'debugbot' : debugbot,
+}
+
+
 def init(config):
-    pass
+    logicmanager.logic_manager.add_logic(battlebot_logic)
+    commands.commands.update(bot_commands)

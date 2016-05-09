@@ -93,14 +93,15 @@ def gm_chat(data):
 
 @extends('smsg_whisper_response')
 def send_whisper_result(data):
+    last_nick = mapserv.last_whisper['to']
     if data.code == 0:
-        m = "[-> {}] {}".format(commands.whisper_to, pp(commands.whisper_msg))
+        last_msg = mapserv.last_whisper['msg']
+        m = "[-> {}] {}".format(last_nick, pp(last_msg))
         debuglog.info(m)
-        readline.insert_text('/w "{}" '.format(commands.whisper_to))
+        readline.insert_text('/w "{}" '.format(last_nick))
         readline.redisplay()
     else:
-        debuglog.warning("[error] {} is offline.".format(
-            commands.whisper_to))
+        debuglog.warning("[error] {} is offline.".format(last_nick))
 
 
 if __name__ == '__main__':

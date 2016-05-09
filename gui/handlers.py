@@ -31,15 +31,16 @@ def got_whisper(data):
 
 @extends('smsg_whisper_response')
 def send_whisper_result(data):
+    last_nick = mapserv.last_whisper['to']
     if data.code == 0:
-        m = "[-> {}] {}".format(commands.whisper_to, commands.whisper_msg)
+        last_msg = mapserv.last_whisper['msg']
+        m = "[-> {}] {}".format(last_nick, last_msg)
         debuglog.info(m)
-        app.root.chat_input.text = '/w "{}" '.format(commands.whisper_to)
+        app.root.chat_input.text = '/w "{}" '.format(last_nick)
         app.root.chat_input.focus = True
 
     else:
-        debuglog.warning("[error] {} is offline.".format(
-            commands.whisper_to))
+        debuglog.warning("[error] {} is offline.".format(last_msg))
 
 
 @extends('smsg_party_chat')

@@ -9,12 +9,8 @@ from textutils import expand_links
 from loggers import debuglog
 import walkto
 
-__all__ = [ 'whisper_msg', 'whisper_to', 'commands',
-            'parse_player_name', 'process_line',
-            'must_have_arg' ]
-
-whisper_to = ''
-whisper_msg = ''
+__all__ = [ 'commands', 'must_have_arg',
+            'parse_player_name', 'process_line' ]
 
 
 def must_have_arg(func):
@@ -33,43 +29,29 @@ def general_chat(msg):
     mapserv.cmsg_chat_message(msg)
 
 
-@preprocess_argument(expand_links, 1)
-def send_whisper(to_, msg):
-    '''Send whisper to player'''
-    global whisper_to, whisper_msg
-    whisper_to = to_
-    whisper_msg = msg
-    mapserv.cmsg_chat_whisper(to_, msg)
-
-
 @must_have_arg
-def send_whisper_internal(_, arg):
+def send_whisper(_, arg):
     '''Send whisper to player
 /w "Player Name" Message...
 /w NameWithourSpaces Message'''
     nick, message = parse_player_name(arg)
     if len(nick) > 0 and len(message) > 0:
-        send_whisper(nick, message)
+        mapserv.cmsg_chat_whisper(nick, message)
 
 
-@preprocess_argument(expand_links)
-def send_party_message(msg):
+@must_have_arg
+def send_party_message(_, msg):
     '''Sent message to party'''
     mapserv.cmsg_party_message(msg)
 
 
 @must_have_arg
-def send_party_message_internal(_, arg):
-    '''Sent message to party'''
-    send_party_message(arg)
-
-
-@must_have_arg
 def set_direction(_, dir_str):
     '''/turn down|up|left|right'''
-    d = {"down": 0, "left": 2, "up": 4, "right": 6}
-    dir_num = d.get(dir_str.lower(), 0)
-    mapserv.cmsg_player_change_dir(dir_num)
+    d = {"down": 1, "left": 2, "up": 4, "right": 8}
+    dir_num = d.get(dir_str.lower(), -1)
+    if dir_num > 0:
+        mapserv.cmsg_player_change_dir(dir_num)
 
 
 def sit_or_stand(cmd, _):
@@ -247,10 +229,10 @@ def parse_player_name(line):
 
 
 commands = {
-    "w"               : send_whisper_internal,
-    "whisper"         : send_whisper_internal,
-    "p"               : send_party_message_internal,
-    "party"           : send_party_message_internal,
+    "w"               : send_whisper,
+    "whisper"         : send_whisper,
+    "p"               : send_party_message,
+    "party"           : send_party_message,
     "e"               : show_emote,
     "emote"           : show_emote,
     "dir"             : set_direction,

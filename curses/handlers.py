@@ -32,15 +32,16 @@ def got_whisper(data):
 
 @extends('smsg_whisper_response')
 def send_whisper_result(data):
+    last_nick = mapserv.last_whisper['to']
     if data.code == 0:
-        message = textutils.preprocess(commands.whisper_msg)
-        m = "[-> {}] {}".format(commands.whisper_to, message)
+        message = textutils.preprocess(mapserv.last_whisper['msg'])
+        m = "[-> {}] {}".format(last_nick, message)
         debuglog.info(m)
         cui.input_win.clear()
-        cui.input_win.addstr('/w "{}" '.format(commands.whisper_to))
+        cui.input_win.addstr('/w "{}" '.format(last_nick))
         cui.input_win.refresh()
     else:
-        debuglog.info("[error] {} is offline.".format(commands.whisper_to))
+        debuglog.info("[error] {} is offline.".format(last_nick))
 
 
 @extends('smsg_party_chat')

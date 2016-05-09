@@ -1,3 +1,4 @@
+import monsterdb
 
 def job_type(job):
     if (job <= 25 or (job >= 4001 and job <= 4049)):
@@ -13,11 +14,15 @@ def job_type(job):
 class Being:
     def __init__(self, being_id, job):
         self.id = being_id
-        self._name = ""
         self.job = job
         self.speed = 0
         self.x = 0
         self.y = 0
+
+        if job_type(job) == "monster":
+            self._name = monsterdb.monster_db.get(job, "")
+        else:
+            self._name = ""
 
     @property
     def name(self):

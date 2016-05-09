@@ -24,6 +24,7 @@ import net.mapserv as mapserv
 import plugins
 from utils import extends
 from itemdb import load_itemdb
+from monsterdb import read_monster_db
 from loggers import debuglog
 import commands
 from textutils import preprocess as pp
@@ -127,6 +128,7 @@ if __name__ == '__main__':
         netlog.addHandler(fh)
 
     load_itemdb('itemdb.txt')
+    read_monster_db('monsterdb.txt')
 
     plugins.load_plugins(config)
 

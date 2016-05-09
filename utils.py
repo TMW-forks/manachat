@@ -1,6 +1,6 @@
 import time
 import threading
-import logging
+from loggers import debuglog
 
 
 def log_method(fun):
@@ -9,10 +9,23 @@ def log_method(fun):
         if args: s_args = ','.join(str(a) for a in args)
         if kwargs: s_kwargs = ','.join('{}={}'.format(k, v)
                                        for k, v in kwargs.items())
-        logging.debug('CALL: {}.{}({},{})'.format(self.__class__.__name__,
-                                                 fun.__name__,
-                                                 s_args, s_kwargs))
+        debuglog.debug('CALL: {}.{}({},{})'.format(self.__class__.__name__,
+                                                   fun.__name__,
+                                                   s_args, s_kwargs))
         result = fun(self, *args, **kwargs)
+        return result
+    return wrapper
+
+
+def log_function(fun):
+    def wrapper(*args, **kwargs):
+        s_args = s_kwargs = ''
+        if args: s_args = ','.join(str(a) for a in args)
+        if kwargs: s_kwargs = ','.join('{}={}'.format(k, v)
+                                       for k, v in kwargs.items())
+        debuglog.debug('CALL: {}({},{})'.format(fun.__name__,
+                                                s_args, s_kwargs))
+        result = fun(*args, **kwargs)
         return result
     return wrapper
 
@@ -53,7 +66,8 @@ _extensions = {}
 
 def register_extension(name, func):
     if name in _extensions:
-        _extensions[name].append(func)
+        if func not in _extensions[name]:
+            _extensions[name].append(func)
     else:
         _extensions[name] = [func]
 

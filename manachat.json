@@ -67,9 +67,15 @@
 
   { "type"    : "bool",
     "title"   : "shop",
-    "desc"    : "Log chat history to files.",
+    "desc"    : "Enable shop mode.",
     "section" : "Plugins",
     "key"     : "shop" },
+
+  { "type"    : "bool",
+    "title"   : "autofollow",
+    "desc"    : "Add autofollow (/follow Player).",
+    "section" : "Plugins",
+    "key"     : "autofollow" },
 
   { "type"    : "title",
     "title"   : "Notifications" },

@@ -304,14 +304,14 @@ def smsg_walk_response(data):
 @extendable
 def smsg_item_visible(data):
     netlog.info("SMSG_ITEM_VISIBLE {}".format(data))
-    item = FloorItem(data.type, data.amount, data.x, data.y)
+    item = FloorItem(data.id, data.type, data.amount, data.x, data.y)
     floor_items[data.id] = item
 
 
 @extendable
 def smsg_item_dropped(data):
     netlog.info("SMSG_ITEM_DROPPED {}".format(data))
-    item = FloorItem(data.type, data.amount, data.x, data.y)
+    item = FloorItem(data.id, data.type, data.amount, data.x, data.y)
     floor_items[data.id] = item
 
 

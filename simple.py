@@ -99,7 +99,8 @@ def send_whisper_result(data):
         last_msg = mapserv.last_whisper['msg']
         m = "[-> {}] {}".format(last_nick, pp(last_msg))
         debuglog.info(m)
-        readline.insert_text('/w "{}" '.format(last_nick))
+        if len(readline.get_line_buffer()) == 0:
+            readline.insert_text('/w "{}" '.format(last_nick))
         readline.redisplay()
     else:
         debuglog.warning("[error] {} is offline.".format(last_nick))

@@ -826,7 +826,8 @@ def cmsg_player_change_act(id_, action):
 
 def cmsg_player_respawn():
     netlog.info("CMSG_PLAYER_RESPAWN")
-    ULInt16("opcode").build_stream(CMSG_PLAYER_RESPAWN, server)
+    send_packet(server, CMSG_PLAYER_RESPAWN,
+                (Byte("action"), 0))
 
 
 def cmsg_player_emote(emote):

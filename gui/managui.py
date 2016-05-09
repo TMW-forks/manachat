@@ -28,6 +28,7 @@ import plugins
 from commands import process_line
 from net.onlineusers import OnlineUsers
 from loggers import netlog, debuglog
+from logicmanager import logic_manager
 
 
 class DebugLogHandler(logging.Handler):
@@ -83,7 +84,7 @@ class ManaGuiApp(App):
             import tempfile
 
             logfile = os.path.join(tempfile.gettempdir(), "netlog.txt")
-            netlog.setLevel(logging.DEBUG)
+            netlog.setLevel(logging.INFO)
             fh = logging.FileHandler(logfile, mode="w")
             fmt = logging.Formatter("[%(asctime)s] %(message)s",
                                     datefmt="%Y-%m-%d %H:%M:%S")
@@ -140,6 +141,7 @@ class ManaGuiApp(App):
 
     def update_loop(self, *l):
         asyncore.loop(timeout=0, count=10)
+        logic_manager.tick()
 
     def on_pause(self):
         return True

@@ -1,11 +1,13 @@
 
 import net.mapserv as mapserv
 from net.inventory import get_item_index
+from net.common import distance
 import monsterdb
 import itemdb
 from utils import preprocess_argument
 from textutils import expand_links
 from loggers import debuglog
+import walkto
 
 __all__ = [ 'whisper_msg', 'whisper_to', 'commands',
             'parse_player_name', 'process_line',
@@ -111,17 +113,20 @@ def attack(_, name_or_id):
         if target_id not in mapserv.beings_cache:
             raise ValueError
     except ValueError:
-        for b in mapserv.beings_cache:
-            if b.name == name_or_id:
-                target_id = b.id
-                break
-            if b.job in mob_db:
-                if mob_db[b.job] == name_or_id:
+        min_disance = 1000000
+        px = mapserv.player_pos['x']
+        py = mapserv.player_pos['y']
+        for b in mapserv.beings_cache.values():
+            if b.name == name_or_id or \
+                    mob_db.get(b.job, '') == name_or_id:
+                dist = distance(px, py, b.x, b.y)
+                if dist < min_disance:
+                    min_disance = dist
                     target_id = b.id
-                    break
 
     if target_id > 0:
-        mapserv.cmsg_player_change_act(target_id, 7)
+        walkto.walkto_and_action(
+            mapserv.beings_cache[target_id], 'attack')
     else:
         debuglog.warning("Being %s not found", name_or_id)
 
@@ -199,6 +204,11 @@ def player_position(cmd, _):
     debuglog.info("Map: %s, coor: %d, %d", pp['map'], pp['x'], pp['y'])
 
 
+def respawn(cmd, _):
+    '''Respawn'''
+    mapserv.cmsg_player_respawn()
+
+
 def print_help(_, hcmd):
     '''Show help
 /help -- show all commands
@@ -259,6 +269,7 @@ commands = {
     "inv"             : show_inventory,
     "zeny"            : show_zeny,
     "where"           : player_position,
+    "respawn"         : respawn,
     "help"            : print_help,
 }
 

@@ -27,6 +27,7 @@ from itemdb import load_itemdb
 from loggers import debuglog
 import commands
 from textutils import preprocess as pp
+from logicmanager import logic_manager
 
 
 PROMPT = '] '
@@ -110,14 +111,14 @@ if __name__ == '__main__':
     dbgh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s",
                                         datefmt="%Y-%m-%d %H:%M:%S"))
     debuglog.addHandler(dbgh)
-    debuglog.setLevel(logging.INFO)
+    debuglog.setLevel(logging.DEBUG)
 
     config = ConfigParser()
     config.read('manachat.ini')
 
     if config.getboolean('Other', 'log_network_packets'):
         from loggers import netlog
-        netlog.setLevel(logging.DEBUG)
+        netlog.setLevel(logging.INFO)
         fh = logging.FileHandler('/tmp/netlog.txt', mode="w")
         fmt = logging.Formatter("[%(asctime)s] %(message)s",
                                 datefmt="%Y-%m-%d %H:%M:%S")
@@ -137,6 +138,8 @@ if __name__ == '__main__':
     thread.start_new_thread(input_thread, ())
 
     try:
-        asyncore.loop()
+        while True:
+            asyncore.loop(timeout=0.2, count=5)
+            logic_manager.tick()
     except KeyboardInterrupt:
         mapserv.cleanup()

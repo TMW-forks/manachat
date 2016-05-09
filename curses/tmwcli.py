@@ -31,6 +31,7 @@ import itemdb
 from commands import process_line
 from net.onlineusers import OnlineUsers
 from loggers import netlog, debuglog
+from logicmanager import logic_manager
 
 
 class SideBarUpdater(threading.Thread):
@@ -63,6 +64,15 @@ class CursesDebugLogHandler(logging.Handler):
     def emit(self, record):
         msg = self.format(record)
         cui.chatlog_append(msg)
+
+
+def loop():
+    try:
+        while True:
+            asyncore.loop(timeout=0.2, count=5)
+            logic_manager.tick()
+    except KeyboardInterrupt:
+        return
 
 
 if __name__ == "__main__":
@@ -111,7 +121,7 @@ if __name__ == "__main__":
               password=config.get('Player', 'password'),
               charname=config.get('Player', 'charname'))
 
-    t = threading.Thread(target=asyncore.loop)
+    t = threading.Thread(target=loop)
     t.setDaemon(True)
     t.start()
 

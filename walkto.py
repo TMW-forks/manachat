@@ -1,5 +1,6 @@
 import time
 import net.mapserv as mapserv
+import net.charserv as charserv
 import logicmanager
 from net.common import distance
 from utils import extends
@@ -13,7 +14,7 @@ _times = {
     'walk_request_time': 0,
 }
 
-unreachable_ids = []
+unreachable_ids = set()
 min_distance = 2
 target = None
 action = ''
@@ -66,8 +67,7 @@ def walkto_logic(ts):
         return
     elif state == 'waiting_confirmation':
         if ts > _times['walk_request_time'] + 0.5:
-            if target.id not in unreachable_ids:
-                unreachable_ids.append(target.id)
+            unreachable_ids.add(target.id)
             reset_walkto()
     elif state == 'walking':
         if ts >= _times['arrival_time']:
@@ -77,10 +77,16 @@ def walkto_logic(ts):
 @extends('smsg_being_remove')
 @extends('smsg_item_remove')
 def target_removed(data):
-    if data.id in unreachable_ids:
-        unreachable_ids.remove(data.id)
+    unreachable_ids.discard(data.id)
     if target and target.id == data.id:
         reset_walkto()
+    if data.id == charserv.server.account:
+        reset_walkto()
+
+
+@extends('smsg_player_warp')
+def player_warp(data):
+    unreachable_ids.clear()
 
 
 def calc_walk_time(distance, speed=0.15):

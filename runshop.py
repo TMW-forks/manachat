@@ -65,6 +65,7 @@ if __name__ == '__main__':
     debuglog.setLevel(logging.INFO)
 
     shoplog = logging.getLogger('ManaChat.Shop')
+    shoplog.setLevel(logging.INFO)
     shoplog.addHandler(dbgh)
 
     config = ConfigParser()

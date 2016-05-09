@@ -471,11 +471,11 @@ def load_shop_list(config):
     global buying
     global selling
 
-    if not os.path.isfile('shoplist.txt'):
-        shoplog.warning('shoplist.txt does not exist')
+    shoplist_txt = config.get('shop', 'shoplist')
+    if not os.path.isfile(shoplist_txt):
         return
 
-    with open('shoplist.txt', 'r') as f:
+    with open(shoplist_txt, 'r') as f:
         for l in f:
             try:
                 item_id, buy_amount, buy_price, sell_amount, sell_price = \

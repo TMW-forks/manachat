@@ -1,5 +1,6 @@
 import monsterdb
 
+
 def job_type(job):
     if (job <= 25 or (job >= 4001 and job <= 4049)):
         return "player"

@@ -33,7 +33,10 @@ def smsg_ignore(data):
 
 @extendable
 def smsg_being_chat(data):
-    beings_cache.findName(data.id)
+    cached_name = beings_cache.findName(data.id)
+    real_name, _ = data.message.split(' : ', 1)
+    if real_name != cached_name:
+        cmsg_name_request(data.id)
     netlog.info("SMSG_BEING_CHAT id={} msg={}".format(data.id, data.message))
 
 

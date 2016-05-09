@@ -1,3 +1,4 @@
+import os
 import time
 import logging
 from collections import OrderedDict
@@ -8,6 +9,7 @@ from net.inventory import get_item_index
 from net.trade import reset_trade_state
 from utils import encode_str, extends
 from itemdb import item_name
+from playerlist import PlayerList
 
 
 __all__ = [ 'PLUGIN', 'init', 'shoplog', 'buying', 'selling' ]
@@ -22,6 +24,7 @@ PLUGIN = {
 shoplog = logging.getLogger('ManaChat.Shop')
 whisper = mapserv.cmsg_chat_whisper
 trade_timeout = 60
+shop_admins = None
 
 
 class s:
@@ -44,6 +47,16 @@ selling = OrderedDict([
     (535,  (100, 50)),    # Red Apple
     (640,  (1750, 100)),  # Iron Ore
 ])
+
+
+def cleanup():
+    s.player = ''
+    s.mode = ''
+    s.item_id = 0
+    s.amount = 0
+    s.price = 0
+    s.index = 0
+    s.start_time = 0
 
 
 # =========================================================================
@@ -97,16 +110,6 @@ def buylist(nick, message, is_whisper, match):
         data += encode_str(amount, 3)
 
     whisper(nick, data)
-
-
-def cleanup():
-    s.player = ''
-    s.mode = ''
-    s.item_id = 0
-    s.amount = 0
-    s.price = 0
-    s.index = 0
-    s.start_time = 0
 
 
 def sellitem(nick, message, is_whisper, match):
@@ -180,7 +183,7 @@ def buyitem(nick, message, is_whisper, match):
         if item_id < 1 or amount < 1:
             raise ValueError
     except ValueError:
-        mapserv.cmsg_chat_whisper(nick, "usage: !buyitem ID PRICE AMOUNT")
+        whisper(nick, "usage: !buyitem ID PRICE AMOUNT")
         return
 
     if s.player:
@@ -222,6 +225,59 @@ def buyitem(nick, message, is_whisper, match):
     mapserv.cmsg_trade_request(player_id)
 
 
+def retrieve(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    if shop_admins is None:
+        return
+
+    if not shop_admins.check_player(nick):
+        return
+
+    item_id = amount = 0
+
+    try:
+        item_id = int(match.group(1))
+        amount = int(match.group(2))
+        if amount < 1:
+            raise ValueError
+    except ValueError:
+        whisper(nick, "usage: !retrieve ID AMOUNT  (ID=0 for money)")
+        return
+
+    if s.player:
+        whisper(nick, "I am currently trading with someone")
+        return
+
+    player_id = mapserv.beings_cache.findId(nick)
+    if player_id < 0:
+        whisper(nick, "I don't see you nearby")
+        return
+
+    index = max_amount = 0
+
+    if item_id == 0:
+        max_amount = mapserv.player_money
+    else:
+        index = get_item_index(item_id)
+        if index > 0:
+            max_amount = mapserv.player_inventory[index][1]
+
+    if amount > max_amount:
+        whisper(nick, "I don't have that many")
+        return
+
+    s.player = nick
+    s.mode = 'retrieve'
+    s.item_id = item_id
+    s.amount = amount
+    s.index = index
+    s.start_time = time.time()
+
+    mapserv.cmsg_trade_request(player_id)
+
+
 # =========================================================================
 @extends('smsg_trade_request')
 def trade_request(data):
@@ -247,6 +303,9 @@ def trade_response(data):
             mapserv.cmsg_trade_add_complete()
         elif s.mode == 'buy':
             mapserv.cmsg_trade_item_add_request(0, s.price)
+            mapserv.cmsg_trade_add_complete()
+        elif s.mode == 'retrieve':
+            mapserv.cmsg_trade_item_add_request(s.index, s.amount)
             mapserv.cmsg_trade_add_complete()
         else:
             shoplog.error("Unknown shop state: %s", s.mode)
@@ -282,6 +341,9 @@ def trade_item_add(data):
                 s.amount, item_name(s.item_id)))
             mapserv.cmsg_trade_cancel_request()
             cleanup()
+
+    elif s.mode == 'retrieve':
+        pass
 
     else:
         shoplog.error("Unknown shop state: %s", s.mode)
@@ -357,6 +419,9 @@ def trade_ok(data):
             mapserv.cmsg_trade_cancel_request()
             cleanup()
 
+    elif s.mode == 'retrieve':
+        mapserv.cmsg_trade_ok()
+
     else:
         shoplog.error("Unknown shop state: %s", s.mode)
         mapserv.cmsg_trade_cancel_request()
@@ -373,6 +438,8 @@ def trade_complete(data):
         shoplog.info("Trade with %s completed. I bought %d %s for %d GP",
                      s.player, s.amount, item_name(s.item_id),
                      mapserv.trade_state['zeny_give'])
+    elif s.mode == 'retrieve':
+        shoplog.info("Trade with %s completed.", s.player)
     else:
         shoplog.info("Trade with %s completed. Unknown shop state %s",
                      s.player, s.mode)
@@ -385,7 +452,7 @@ def trade_complete(data):
 # =========================================================================
 def shop_logic(ts):
     if s.start_time > 0:
-        if  ts > s.start_time + trade_timeout:
+        if ts > s.start_time + trade_timeout:
             shoplog.warning("%s timed out", s.player)
             mapserv.cmsg_trade_cancel_request()
 
@@ -396,17 +463,43 @@ shop_commands = {
     '!buylist' : buylist,
     '!sellitem (\d+) (\d+) (\d+)' : sellitem,
     '!buyitem (\d+) (\d+) (\d+)' : buyitem,
+    '!retrieve (\d+) (\d+)' : retrieve,
 }
 
 
 def load_shop_list(config):
     global buying
     global selling
-    # here should load shop setup from file
+
+    if not os.path.isfile('shoplist.txt'):
+        shoplog.warning('shoplist.txt does not exist')
+        return
+
+    with open('shoplist.txt', 'r') as f:
+        for l in f:
+            try:
+                item_id, buy_amount, buy_price, sell_amount, sell_price = \
+                    map(int, l.split())
+                if buy_amount > 0:
+                    buying[item_id] = buy_price, buy_amount
+                if sell_amount > 0:
+                    selling[item_id] = sell_price, sell_amount
+            except ValueError:
+                pass
 
 
 def init(config):
     for cmd, action in shop_commands.items():
         chatbot.add_command(cmd, action)
+
+    global trade_timeout
+    global shop_admins
+
+    trade_timeout = config.getint('shop', 'timeout')
+
+    shop_admins_file = config.get('shop', 'admins')
+    if os.path.isfile(shop_admins_file):
+        shop_admins = PlayerList(shop_admins_file)
+
     load_shop_list(config)
     logicmanager.logic_manager.add_logic(shop_logic)

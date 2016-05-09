@@ -99,5 +99,26 @@
     "title"   : "Chat log directory",
     "desc"    : "Created automatically.",
     "section" : "chatlogfile",
-    "key"     : "chatlog_dir" }
+    "key"     : "chatlog_dir" },
+
+  { "type"    : "title",
+    "title"   : "Shop mode" },
+
+  { "type"    : "numeric",
+    "title"   : "Max trade time",
+    "desc"    : "Max time (seconds) before shop auto-cancels trade.",
+    "section" : "shop",
+    "key"     : "timeout" },
+
+  { "type"    : "path",
+    "title"   : "shoplist.txt file",
+    "desc"    : "Path to ManaPlus-compatible shoplist.txt",
+    "section" : "shop",
+    "key"     : "shoplist_txt" },
+
+  { "type"    : "path",
+    "title"   : "File with shop admins",
+    "desc"    : "Each line contains a name of a shop admin. Can be empty",
+    "section" : "shop",
+    "key"     : "admins_file" }
 ]

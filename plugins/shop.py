@@ -471,7 +471,7 @@ def load_shop_list(config):
     global buying
     global selling
 
-    shoplist_txt = config.get('shop', 'shoplist')
+    shoplist_txt = config.get('shop', 'shoplist_txt')
     if not os.path.isfile(shoplist_txt):
         return
 
@@ -497,7 +497,7 @@ def init(config):
 
     trade_timeout = config.getint('shop', 'timeout')
 
-    shop_admins_file = config.get('shop', 'admins')
+    shop_admins_file = config.get('shop', 'admins_file')
     if os.path.isfile(shop_admins_file):
         shop_admins = PlayerList(shop_admins_file)
 

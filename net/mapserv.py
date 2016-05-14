@@ -348,7 +348,43 @@ def smsg_player_status_change(data):
 
 @extendable
 def smsg_npc_message(data):
-    netlog.info("SMSG_NPC_MESSAGE {}".format(data))
+    netlog.info("SMSG_NPC_MESSAGE id={} message={}".format(
+        data.id, data.message))
+
+
+@extendable
+def smsg_npc_choice(data):
+    netlog.info("SMSG_NPC_CHOICE {}".format(data.select))
+
+
+@extendable
+def smsg_npc_close(data):
+    netlog.info("SMSG_NPC_CLOSE id={}".format(data.id))
+
+
+@extendable
+def smsg_npc_next(data):
+    netlog.info("SMSG_NPC_NEXT id={}".format(data.id))
+
+
+@extendable
+def smsg_npc_int_input(data):
+    netlog.info("SMSG_NPC_INT_INPUT id={}".format(data.id))
+
+
+@extendable
+def smsg_npc_str_input(data):
+    netlog.info("SMSG_NPC_STR_INPUT id={}".format(data.id))
+
+
+@extendable
+def smsg_npc_command(data):
+    netlog.info("SMSG_NPC_COMMAND {}".format(data))
+
+
+@extendable
+def smsg_npc_buy(data):
+    netlog.info("SMSG_NPC_BUY {}".format(data))
 
 
 # --------------------------------------------------------------------
@@ -683,7 +719,41 @@ protodef = {
     0x00b4 : (smsg_npc_message,
               Struct("data",
                      ULInt16("length"),
-                     StringZ("message", lambda ctx: ctx.length - 8)))
+                     ULInt32("id"),
+                     StringZ("message", lambda ctx: ctx.length - 8))),
+    0x00b7 : (smsg_npc_choice,
+              Struct("data",
+                     ULInt16("length"),
+                     ULInt32("id"),
+                     StringZ("select", lambda ctx: ctx.length - 8))),
+    0x00b6 : (smsg_npc_close,
+              Struct("data",
+                     ULInt32("id"))),
+    0x00b5 : (smsg_npc_next,
+              Struct("data",
+                     ULInt32("id"))),
+    0x0142 : (smsg_npc_int_input,
+              Struct("data",
+                     ULInt32("id"))),
+    0x01d4 : (smsg_npc_str_input,
+              Struct("data",
+                     ULInt32("id"))),
+    0x0212 : (smsg_npc_command,
+              Struct("data",
+                     ULInt32("id"),
+                     ULInt16("command"),
+                     ULInt32("target_id"),
+                     ULInt16("x"),
+                     ULInt16("y"))),
+    0x00c6 : (smsg_npc_buy,
+              Struct("data",
+                     ULInt16("length"),
+                     Array(lambda ctx: (ctx.length - 4) / 11,
+                           Struct("items",
+                                  ULInt32("price"),
+                                  Padding(4),
+                                  ULInt16("type"),
+                                  ULInt32("id"))))),
 }
 
 
@@ -880,11 +950,73 @@ def cmsg_player_inventory_drop(index, amount):
                 (ULInt32("amount"), amount))
 
 
+# --------------- NPC ---------------------
 def cmsg_npc_talk(npcId):
     netlog.info("CMSG_NPC_TALK id={}".format(npcId))
     send_packet(server, CMSG_NPC_TALK,
                 (ULInt32("npcId"), npcId),
                 (Byte("unused"), 0))
+
+
+def cmsg_npc_next_request(npcId):
+    netlog.info("CMSG_NPC_NEXT_REQUEST id={}".format(npcId))
+    send_packet(server, CMSG_NPC_NEXT_REQUEST,
+                (ULInt32("npcId"), npcId))
+
+
+def cmsg_npc_close(npcId):
+    netlog.info("CMSG_NPC_CLOSE id={}".format(npcId))
+    send_packet(server, CMSG_NPC_CLOSE,
+                (ULInt32("npcId"), npcId))
+
+
+def cmsg_npc_list_choice(npcId, choice):
+    netlog.info("CMSG_NPC_LIST_CHOICE id={} choice={}".format(npcId, choice))
+    send_packet(server, CMSG_NPC_LIST_CHOICE,
+                (ULInt32("npcId"), npcId),
+                (Byte("choice"), choice))
+
+
+def cmsg_npc_int_response(npcId, value):
+    netlog.info("CMSG_NPC_INT_RESPONSE id={} value={}".format(npcId, value))
+    send_packet(server, CMSG_NPC_INT_RESPONSE,
+                (ULInt32("npcId"), npcId),
+                (SLInt32("value"), value))
+
+
+def cmsg_npc_str_response(npcId, value):
+    netlog.info("CMSG_NPC_STR_RESPONSE id={} value={}".format(npcId, value))
+    l = len(value)
+    send_packet(server, CMSG_NPC_STR_RESPONSE,
+                (ULInt16("len"), l + 9),
+                (ULInt32("npcId"), npcId),
+                (StringZ("value", l + 1), value))
+
+
+def cmsg_npc_buy_sell_request(npcId, action):
+    netlog.info("CMSG_NPC_BUY_SELL_REQUEST id={} action={}".format(
+        npcId, action))
+    send_packet(server, CMSG_NPC_BUY_SELL_REQUEST,
+                (ULInt32("npcId"), npcId),
+                (Byte("action"), action))
+
+
+def cmsg_npc_buy_request(itemId, amount):
+    netlog.info("CMSG_NPC_BUY_REQUEST itemId={} amount={}".format(
+        itemId, amount))
+    send_packet(server, CMSG_NPC_BUY_REQUEST,
+                (ULInt16("len"), 8),
+                (ULInt16("amount"), amount),
+                (ULInt16("itemId"), itemId))
+
+
+def cmsg_npc_sell_request(index, amount):
+    netlog.info("CMSG_NPC_SELL_REQUEST index={} amount={}".format(
+        index, amount))
+    send_packet(server, CMSG_NPC_SELL_REQUEST,
+                (ULInt16("len"), 8),
+                (ULInt16("index"), index),
+                (ULInt16("amount"), amount))
 
 
 # --------------------------------------------------------------------

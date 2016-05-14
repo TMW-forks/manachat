@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import net.mapserv as mapserv
 import net.stats as st
+from utils import encode_str
 
 
 def stats_repr(*stat_types):
@@ -33,3 +34,26 @@ def stats_repr(*stat_types):
             ps[st.ATK], ps[st.DEF], ps[st.MATK], ps[st.MDEF])
 
     return sd
+
+
+def invlists(max_items=1000):
+    inventory = OrderedDict()
+
+    for id_, amount in mapserv.player_inventory.values():
+        inventory[id_] = inventory.setdefault(id_, 0) + amount
+
+    lists = []
+    data = '\302\202B1'
+    i = 0
+    for id_, amount in inventory.items():
+        i += 1
+        if i > max_items:
+            i = 0
+            lists.append(data)
+            data = '\302\202B1'
+        data += encode_str(id_, 2)
+        data += encode_str(1, 4)
+        data += encode_str(amount, 3)
+
+    lists.append(data)
+    return lists

@@ -5,7 +5,7 @@ from utils import extends
 from actor import find_nearest_being
 
 
-__all__ = [ 'PLUGIN', 'init', 'autonext' ]
+__all__ = [ 'PLUGIN', 'init', 'autonext', 'npc_id' ]
 
 
 PLUGIN = {
@@ -29,7 +29,9 @@ def npc_message(data):
 @extends('smsg_npc_choice')
 def npc_choice(data):
     global npc_id
+    global input_type
     npc_id = data.id
+    input_type = 'select'
     choices = filter(lambda s: len(s.strip()) > 0,
         data.select.split(':'))
     debuglog.info('[npc][select]')
@@ -101,23 +103,11 @@ def cmd_npcnext(*unused):
 
 
 @must_have_arg
-def cmd_npcselect(_, arg):
-    if npc_id < 0:
-        return
-
-    try:
-        n = int(arg)
-    except ValueError, e:
-        debuglog.error(e.message)
-        return
-
-    mapserv.cmsg_npc_list_choice(npc_id, n)
-
-
-@must_have_arg
 def cmd_npcinput(_, arg):
     if npc_id < 0:
         return
+
+    global input_type
 
     if input_type == 'int':
         try:
@@ -131,10 +121,14 @@ def cmd_npcinput(_, arg):
     elif input_type == 'str':
         mapserv.cmsg_npc_str_response(npc_id, arg)
 
+    elif input_type == 'select':
+        mapserv.cmsg_npc_list_choice(npc_id, n)
+
+    input_type = ''
+
 
 def init(config):
     commands['talk'] = cmd_npctalk
     commands['close'] = cmd_npcclose
     commands['next'] = cmd_npcnext
-    commands['select'] = cmd_npcselect
     commands['input'] = cmd_npcinput

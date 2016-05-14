@@ -25,6 +25,9 @@ trade_state = {'items_give': [], 'items_get': [],
                'zeny_give': 0, 'zeny_get': 0}
 floor_items = {}
 
+for s in range(255):
+    player_stats[s] = 0
+
 
 # --------------------------------------------------------------------
 def smsg_ignore(data):

@@ -2,13 +2,13 @@
 import net.mapserv as mapserv
 from net.inventory import get_item_index
 from net.common import distance
-import monsterdb
 import itemdb
 from utils import preprocess_argument
 from textutils import expand_links
 from loggers import debuglog
 import walkto
 from actor import find_nearest_being
+from status import stats_repr
 
 __all__ = [ 'commands', 'must_have_arg',
             'parse_player_name', 'process_line' ]
@@ -222,6 +222,17 @@ def pickup(*unused):
             mapserv.cmsg_item_pickup(item.id)
 
 
+def show_status(_, arg):
+    '''Show various stats'''
+    if arg:
+        all_stats = arg.split()
+    else:
+        all_stats = ('stats', 'hpmp', 'weight', 'points', 'zeny', 'attack')
+
+    sr = stats_repr(*all_stats)
+    debuglog.info(' | '.join(sr.values()))
+
+
 def print_help(_, hcmd):
     '''Show help
 /help -- show all commands
@@ -286,6 +297,7 @@ commands = {
     "respawn"         : respawn,
     "pickup"          : pickup,
     "drop"            : drop_item,
+    "status"          : show_status,
     "help"            : print_help,
 }
 

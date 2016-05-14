@@ -110,6 +110,7 @@ def me_action(_, arg):
 def item_action(cmd, name_or_id):
     '''/use <item>
 /equip <item>
+/unequip <item>
 item can be either item name or ID'''
     item_id = -10
     item_db = itemdb.item_names
@@ -131,11 +132,45 @@ item can be either item name or ID'''
             mapserv.cmsg_player_inventory_use(index, item_id)
         elif cmd == 'equip':
             mapserv.cmsg_player_equip(index)
+        elif cmd == 'unequip':
+            mapserv.cmsg_player_unequip(index)
     else:
         debuglog.error("You don't have %s", name_or_id)
 
 
-def show_inventory(cmd, _):
+@must_have_arg
+def drop_item(_, arg):
+    '''/drop <amount> <name or id>'''
+    s = arg.split(None, 1)
+
+    try:
+        amount = int(s[0])
+    except ValueError:
+        debuglog.warning('Usage: /drop <amount> <name or id>')
+        return
+
+    item_id = -10
+    item_db = itemdb.item_names
+
+    try:
+        item_id = int(s[1])
+    except ValueError:
+        for id_, name in item_db.iteritems():
+            if name == s[1]:
+                item_id = id_
+
+    if item_id < 0:
+        debuglog.warning("Unknown item: %s", s[1])
+        return
+
+    index = get_item_index(item_id)
+    if index > 0:
+        mapserv.cmsg_player_inventory_drop(index, amount)
+    else:
+        debuglog.error("You don't have %s", s[1])
+
+
+def show_inventory(*unused):
     '''Show inventory'''
     inv = {}
     for itemId, amount in mapserv.player_inventory.values():
@@ -151,7 +186,7 @@ def show_inventory(cmd, _):
     debuglog.info(', '.join(s))
 
 
-def show_zeny(cmd, _):
+def show_zeny(*unused):
     '''Show player money'''
     debuglog.info('You have {} GP'.format(mapserv.player_money))
 
@@ -167,15 +202,24 @@ def print_beings(cmd, btype):
                       being.id, being.type, being.x, being.y, being.name)
 
 
-def player_position(cmd, _):
+def player_position(*unused):
     '''Show player position'''
     pp = mapserv.player_pos
     debuglog.info("Map: %s, coor: %d, %d", pp['map'], pp['x'], pp['y'])
 
 
-def respawn(cmd, _):
+def respawn(*unused):
     '''Respawn'''
     mapserv.cmsg_player_respawn()
+
+
+def pickup(*unused):
+    '''Pickup nearby item, if any'''
+    px = mapserv.player_pos['x']
+    py = mapserv.player_pos['y']
+    for item in mapserv.floor_items.values():
+        if distance(px, py, item.x, item.y) < 2:
+            mapserv.cmsg_item_pickup(item.id)
 
 
 def print_help(_, hcmd):
@@ -233,12 +277,15 @@ commands = {
     "me"              : me_action,
     "use"             : item_action,
     "equip"           : item_action,
+    "unequip"         : item_action,
     "attack"          : attack,
     "beings"          : print_beings,
     "inv"             : show_inventory,
     "zeny"            : show_zeny,
     "where"           : player_position,
     "respawn"         : respawn,
+    "pickup"          : pickup,
+    "drop"            : drop_item,
     "help"            : print_help,
 }
 

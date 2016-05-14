@@ -947,7 +947,7 @@ def cmsg_player_inventory_drop(index, amount):
         index, amount))
     send_packet(server, CMSG_PLAYER_INVENTORY_DROP,
                 (ULInt16("index"), index),
-                (ULInt32("amount"), amount))
+                (ULInt16("amount"), amount))
 
 
 # --------------- NPC ---------------------

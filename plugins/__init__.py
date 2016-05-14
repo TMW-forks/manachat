@@ -25,6 +25,9 @@ def load_plugin(config, plugin_name):
         if p not in plugins_loaded:
             load_plugin(config, p)
 
+    this = sys.modules[__name__]
+    setattr(this, plugin_name, plugin)
+
     plugin.init(config)
     plugins_loaded.append(plugin_name)
     debuglog.info('Plugin %s loaded', plugin_name)

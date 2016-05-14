@@ -1019,6 +1019,21 @@ def cmsg_npc_sell_request(index, amount):
                 (ULInt16("amount"), amount))
 
 
+# --------------- STATS, SKILLS --------------------------
+def cmsg_stat_update_request(stat, value):
+    netlog.info("CMSG_STAT_UPDATE_REQUEST stat={} value={}".format(
+        stat, value))
+    send_packet(server, CMSG_STAT_UPDATE_REQUEST,
+                (ULInt16("stat"), stat),
+                (Byte("value"), value))
+
+
+def cmsg_skill_levelup_request(skillId):
+    netlog.info("CMSG_SKILL_LEVELUP_REQUEST skillId={}".format(skillId))
+    send_packet(server, CMSG_SKILL_LEVELUP_REQUEST,
+                (ULInt16("id"), skillId))
+
+
 # --------------------------------------------------------------------
 def connect(host, port):
     global server, beings_cache

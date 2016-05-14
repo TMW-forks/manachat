@@ -28,6 +28,8 @@ def npc_message(data):
 
 @extends('smsg_npc_choice')
 def npc_choice(data):
+    global npc_id
+    npc_id = data.id
     choices = filter(lambda s: len(s.strip()) > 0,
         data.select.split(':'))
     debuglog.info('[npc][select]')

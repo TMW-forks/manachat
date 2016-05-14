@@ -8,6 +8,7 @@ from utils import preprocess_argument
 from textutils import expand_links
 from loggers import debuglog
 import walkto
+from actor import find_nearest_being
 
 __all__ = [ 'commands', 'must_have_arg',
             'parse_player_name', 'process_line' ]
@@ -85,32 +86,18 @@ def show_emote(_, emote):
 
 
 @must_have_arg
-def attack(_, name_or_id):
+def attack(_, arg):
     '''Attack being (ID or Name)'''
-    target_id = -10
-    mob_db = monsterdb.monster_db
-
     try:
-        target_id = int(name_or_id)
-        if target_id not in mapserv.beings_cache:
-            raise ValueError
-    except ValueError:
-        min_disance = 1000000
-        px = mapserv.player_pos['x']
-        py = mapserv.player_pos['y']
-        for b in mapserv.beings_cache.values():
-            if b.name == name_or_id or \
-                    mob_db.get(b.job, '') == name_or_id:
-                dist = distance(px, py, b.x, b.y)
-                if dist < min_disance:
-                    min_disance = dist
-                    target_id = b.id
+        target = mapserv.beings_cache[int(arg)]
+    except (ValueError, KeyError):
+        target = find_nearest_being(name=arg,
+                                    ignored_ids=walkto.unreachable_ids)
 
-    if target_id > 0:
-        walkto.walkto_and_action(
-            mapserv.beings_cache[target_id], 'attack')
+    if target is not None:
+        walkto.walkto_and_action(target, 'attack')
     else:
-        debuglog.warning("Being %s not found", name_or_id)
+        debuglog.warning("Being %s not found", arg)
 
 
 @must_have_arg

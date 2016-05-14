@@ -5,7 +5,7 @@ from utils import extends
 from actor import find_nearest_being
 
 
-__all__ = [ 'PLUGIN', 'init', 'autonext', 'npc_id' ]
+__all__ = [ 'PLUGIN', 'init', 'autonext', 'npc_id', 'input_type' ]
 
 
 PLUGIN = {
@@ -16,7 +16,7 @@ PLUGIN = {
 
 npc_id = -1
 autonext = True
-input_type = 'str'
+input_type = ''
 
 
 @extends('smsg_npc_message')
@@ -109,13 +109,14 @@ def cmd_npcinput(_, arg):
 
     global input_type
 
-    if input_type == 'int':
+    if input_type in ('int', 'select'):
         try:
             n = int(arg)
         except ValueError, e:
             debuglog.error(e.message)
             return
 
+    if input_type == 'int':
         mapserv.cmsg_npc_int_response(npc_id, n)
 
     elif input_type == 'str':

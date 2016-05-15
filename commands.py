@@ -227,7 +227,8 @@ def show_status(_, arg):
     if arg:
         all_stats = arg.split()
     else:
-        all_stats = ('stats', 'hpmp', 'weight', 'points', 'zeny', 'attack')
+        all_stats = ('stats', 'hpmp', 'weight', 'points',
+                     'zeny', 'attack', 'skills')
 
     sr = stats_repr(*all_stats)
     debuglog.info(' | '.join(sr.values()))

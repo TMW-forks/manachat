@@ -20,6 +20,7 @@ tick = 0
 last_whisper = {'to': '', 'msg': ''}
 player_inventory = {}
 player_stats = {}
+player_skills = {}
 player_money = 0
 trade_state = {'items_give': [], 'items_get': [],
                'zeny_give': 0, 'zeny_get': 0}
@@ -390,6 +391,19 @@ def smsg_npc_buy(data):
     netlog.info("SMSG_NPC_BUY {}".format(data))
 
 
+@extendable
+def smsg_player_skills(data):
+    netlog.info("SMSG_PLAYER_SKILLS {}".format(data))
+    for skill in data.skills:
+        player_skills[skill.id] = skill.level
+
+
+@extendable
+def smsg_player_skill_up(data):
+    netlog.info("SMSG_PLAYER_SKILL_UP {}".format(data))
+    player_skills.setdefault(data.id, data.level)
+
+
 # --------------------------------------------------------------------
 protodef = {
     0x8000 : (smsg_ignore, Field("data", 2)),      # ignore
@@ -543,10 +557,20 @@ protodef = {
                                BitField("dst_y", 10)),
                      Padding(5))),
     0x0139 : (smsg_ignore, Field("data", 14)),    # player-move-to-attack
-    0x010f : (smsg_ignore,                        # player-skills
+    0x010f : (smsg_player_skills,
               Struct("data",
                      ULInt16("length"),
-                     Field("data", lambda ctx: ctx.length - 4))),
+                     Array(lambda ctx: (ctx.length - 4) / 37,
+                           Struct("skills",
+                                  ULInt16("id"),
+                                  Padding(4),
+                                  ULInt16("level"),
+                                  Padding(29))))),
+    0x010e : (smsg_player_skill_up,
+              Struct("data",
+                     ULInt16("id"),
+                     ULInt16("level"),
+                     Padding(5))),
     0x00b0 : (smsg_player_stat_update_x,
               Struct("data",
                      ULInt16("type"),

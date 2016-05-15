@@ -33,6 +33,20 @@ def stats_repr(*stat_types):
         sd['attack'] = 'ATK:{} DEF:{} MATK:{} MDEF:{}'.format(
             ps[st.ATK], ps[st.DEF], ps[st.MATK], ps[st.MDEF])
 
+    if 'skills' in stat_types:
+        sl = []
+        ps = mapserv.player_skills
+        skill_names = {339: 'focusing', 45: 'mallard', 350: 'brawling',
+                       352: 'speed', 353: 'resist', 354: 'astral',
+                       355: 'raging'}
+
+        for s_id, s_v in ps.items():
+            if s_v > 0:
+                sl.append('{}:{}'.format(skill_names.get(s_id,
+                                                         str(s_id)), s_v))
+
+        sd['skills'] = ' '.join(sl)
+
     return sd
 
 

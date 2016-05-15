@@ -10,7 +10,7 @@ def stats_repr(*stat_types):
 
     if 'stats' in stat_types:
         sd['stats'] = 'STR:{} AGI:{} VIT:{} INT:{} DEX:{} LUK:{}'.format(
-            ps[st.STR], ps[st.AGI], ps[st.VIT], ps[st.VIT],
+            ps[st.STR], ps[st.AGI], ps[st.VIT], ps[st.INT],
             ps[st.DEX], ps[st.LUK])
 
     if 'hpmp' in stat_types:

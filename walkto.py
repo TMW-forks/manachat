@@ -89,11 +89,12 @@ def target_removed(data):
 
 @extends('smsg_player_warp')
 def player_warp(data):
+    reset_walkto()
     unreachable_ids.clear()
 
 
 def calc_walk_time(distance, speed=0.15):
-    return 2.5 + speed * distance
+    return 0.5 + speed * distance
 
 
 @extends('smsg_walk_response')

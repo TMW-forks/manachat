@@ -249,6 +249,13 @@ def print_help(_, hcmd):
         debuglog.info("[help] commands: %s", s)
 
 
+def cmd_exec(_, arg):
+    try:
+        exec arg
+    except Exception, e:
+        debuglog.error(e.message)
+
+
 def command_not_found(cmd):
     debuglog.warning("[warning] command not found: %s. Try /help.", cmd)
 
@@ -300,6 +307,7 @@ commands = {
     "drop"            : drop_item,
     "status"          : show_status,
     "help"            : print_help,
+    "exec"            : cmd_exec,
 }
 
 

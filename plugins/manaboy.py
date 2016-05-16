@@ -80,6 +80,7 @@ def cmd_goto(nick, message, is_whisper, match):
     except ValueError:
         return
 
+    autofollow.follow = ''
     mapserv.cmsg_player_change_dest(x, y)
 
 
@@ -99,6 +100,7 @@ def cmd_goclose(nick, message, is_whisper, match):
     elif message.startswith('!down'):
         y += 1
 
+    autofollow.follow = ''
     mapserv.cmsg_player_change_dest(x, y)
 
 
@@ -173,6 +175,7 @@ def cmd_attack(nick, message, is_whisper, match):
                                     ignored_ids=walkto.unreachable_ids)
 
     if target is not None:
+        autofollow.follow = ''
         walkto.walkto_and_action(target, 'attack')
 
 
@@ -188,6 +191,7 @@ def cmd_sit(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
+    autofollow.follow = ''
     mapserv.cmsg_player_change_act(0, 2)
 
 
@@ -198,10 +202,7 @@ def cmd_follow(nick, message, is_whisper, match):
     if autofollow.follow == nick:
         autofollow.follow = ''
     else:
-        now = time.time()
-        if now > _times['follow'] + 300:
-            autofollow.follow = nick
-            _times['follow'] = now
+        autofollow.follow = nick
 
 
 def cmd_lvlup(nick, message, is_whisper, match):
@@ -264,6 +265,7 @@ def cmd_talk2npc(nick, message, is_whisper, match):
     if b is None:
         return
 
+    autofollow.follow = ''
     mapserv.cmsg_npc_talk(b.id)
 
 

@@ -46,7 +46,7 @@ admins = ['Trav', 'Travolta', 'Komornyik']
 
 
 @extends('smsg_being_remove')
-def being_remove(data):
+def bot_dies(data):
     if data.id == charserv.server.account:
         mapserv.cmsg_player_respawn()
 
@@ -266,7 +266,8 @@ def cmd_help(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    m = 'I am ManaBoy'
+    m = ('[@@https://forums.themanaworld.org/viewtopic.php?f=12&t=19673|Forum@@]'
+         '[@@https://bitbucket.org/rumly111/manachat|Sources@@]')
     whisper(nick, m)
 
 

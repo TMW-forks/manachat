@@ -2,6 +2,7 @@
 from construct import *
 from construct.protocols.layer3.ipv4 import IpAddress
 import mapserv
+import stats
 from protocol import *
 from utils import *
 from common import *
@@ -23,6 +24,17 @@ def smsg_char_login(data):
         if c.name == server.char_name:
             char_slot = c.slot
             mapserv.player_money = c.money
+            mapserv.player_stats[stats.EXP]          = c.exp
+            mapserv.player_stats[stats.MONEY]        = c.money
+            mapserv.player_stats[stats.JOB]          = c.job
+            mapserv.player_stats[stats.CHAR_POINTS]  = c.charpoints
+            mapserv.player_stats[stats.HP]           = c.hp
+            mapserv.player_stats[stats.MAX_HP]       = c.max_hp
+            mapserv.player_stats[stats.MP]           = c.mp
+            mapserv.player_stats[stats.MAX_MP]       = c.max_mp
+            mapserv.player_stats[stats.WALK_SPEED]   = c.speed
+            mapserv.player_stats[stats.LEVEL]        = c.level
+            mapserv.player_stats[stats.SKILL_POINTS] = c.skillpoints
             break
     if char_slot < 0:
         netlog.error("CharName {} not found".format(server.char_name))
@@ -66,9 +78,19 @@ protodef = {
                                   ULInt32("id"),
                                   ULInt32("exp"),
                                   ULInt32("money"),
-                                  Padding(46),
+                                  ULInt32("job"),
+                                  ULInt32("job_level"),
+                                  Padding(20),
+                                  ULInt16("charpoints"),
+                                  ULInt16("hp"),
+                                  ULInt16("max_hp"),
+                                  ULInt16("mp"),
+                                  ULInt16("max_mp"),
+                                  ULInt16("speed"),
+                                  Padding(6),
                                   ULInt16("level"),
-                                  Padding(14),
+                                  ULInt16("skillpoints"),
+                                  Padding(12),
                                   StringZ("name", 24),
                                   Padding(6),
                                   Byte("slot"),

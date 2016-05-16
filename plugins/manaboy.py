@@ -288,8 +288,25 @@ def cmd_help(nick, message, is_whisper, match):
         return
 
     m = ('[@@https://forums.themanaworld.org/viewtopic.php?f=12&t=19673|Forum@@]'
-         '[@@https://bitbucket.org/rumly111/manachat|Sources@@]')
+         '[@@https://bitbucket.org/rumly111/manachat|Sources@@] '
+         'Try !commands for list of commands')
     whisper(nick, m)
+
+
+def cmd_commands(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    c = []
+    for cmd in manaboy_commands:
+        if cmd.startswith('!('):
+            br = cmd.index(')')
+            c.extend(cmd[2:br].split('|'))
+        elif cmd.startswith('!'):
+            c.append(cmd[1:].split()[0])
+
+    c.sort()
+    whisper(nick, ', '.join(c))
 
 
 # =========================================================================
@@ -329,6 +346,7 @@ manaboy_commands = {
     '!input (.+)' : cmd_input,
     '!close' : cmd_close,
     '!(help|info)' : cmd_help,
+    '!commands' : cmd_commands,
 }
 
 

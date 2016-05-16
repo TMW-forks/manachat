@@ -83,6 +83,25 @@ def cmd_goto(nick, message, is_whisper, match):
     mapserv.cmsg_player_change_dest(x, y)
 
 
+def cmd_goclose(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    x = mapserv.player_pos['x']
+    y = mapserv.player_pos['y']
+
+    if message.startswith('!left'):
+        x -= 1
+    elif message.startswith('!right'):
+        x += 1
+    elif message.startswith('!up'):
+        y -= 1
+    elif message.startswith('!down'):
+        y += 1
+
+    mapserv.cmsg_player_change_dest(x, y)
+
+
 def cmd_pickup(nick, message, is_whisper, match):
     if not is_whisper:
         return
@@ -289,6 +308,7 @@ def manaboy_logic(ts):
 manaboy_commands = {
     '!where' : cmd_where,
     '!goto (\d+) (\d+)' : cmd_goto,
+    '!(left|right|up|down)' : cmd_goclose,
     '!pickup' : cmd_pickup,
     '!drop (\d+) (\d+)' : cmd_drop,
     '!equip (\d+)' : cmd_item_action,

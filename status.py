@@ -22,9 +22,9 @@ def stats_repr(*stat_types):
                                           ps[st.MAX_WEIGHT])
 
     if 'points' in stat_types:
-        sd['points'] = 'LVL: {} CP:{} SP:{}'.format(ps[st.LEVEL],
-                                                    ps[st.CHAR_POINTS],
-                                                    ps[st.SKILL_POINTS])
+        sd['points'] = 'LVL: {} EXP:{}/{} CP:{} SP:{}'.format(
+            ps[st.LEVEL], ps[st.EXP], ps[st.EXP_NEEDED],
+            ps[st.CHAR_POINTS], ps[st.SKILL_POINTS])
 
     if 'zeny' in stat_types:
         sd['zeny'] = 'GP:{}'.format(ps[st.MONEY])

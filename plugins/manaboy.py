@@ -1,18 +1,14 @@
 import time
-# import random
 import net.mapserv as mapserv
 import net.charserv as charserv
-import chatbot
 import commands
 import walkto
 import logicmanager
+import status
+import plugins
 from net.inventory import get_item_index
 from utils import extends
-# from itemdb import item_name
 from actor import find_nearest_being
-import npc
-import autofollow
-import status
 
 
 __all__ = [ 'PLUGIN', 'init' ]
@@ -93,7 +89,7 @@ def npc_input(data):
         return
 
     t = 'number'
-    if npc.input_type == 'str':
+    if plugins.npc.input_type == 'str':
         t = 'string'
 
     whisper(npc_owner, '[npc][input] (use !input <{}>)'.format(t))
@@ -118,7 +114,7 @@ def cmd_goto(nick, message, is_whisper, match):
     except ValueError:
         return
 
-    autofollow.follow = ''
+    plugins.autofollow.follow = ''
     mapserv.cmsg_player_change_dest(x, y)
 
 
@@ -138,7 +134,7 @@ def cmd_goclose(nick, message, is_whisper, match):
     elif message.startswith('!down'):
         y += 1
 
-    autofollow.follow = ''
+    plugins.autofollow.follow = ''
     mapserv.cmsg_player_change_dest(x, y)
 
 
@@ -213,7 +209,7 @@ def cmd_attack(nick, message, is_whisper, match):
                                     ignored_ids=walkto.unreachable_ids)
 
     if target is not None:
-        autofollow.follow = ''
+        plugins.autofollow.follow = ''
         walkto.walkto_and_action(target, 'attack')
 
 
@@ -229,7 +225,7 @@ def cmd_sit(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    autofollow.follow = ''
+    plugins.autofollow.follow = ''
     mapserv.cmsg_player_change_act(0, 2)
 
 
@@ -237,10 +233,10 @@ def cmd_follow(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    if autofollow.follow == nick:
-        autofollow.follow = ''
+    if plugins.autofollow.follow == nick:
+        plugins.autofollow.follow = ''
     else:
-        autofollow.follow = nick
+        plugins.autofollow.follow = nick
 
 
 def cmd_lvlup(nick, message, is_whisper, match):
@@ -312,9 +308,10 @@ def cmd_talk2npc(nick, message, is_whisper, match):
     if b is None:
         return
 
-    autofollow.follow = ''
     global npc_owner
     npc_owner = nick
+    plugins.autofollow.follow = ''
+    plugins.npc.npc_id = b.id
     mapserv.cmsg_npc_talk(b.id)
 
 
@@ -325,14 +322,14 @@ def cmd_input(nick, message, is_whisper, match):
     if npc_owner != nick:
         return
 
-    npc.cmd_npcinput('', match.group(1))
+    plugins.npc.cmd_npcinput('', match.group(1))
 
 
 def cmd_close(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    npc.cmd_npcclose()
+    plugins.npc.cmd_npcclose()
 
 
 def cmd_help(nick, message, is_whisper, match):
@@ -368,7 +365,7 @@ def manaboy_logic(ts):
         global npc_owner
         npc_owner = ''
         npcdialog['start_time'] = -1
-        npc.cmd_npcclose()
+        plugins.npc.cmd_npcclose()
 
     if npcdialog['start_time'] <= 0:
         return
@@ -407,6 +404,6 @@ manaboy_commands = {
 
 def init(config):
     for cmd, action in manaboy_commands.items():
-        chatbot.add_command(cmd, action)
+        plugins.chatbot.add_command(cmd, action)
 
     logicmanager.logic_manager.add_logic(manaboy_logic)

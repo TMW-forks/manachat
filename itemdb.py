@@ -19,5 +19,9 @@ def load_itemdb(dbfile='itemdb.txt'):
     return item_names
 
 
-def item_name(item_id):
-    return item_names.get(item_id, str(item_id))
+def item_name(item_id, mplus=False):
+    name = item_names.get(item_id, 'Item' + str(item_id))
+    if mplus:
+        return '[@@{}|{}@@]'.format(item_id, name)
+    else:
+        return name

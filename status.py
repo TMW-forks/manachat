@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import net.mapserv as mapserv
 import net.stats as st
+import itemdb
 from utils import encode_str
 
 
@@ -70,4 +71,25 @@ def invlists(max_items=1000):
         data += encode_str(amount, 3)
 
     lists.append(data)
+    return lists
+
+
+def invlists2(max_length=255):
+    inventory = OrderedDict()
+
+    for id_, amount in mapserv.player_inventory.values():
+        inventory[id_] = inventory.setdefault(id_, 0) + amount
+
+    lists = []
+    data = ''
+    for id_, amount in inventory.items():
+        s = itemdb.item_name(id_, True) + ', '
+        if amount > 1:
+            s = str(amount) + ' ' + s
+        if len(data + s) > max_length:
+            lists.append(data)
+            data = ''
+        data += s
+
+    lists.append(data[:-2])
     return lists

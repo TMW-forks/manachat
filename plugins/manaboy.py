@@ -44,6 +44,8 @@ _times = {
 
 admins = ['Trav', 'Travolta', 'Komornyik']
 
+npc_owner = ''
+
 
 @extends('smsg_being_remove')
 def bot_dies(data):
@@ -59,6 +61,42 @@ def bot_dies(data):
 @extends('smsg_npc_str_input')
 def npc_activity(data):
     npcdialog['start_time'] = time.time()
+
+
+@extends('smsg_npc_message')
+def npc_message(data):
+    if not npc_owner:
+        return
+
+    npc = mapserv.beings_cache.findName(data.id)
+    m = '[npc] {} : {}'.format(npc, data.message)
+    whisper(npc_owner, m)
+
+
+@extends('smsg_npc_choice')
+def npc_choice(data):
+    if not npc_owner:
+        return
+
+    choices = filter(lambda s: len(s.strip()) > 0,
+        data.select.split(':'))
+
+    whisper(npc_owner, '[npc][select] (use !input <number> to select)')
+    for i, s in enumerate(choices):
+        whisper(npc_owner, '    {}) {}'.format(i + 1, s))
+
+
+@extends('smsg_npc_int_input')
+@extends('smsg_npc_str_input')
+def npc_input(data):
+    if not npc_owner:
+        return
+
+    t = 'number'
+    if npc.input_type == 'str':
+        t = 'string'
+
+    whisper(npc_owner, '[npc][input] (use !input <{}>)'.format(t))
 
 
 def cmd_where(nick, message, is_whisper, match):
@@ -222,11 +260,20 @@ def cmd_lvlup(nick, message, is_whisper, match):
         mapserv.cmsg_skill_levelup_request(skills[stat])
 
 
-def cmd_inventory(nick, message, is_whisper, match):
+def cmd_invlist(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
     ls = status.invlists(50)
+    for l in ls:
+        whisper(nick, l)
+
+
+def cmd_inventory(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    ls = status.invlists2(255)
     for l in ls:
         whisper(nick, l)
 
@@ -266,11 +313,16 @@ def cmd_talk2npc(nick, message, is_whisper, match):
         return
 
     autofollow.follow = ''
+    global npc_owner
+    npc_owner = nick
     mapserv.cmsg_npc_talk(b.id)
 
 
 def cmd_input(nick, message, is_whisper, match):
     if not is_whisper:
+        return
+
+    if npc_owner != nick:
         return
 
     npc.cmd_npcinput('', match.group(1))
@@ -313,6 +365,8 @@ def cmd_commands(nick, message, is_whisper, match):
 def manaboy_logic(ts):
 
     def reset():
+        global npc_owner
+        npc_owner = ''
         npcdialog['start_time'] = -1
         npc.cmd_npcclose()
 
@@ -340,6 +394,7 @@ manaboy_commands = {
     '!follow' : cmd_follow,
     '!lvlup (\w+)' : cmd_lvlup,
     '!inventory' : cmd_inventory,
+    '!invlist' : cmd_invlist,
     '!status' : cmd_status,
     '!zeny' : cmd_zeny,
     '!talk2npc (\w+)' : cmd_talk2npc,

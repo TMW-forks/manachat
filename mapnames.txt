@@ -1,0 +1,104 @@
+001-1 Tulimshar Port
+001-2 South Tulimshar Indoor
+001-3 Tulimshar Arena
+002-1 Tulimshar South
+002-2 Sandstorm Desert Indoors
+002-3 Tulimshar Mining Camp
+002-4 Desert Mines
+002-5 Deep Desert Mines
+004-3 Pirate Caves First Floor
+004-4 Pirate Caves Second Floor
+004-5 Pirate Den
+005-3 Snake Pit
+006-1 Desert Mountains
+006-2 Pachua's Village
+006-3 Desert Mountain Cave
+007-1 Woodland
+007-2 Illia forsaken inn
+008-1 Hurnscald Outskirts
+009-1 Hurnscald
+009-2 Hurnscald Indoor
+009-3 Hurnscald Cave
+009-4 Orum Caves
+009-5 Last man standing
+009-6 Cave
+009-7 The Sanguine Vault
+010-1 Woodland
+010-2 Dimond's Cove
+011-1 Woodland
+011-3 Hermit's Cave
+011-4 Lake Cave
+011-6 Bandit Cave
+012-1 Woodland Hills
+012-3 Moggun Cave
+012-4 Terranite Cave
+013-1 Woodland Hills
+013-2 Magic House
+013-3 Woodland Hills Cave
+014-1 Woodland
+014-3 Woodland Cave
+015-1 Woodland
+015-3 Cat's Cave
+016-1 Woodland
+017-1 Woodland Hills
+017-2 Theater
+017-3 Woodland Cave
+017-4 Hideout
+017-9 GM Lounge
+018-1 Woodland Mining Camp
+018-2 Woodland Mining Camp Indoor
+018-3 Northern Mines
+019-1 snow Field
+019-3 Snow Cave
+019-4 Snow Cave
+020-1 Nivalis
+020-2 Nivalis Indoor
+020-3 Ice cave
+021-3 Central Tulimshar Sewers
+025-1 Woodland Swamp
+025-3 Rossy Main Hall
+025-4 Rossy Battle Caves
+026-1 Swamp
+027-1 Graveyard
+027-2 Graveyard Indoor
+027-3 Crypt Basement
+027-4 Crypt Sub-Basement One
+027-5 Crypt Sub-Basement Two
+027-6 Crypt Sub-Basement Two
+027-7 Crypt Sub-Basement Two
+027-8 Crypt Sub-Basement Two
+028-1 GM Island
+028-3 GM Island Cave
+029-1 Candor Island
+029-2 Candor Island Indoor
+029-3 Candor Cave
+030-2 Christmas Inn
+030-3 The Frozen Lake
+030-4 Christmas Inn Warehouse
+031-1 Nivalis Port
+031-2 Angela's House
+031-3 Ice Labyrinth
+031-4 Cindy Cave
+032-3 Outback Cave
+033-1 snow Path
+034-1 Snow Forest
+034-2 Trappers Huts
+035-2 Koga - Main
+036-2 Koga - Candor
+043-3 Sandy Dungeon Level 1
+043-4 Sandy Dungeon Level 2
+045-1 Deep Snow Forest
+046-1 Rock Plateau
+046-3 Frosty Underground
+047-1 snow Hills
+047-3 Snow Hills Cave
+048-2 Blue Sages' Mansion
+051-1 Illia outskirts
+051-3 Illia Bandit Cave
+052-1 Illia archipelago
+052-2 Illia forsaken inn
+055-1 Woodland Hills
+055-3 Cave
+056-2 Mirak's House
+057-1 Woodland
+botcheck Botcheck Area

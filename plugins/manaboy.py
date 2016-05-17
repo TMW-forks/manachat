@@ -39,6 +39,7 @@ _times = {
 }
 
 admins = ['Trav', 'Travolta', 'Komornyik']
+allowed_drops = [535, 719, 513]
 
 npc_owner = ''
 
@@ -149,14 +150,15 @@ def cmd_drop(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    if nick not in admins:
-        return
-
     try:
         amount = int(match.group(1))
         item_id = int(match.group(2))
     except ValueError:
         return
+
+    if nick not in admins:
+        if item_id not in allowed_drops:
+            return
 
     index = get_item_index(item_id)
     if index > 0:
@@ -319,8 +321,8 @@ def cmd_input(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    if npc_owner != nick:
-        return
+    # if npc_owner != nick:
+    #     return
 
     plugins.npc.cmd_npcinput('', match.group(1))
 

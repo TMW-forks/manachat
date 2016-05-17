@@ -87,7 +87,7 @@ def cmd_npctalk(_, arg):
         npc_id = b.id
         mapserv.cmsg_npc_talk(npc_id)
     else:
-        debuglog.warning("NPC not found")
+        debuglog.warning("NPC %s not found", arg)
 
 
 def cmd_npcclose(*unused):

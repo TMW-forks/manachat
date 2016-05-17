@@ -8,7 +8,7 @@ from textutils import expand_links
 from loggers import debuglog
 import walkto
 from actor import find_nearest_being
-from status import stats_repr
+import status
 
 __all__ = [ 'commands', 'must_have_arg',
             'parse_player_name', 'process_line' ]
@@ -204,8 +204,7 @@ def print_beings(cmd, btype):
 
 def player_position(*unused):
     '''Show player position'''
-    pp = mapserv.player_pos
-    debuglog.info("Map: %s, coor: %d, %d", pp['map'], pp['x'], pp['y'])
+    debuglog.info(status.player_position())
 
 
 def respawn(*unused):
@@ -230,7 +229,7 @@ def show_status(_, arg):
         all_stats = ('stats', 'hpmp', 'weight', 'points',
                      'zeny', 'attack', 'skills')
 
-    sr = stats_repr(*all_stats)
+    sr = status.stats_repr(*all_stats)
     debuglog.info(' | '.join(sr.values()))
 
 

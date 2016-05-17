@@ -3,6 +3,7 @@ import net.mapserv as mapserv
 import net.stats as st
 import itemdb
 from utils import encode_str
+import mapnames
 
 
 def stats_repr(*stat_types):
@@ -93,3 +94,11 @@ def invlists2(max_length=255):
 
     lists.append(data[:-2])
     return lists
+
+
+def player_position():
+    pp = mapserv.player_pos
+    map_name = mapnames.map_names.get(pp['map'], 'Unknown')
+    s = "Map: {} ({}), coor: {}, {}".format(
+        map_name, pp['map'], pp['x'], pp['y'])
+    return s

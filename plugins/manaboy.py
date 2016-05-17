@@ -100,8 +100,7 @@ def cmd_where(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    pp = mapserv.player_pos
-    msg = "Map: {}, coor: {}, {}".format(pp['map'], pp['x'], pp['y'])
+    msg = status.player_position()
     whisper(nick, msg)
 
 

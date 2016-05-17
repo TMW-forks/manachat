@@ -14,3 +14,6 @@ def read_map_names(file='mapnames.txt'):
                 pass
 
     return map_names
+
+if len(map_names) < 1:
+    read_map_names()

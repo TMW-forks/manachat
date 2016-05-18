@@ -236,6 +236,13 @@ def cmd_sit(nick, message, is_whisper, match):
     mapserv.cmsg_player_change_act(0, 2)
 
 
+def cmd_turn(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    commands.set_direction('', message[6:])
+
+
 def cmd_follow(nick, message, is_whisper, match):
     if not is_whisper:
         return
@@ -392,6 +399,7 @@ manaboy_commands = {
     '!attack (.+)' : cmd_attack,
     '!say ((@|#).+)' : cmd_say,
     '!sit' : cmd_sit,
+    '!turn' : cmd_turn,
     '!follow' : cmd_follow,
     '!lvlup (\w+)' : cmd_lvlup,
     '!inventory' : cmd_inventory,

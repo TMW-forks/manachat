@@ -68,6 +68,11 @@ def smsg_being_action(data):
 
 
 @extendable
+def smsg_being_change_direction(data):
+    netlog.info("SMSG_BEING_CHANGE_DIRECTION {}".format(data))
+
+
+@extendable
 def smsg_being_name_response(data):
     try:
         beings_cache[data.id].name = data.name
@@ -418,7 +423,11 @@ protodef = {
                      Padding(2),
                      Byte("type"),
                      Padding(2))),
-    0x009c : (smsg_ignore, Field("data", 7)),      # being-change-direction
+    0x009c : (smsg_being_change_direction,
+              Struct("data",
+                     ULInt32("id"),
+                     Padding(2),
+                     Byte("dir"))),
     0x00c3 : (smsg_ignore, Field("data", 6)),      # being-change-looks
     0x01d7 : (smsg_ignore, Field("data", 9)),      # being-change-looks2
     0x008d : (smsg_being_chat,

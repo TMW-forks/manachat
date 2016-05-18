@@ -10,6 +10,7 @@ from net.trade import reset_trade_state
 from utils import encode_str, extends
 from itemdb import item_name
 from playerlist import PlayerList
+from chat import send_whisper as whisper
 
 
 __all__ = [ 'PLUGIN', 'init', 'shoplog', 'buying', 'selling' ]
@@ -22,7 +23,6 @@ PLUGIN = {
 }
 
 shoplog = logging.getLogger('ManaChat.Shop')
-whisper = mapserv.cmsg_chat_whisper
 trade_timeout = 60
 shop_admins = None
 

@@ -1,4 +1,4 @@
-from net.mapserv import cmsg_chat_whisper as send_whisper
+from chat import send_whisper
 from utils import extends
 from commands import parse_player_name
 

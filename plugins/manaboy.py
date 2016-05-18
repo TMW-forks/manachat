@@ -41,6 +41,12 @@ allowed_drops = [535, 719, 513, 727, 729, 869]
 npc_owner = ''
 
 
+def set_npc_owner(nick):
+    global npc_owner
+    if plugins.npc.npc_id < 0:
+        npc_owner = nick
+
+
 @extends('smsg_being_remove')
 def bot_dies(data):
     if data.id == charserv.server.account:
@@ -105,16 +111,13 @@ def cmd_goto(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    # if plugins.npc.npc_id < 0:
-    #     global npc_owner
-    #     npc_owner = nick
-
     try:
         x = int(match.group(1))
         y = int(match.group(2))
     except ValueError:
         return
 
+    set_npc_owner(nick)
     plugins.autofollow.follow = ''
     mapserv.cmsg_player_change_dest(x, y)
 
@@ -135,6 +138,7 @@ def cmd_goclose(nick, message, is_whisper, match):
     elif message.startswith('!down'):
         y += 1
 
+    set_npc_owner(nick)
     plugins.autofollow.follow = ''
     mapserv.cmsg_player_change_dest(x, y)
 
@@ -211,6 +215,7 @@ def cmd_attack(nick, message, is_whisper, match):
                                     ignored_ids=walkto.unreachable_ids)
 
     if target is not None:
+        set_npc_owner(nick)
         plugins.autofollow.follow = ''
         walkto.walkto_and_action(target, 'attack')
 
@@ -238,6 +243,7 @@ def cmd_follow(nick, message, is_whisper, match):
     if plugins.autofollow.follow == nick:
         plugins.autofollow.follow = ''
     else:
+        set_npc_owner(nick)
         plugins.autofollow.follow = nick
 
 
@@ -310,8 +316,7 @@ def cmd_talk2npc(nick, message, is_whisper, match):
     if b is None:
         return
 
-    global npc_owner
-    npc_owner = nick
+    set_npc_owner(nick)
     plugins.autofollow.follow = ''
     plugins.npc.npc_id = b.id
     mapserv.cmsg_npc_talk(b.id)
@@ -320,9 +325,6 @@ def cmd_talk2npc(nick, message, is_whisper, match):
 def cmd_input(nick, message, is_whisper, match):
     if not is_whisper:
         return
-
-    # if npc_owner != nick:
-    #     return
 
     plugins.npc.cmd_npcinput('', match.group(1))
 

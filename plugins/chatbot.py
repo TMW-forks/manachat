@@ -3,6 +3,7 @@ import random
 import types
 import net.mapserv as mapserv
 from utils import extends
+import chat
 
 
 __all__ = [ 'PLUGIN', 'init', 'answer', 'add_command' ]
@@ -19,13 +20,13 @@ commands = {}
 
 def answer_info(nick, message, is_whisper, match):
     if is_whisper:
-        mapserv.cmsg_chat_whisper(nick, "answer to !info")
+        chat.send_whisper(nick, "answer to !info")
 
 
 def answer_random(nick, message, is_whisper, answers):
     resp = random.choice(answers)
     if is_whisper:
-        mapserv.cmsg_chat_whisper(nick, resp)
+        chat.send_whisper(nick, resp)
     else:
         mapserv.cmsg_chat_message(resp)
 

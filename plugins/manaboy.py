@@ -9,6 +9,7 @@ import plugins
 from net.inventory import get_item_index
 from utils import extends
 from actor import find_nearest_being
+from chat import send_whisper as whisper
 
 
 __all__ = [ 'PLUGIN', 'init' ]
@@ -19,10 +20,6 @@ PLUGIN = {
     'requires': ('chatbot', 'npc', 'autofollow'),
     'blocks': (),
 }
-
-whisper = mapserv.cmsg_chat_whisper
-# spells = ['inma', 'betsanc', 'asorm', 'plugh', 'ingrav',
-#           'parum', 'kalmurk', ]
 
 npcdialog = {
     'start_time': -1,
@@ -39,7 +36,7 @@ _times = {
 }
 
 admins = ['Trav', 'Travolta', 'Komornyik']
-allowed_drops = [535, 719, 513]
+allowed_drops = [535, 719, 513, 727, 729, 869]
 
 npc_owner = ''
 
@@ -107,6 +104,10 @@ def cmd_where(nick, message, is_whisper, match):
 def cmd_goto(nick, message, is_whisper, match):
     if not is_whisper:
         return
+
+    # if plugins.npc.npc_id < 0:
+    #     global npc_owner
+    #     npc_owner = nick
 
     try:
         x = int(match.group(1))
@@ -371,7 +372,7 @@ def manaboy_logic(ts):
     if npcdialog['start_time'] <= 0:
         return
 
-    if ts > npcdialog['start_time'] + 10.0:
+    if ts > npcdialog['start_time'] + 30.0:
         reset()
 
 

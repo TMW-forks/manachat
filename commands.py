@@ -9,6 +9,7 @@ from loggers import debuglog
 import walkto
 from actor import find_nearest_being
 import status
+import chat
 
 __all__ = [ 'commands', 'must_have_arg',
             'parse_player_name', 'process_line' ]
@@ -37,7 +38,7 @@ def send_whisper(_, arg):
 /w NameWithourSpaces Message'''
     nick, message = parse_player_name(arg)
     if len(nick) > 0 and len(message) > 0:
-        mapserv.cmsg_chat_whisper(nick, message)
+        chat.send_whisper(nick, message)
 
 
 @must_have_arg

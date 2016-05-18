@@ -31,29 +31,6 @@ def map_login_success(data):
     mapserv.cmsg_map_loaded()
 
 
-@extends('smsg_being_chat')
-def being_chat(data):
-    debuglog.info(data.message)
-
-
-@extends('smsg_player_chat')
-def player_chat(data):
-    debuglog.info(data.message)
-
-
-@extends('smsg_whisper')
-def got_whisper(data):
-    nick, message = data.nick, data.message
-    m = "[{} ->] {}".format(nick, message)
-    debuglog.info(m)
-
-
-@extends('smsg_gm_chat')
-def gm_chat(data):
-    m = "[GM] {}".format(data.message)
-    debuglog.info(m)
-
-
 if __name__ == '__main__':
     rootLogger = logging.getLogger('')
     rootLogger.addHandler(logging.NullHandler())

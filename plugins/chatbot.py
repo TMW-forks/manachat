@@ -57,11 +57,6 @@ def got_whisper(data):
     answer(nick, message, True)
 
 
-@extends('smsg_whisper_response')
-def send_whisper_result(data):
-    pass
-
-
 def add_command(cmd, action):
     cmd_re = re.compile(cmd)
     commands[cmd_re] = action

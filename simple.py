@@ -62,48 +62,23 @@ class DebugLogHandler(logging.Handler):
 @extends('smsg_player_warp')
 def player_warp(data):
     mapserv.cmsg_map_loaded()
+    m = "[warp] {} ({},{})".format(data.map, data.x, data.y)
+    debuglog.info(m)
 
 
 @extends('smsg_map_login_success')
 def map_login_success(data):
+    mapserv.server.raw = True
     mapserv.cmsg_map_loaded()
-
-
-@extends('smsg_being_chat')
-def being_chat(data):
-    debuglog.info(pp(data.message))
-
-
-@extends('smsg_player_chat')
-def player_chat(data):
-    debuglog.info(pp(data.message))
-
-
-@extends('smsg_whisper')
-def got_whisper(data):
-    nick, message = data.nick, data.message
-    m = "[{} ->] {}".format(nick, pp(message))
-    debuglog.info(m)
-
-
-@extends('smsg_gm_chat')
-def gm_chat(data):
-    m = "[GM] {}".format(pp(data.message))
-    debuglog.info(m)
 
 
 @extends('smsg_whisper_response')
 def send_whisper_result(data):
-    last_nick = mapserv.last_whisper['to']
     if data.code == 0:
-        last_msg = mapserv.last_whisper['msg']
-        m = "[-> {}] {}".format(last_nick, pp(last_msg))
-        debuglog.info(m)
         if len(readline.get_line_buffer()) == 0:
+            last_nick = mapserv.last_whisper['to']
             readline.insert_text('/w "{}" '.format(last_nick))
-        readline.redisplay()
-    else:
-        debuglog.warning("[error] {} is offline.".format(last_nick))
+            readline.redisplay()
 
 
 if __name__ == '__main__':
@@ -114,14 +89,14 @@ if __name__ == '__main__':
     dbgh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s",
                                         datefmt="%Y-%m-%d %H:%M:%S"))
     debuglog.addHandler(dbgh)
-    debuglog.setLevel(logging.DEBUG)
+    debuglog.setLevel(logging.INFO)
 
     config = ConfigParser()
     config.read('manachat.ini')
 
     if config.getboolean('Other', 'log_network_packets'):
         from loggers import netlog
-        netlog.setLevel(logging.INFO)
+        netlog.setLevel(logging.DEBUG)
         fh = logging.FileHandler('/tmp/netlog.txt', mode="w")
         fmt = logging.Formatter("[%(asctime)s] %(message)s",
                                 datefmt="%Y-%m-%d %H:%M:%S")

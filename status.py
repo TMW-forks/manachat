@@ -75,10 +75,17 @@ def invlists(max_items=1000):
     return lists
 
 
-def invlists2(max_length=255):
+def invlists2(max_length=255, source='inventory'):
     inventory = OrderedDict()
 
-    for id_, amount in mapserv.player_inventory.values():
+    if source == 'inventory':
+        source = mapserv.player_inventory
+    elif source == 'storage':
+        source = mapserv.player_storage
+    else:
+        return []
+
+    for id_, amount in source.values():
         inventory[id_] = inventory.setdefault(id_, 0) + amount
 
     lists = []

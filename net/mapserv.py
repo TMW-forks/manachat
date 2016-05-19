@@ -6,7 +6,8 @@ from common import *
 from utils import *
 from being import BeingsCache
 from item import FloorItem
-from inventory import add_to_inventory, remove_from_inventory
+from inventory import (add_to_inventory, remove_from_inventory,
+                       add_to_storage, remove_from_storage)
 from trade import reset_trade_state
 from loggers import netlog
 
@@ -19,6 +20,7 @@ player_pos = {'map': 'unknown', 'x': 0, 'y': 0, 'dir': 0}
 tick = 0
 last_whisper = {'to': '', 'msg': ''}
 player_inventory = {}
+player_storage = {}
 player_stats = {}
 player_skills = {}
 player_money = 0
@@ -409,6 +411,43 @@ def smsg_player_skill_up(data):
     player_skills.setdefault(data.id, data.level)
 
 
+@extendable
+def smsg_storage_status(data):
+    netlog.info("SMSG_STORAGE_STATUS used={} max_size={}".format(
+        data.used, data.max_size))
+
+
+@extendable
+def smsg_storage_add(data):
+    netlog.info("SMSG_STORAGE_ADD {}".format(data))
+    add_to_storage(data.index, data.id, data.amount)
+
+
+@extendable
+def smsg_storage_remove(data):
+    netlog.info("SMSG_STORAGE_REMOVE {}".format(data))
+    remove_from_storage(data.index, data.amount)
+
+
+@extendable
+def smsg_storage_close(data):
+    netlog.info("SMSG_STORAGE_CLOSE")
+
+
+@extendable
+def smsg_storage_equip(data):
+    netlog.info("SMSG_STORAGE_EQUIP {}".format(data))
+    for item in data.items:
+        player_storage[item.index] = (item.id, 1)
+
+
+@extendable
+def smsg_storage_items(data):
+    netlog.info("SMSG_STORAGE_ITEMS {}".format(data))
+    for item in data.items:
+        player_storage[item.index] = (item.id, item.amount)
+
+
 # --------------------------------------------------------------------
 protodef = {
     0x8000 : (smsg_ignore, Field("data", 2)),      # ignore
@@ -790,6 +829,40 @@ protodef = {
                                   Padding(4),
                                   ULInt16("type"),
                                   ULInt32("id"))))),
+    0x00f2 : (smsg_storage_status,
+              Struct("data",
+                     ULInt16("used"),
+                     ULInt16("max_size"))),
+    0x00f4 : (smsg_storage_add,
+              Struct("data",
+                     ULInt16("index"),
+                     ULInt32("amount"),
+                     ULInt16("id"),
+                     Padding(11))),
+    0x00f6 : (smsg_storage_remove,
+              Struct("data",
+                     ULInt16("index"),
+                     ULInt32("amount"))),
+    0x00f8 : (smsg_storage_close,
+              Struct("data")),        # ?????
+    0x00a6 : (smsg_storage_equip,
+              Struct("data",
+                     ULInt16("length"),
+                     Array(lambda ctx: (ctx.length - 4) / 20,
+                           Struct("items",
+                                  ULInt16("index"),
+                                  ULInt16("id"),
+                                  Padding(6))))),
+    0x01f0 : (smsg_storage_items,
+              Struct("data",
+                     ULInt16("length"),
+                     Array(lambda ctx: (ctx.length - 4) / 20,
+                           Struct("items",
+                                  ULInt16("index"),
+                                  ULInt16("id"),
+                                  Padding(2),
+                                  ULInt16("amount"),
+                                  Padding(10))))),
 }
 
 
@@ -1068,6 +1141,28 @@ def cmsg_skill_levelup_request(skillId):
     netlog.info("CMSG_SKILL_LEVELUP_REQUEST skillId={}".format(skillId))
     send_packet(server, CMSG_SKILL_LEVELUP_REQUEST,
                 (ULInt16("id"), skillId))
+
+
+# ------------------- STORAGE -------------------------------
+def cmsg_move_to_storage(index, amount):
+    netlog.info("CMSG_MOVE_TO_STORAGE index={} amount={}".format(
+        index, amount))
+    send_packet(server, CMSG_MOVE_TO_STORAGE,
+                (ULInt16("index"), index),
+                (ULInt32("amount"), amount))
+
+
+def cmsg_move_from_storage():
+    netlog.info("CMSG_MOVE_FROM_STORAGE index={} amount={}".format(
+        index, amount))
+    send_packet(server, CMSG_MOVE_FROM_STORAGE,
+                (ULInt16("index"), index),
+                (ULInt32("amount"), amount))
+
+
+def cmsg_storage_close():
+    netlog.info("CMSG_CLOSE_STORAGE")
+    ULInt16("opcode").build_stream(CMSG_CLOSE_STORAGE, server)
 
 
 # --------------------------------------------------------------------

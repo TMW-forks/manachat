@@ -437,14 +437,14 @@ def smsg_storage_close(data):
 @extendable
 def smsg_storage_equip(data):
     netlog.info("SMSG_STORAGE_EQUIP {}".format(data))
-    for item in data.items:
+    for item in data.equipment:
         player_storage[item.index] = (item.id, 1)
 
 
 @extendable
 def smsg_storage_items(data):
     netlog.info("SMSG_STORAGE_ITEMS {}".format(data))
-    for item in data.items:
+    for item in data.storage:
         player_storage[item.index] = (item.id, item.amount)
 
 
@@ -849,15 +849,15 @@ protodef = {
               Struct("data",
                      ULInt16("length"),
                      Array(lambda ctx: (ctx.length - 4) / 20,
-                           Struct("items",
+                           Struct("equipment",
                                   ULInt16("index"),
                                   ULInt16("id"),
-                                  Padding(6))))),
+                                  Padding(16))))),
     0x01f0 : (smsg_storage_items,
               Struct("data",
                      ULInt16("length"),
-                     Array(lambda ctx: (ctx.length - 4) / 20,
-                           Struct("items",
+                     Array(lambda ctx: (ctx.length - 4) / 18,
+                           Struct("storage",
                                   ULInt16("index"),
                                   ULInt16("id"),
                                   Padding(2),
@@ -1152,7 +1152,7 @@ def cmsg_move_to_storage(index, amount):
                 (ULInt32("amount"), amount))
 
 
-def cmsg_move_from_storage():
+def cmsg_move_from_storage(index, amount):
     netlog.info("CMSG_MOVE_FROM_STORAGE index={} amount={}".format(
         index, amount))
     send_packet(server, CMSG_MOVE_FROM_STORAGE,

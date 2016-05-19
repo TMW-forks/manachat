@@ -6,7 +6,8 @@ import walkto
 import logicmanager
 import status
 import plugins
-from net.inventory import get_item_index
+from collections import deque
+from net.inventory import get_item_index, get_storage_index
 from utils import extends
 from actor import find_nearest_being
 from chat import send_whisper as whisper
@@ -33,12 +34,15 @@ _times = {
     'inventory' : 0,
     'say' : 0,
     'zeny' : 0,
+    'storage' : 0,
 }
 
 admins = ['Trav', 'Travolta', 'Komornyik']
 allowed_drops = [535, 719, 513, 727, 729, 869]
 
 npc_owner = ''
+history = deque(maxlen=10)
+storage_is_open = False
 
 
 def set_npc_owner(nick):
@@ -97,6 +101,36 @@ def npc_input(data):
         t = 'string'
 
     whisper(npc_owner, '[npc][input] (use !input <{}>)'.format(t))
+
+
+@extends('smsg_storage_status')
+def storage_status(data):
+    print 'storage_status'
+    global storage_is_open
+    storage_is_open = True
+    _times['storage'] = time.time()
+    if npc_owner:
+        whisper(npc_owner, '[storage]')
+
+
+@extends('smsg_storage_items')
+@extends('smsg_storage_equip')
+def storage_items(data):
+    if not npc_owner:
+        return
+
+    ls = status.invlists2(max_length=255, source='storage')
+
+    for l in ls:
+        whisper(npc_owner, l)
+
+
+@extends('smsg_storage_close')
+def storage_close(data):
+    print 'smsg_storage_close'
+    global storage_is_open
+    storage_is_open = False
+    _times['storage'] = 0
 
 
 def cmd_where(nick, message, is_whisper, match):
@@ -340,7 +374,54 @@ def cmd_close(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    plugins.npc.cmd_npcclose()
+    if storage_is_open:
+        reset_storage()
+    else:
+        plugins.npc.cmd_npcclose()
+
+
+def cmd_history(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    for user, cmd in history:
+        whisper(nick, '{} : {}'.format(user, cmd))
+
+
+def cmd_store(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    if not storage_is_open:
+        return
+
+    try:
+        amount = int(match.group(1))
+        item_id = int(match.group(2))
+    except ValueError:
+        return
+
+    index = get_item_index(item_id)
+    if index > 0:
+        mapserv.cmsg_move_to_storage(index, amount)
+
+
+def cmd_retrieve(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    if not storage_is_open:
+        return
+
+    try:
+        amount = int(match.group(1))
+        item_id = int(match.group(2))
+    except ValueError:
+        return
+
+    index = get_storage_index(item_id)
+    if index > 0:
+        mapserv.cmsg_move_from_storage(index, amount)
 
 
 def cmd_help(nick, message, is_whisper, match):
@@ -369,6 +450,11 @@ def cmd_commands(nick, message, is_whisper, match):
     whisper(nick, ', '.join(c))
 
 
+def reset_storage():
+    mapserv.cmsg_storage_close()
+    mapserv.cmsg_npc_list_choice(plugins.npc.npc_id, 6)
+
+
 # =========================================================================
 def manaboy_logic(ts):
 
@@ -376,12 +462,16 @@ def manaboy_logic(ts):
         global npc_owner
         npc_owner = ''
         npcdialog['start_time'] = -1
-        plugins.npc.cmd_npcclose()
+        plugins.npc.cmd_npcinput('', '6')
+        # plugins.npc.cmd_npcclose()
+
+    if storage_is_open and ts > _times['storage'] + 150:
+        reset_storage()
 
     if npcdialog['start_time'] <= 0:
         return
 
-    if ts > npcdialog['start_time'] + 30.0:
+    if not storage_is_open and ts > npcdialog['start_time'] + 30.0:
         reset()
 
 
@@ -409,13 +499,29 @@ manaboy_commands = {
     '!talk2npc (\w+)' : cmd_talk2npc,
     '!input (.+)' : cmd_input,
     '!close' : cmd_close,
+    '!store (\d+) (\d+)' : cmd_store,
+    '!retrieve (\d+) (\d+)' : cmd_retrieve,
     '!(help|info)' : cmd_help,
     '!commands' : cmd_commands,
+    '!history' : cmd_history,
 }
+
+
+def chatbot_answer_mod(func):
+    '''modifies chatbot.answer to remember last 10 commands'''
+
+    def mb_answer(nick, message, is_whisper):
+        if is_whisper:
+            history.append((nick, message))
+        return func(nick, message, is_whisper)
+
+    return mb_answer
 
 
 def init(config):
     for cmd, action in manaboy_commands.items():
         plugins.chatbot.add_command(cmd, action)
+
+    plugins.chatbot.answer = chatbot_answer_mod(plugins.chatbot.answer)
 
     logicmanager.logic_manager.add_logic(manaboy_logic)

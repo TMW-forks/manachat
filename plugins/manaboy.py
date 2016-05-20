@@ -43,6 +43,7 @@ allowed_drops = [535, 719, 513, 727, 729, 869]
 npc_owner = ''
 history = deque(maxlen=10)
 storage_is_open = False
+bugs = deque(maxlen=100)
 
 
 def set_npc_owner(nick):
@@ -345,7 +346,7 @@ def cmd_talk2npc(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    npc_s = match.group(1)
+    npc_s = match.group(1).strip()
     jobs = []
     name = ''
     try:
@@ -355,6 +356,7 @@ def cmd_talk2npc(nick, message, is_whisper, match):
 
     b = find_nearest_being(name=name, type='npc', allowed_jobs=jobs)
     if b is None:
+        whisper(nick, '[error] NPC not found: {}'.format(npc_s))
         return
 
     set_npc_owner(nick)
@@ -450,6 +452,26 @@ def cmd_commands(nick, message, is_whisper, match):
     whisper(nick, ', '.join(c))
 
 
+def cmd_report_bug(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    bug_s = match.group(1)
+    bugs.append((nick, bug_s))
+    whisper(nick, 'Thank you for your bug report')
+
+
+def cmd_check_bugs(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    if nick not in admins:
+        return
+
+    for user, bug in bugs:
+        whisper(nick, '{} : {}'.format(user, bug))
+
+
 def reset_storage():
     mapserv.cmsg_storage_close()
     mapserv.cmsg_npc_list_choice(plugins.npc.npc_id, 6)
@@ -496,7 +518,7 @@ manaboy_commands = {
     '!invlist' : cmd_invlist,
     '!status' : cmd_status,
     '!zeny' : cmd_zeny,
-    '!talk2npc (\w+)' : cmd_talk2npc,
+    '!talk2npc (.+)' : cmd_talk2npc,
     '!input (.+)' : cmd_input,
     '!close' : cmd_close,
     '!store (\d+) (\d+)' : cmd_store,
@@ -504,6 +526,8 @@ manaboy_commands = {
     '!(help|info)' : cmd_help,
     '!commands' : cmd_commands,
     '!history' : cmd_history,
+    '!bug (.+)' : cmd_report_bug,
+    '!bugs' : cmd_check_bugs,
 }
 
 

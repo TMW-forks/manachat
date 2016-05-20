@@ -1,6 +1,7 @@
 import time
 import net.mapserv as mapserv
 import net.charserv as charserv
+import net.stats as stats
 import commands
 import walkto
 import logicmanager
@@ -39,6 +40,7 @@ _times = {
 
 admins = ['Trav', 'Travolta', 'Komornyik']
 allowed_drops = [535, 719, 513, 727, 729, 869]
+allowed_sells = [531, 521, 522, 700, 1201]
 
 npc_owner = ''
 history = deque(maxlen=10)
@@ -339,7 +341,7 @@ def cmd_zeny(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    whisper(nick, 'I have {} GP'.format(mapserv.player_money))
+    whisper(nick, 'I have {} GP'.format(mapserv.player_stats[stats.MONEY]))
 
 
 def cmd_talk2npc(nick, message, is_whisper, match):
@@ -426,6 +428,39 @@ def cmd_retrieve(nick, message, is_whisper, match):
         mapserv.cmsg_move_from_storage(index, amount)
 
 
+def cmd_sell(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    try:
+        amount = int(match.group(1))
+        item_id = int(match.group(2))
+        npc_s = match.group(3).strip()
+    except ValueError:
+        return
+
+    if item_id not in allowed_sells:
+        return
+
+    index = get_item_index(item_id)
+    if index < 0:
+        return
+
+    jobs = []
+    name = ''
+    try:
+        jobs = [int(npc_s)]
+    except ValueError:
+        name = npc_s
+
+    b = find_nearest_being(name=name, type='npc', allowed_jobs=jobs)
+    if b is None:
+        return
+
+    mapserv.cmsg_npc_buy_sell_request(b.id, 1)
+    mapserv.cmsg_npc_sell_request(index, amount)
+
+
 def cmd_help(nick, message, is_whisper, match):
     if not is_whisper:
         return
@@ -470,6 +505,8 @@ def cmd_check_bugs(nick, message, is_whisper, match):
 
     for user, bug in bugs:
         whisper(nick, '{} : {}'.format(user, bug))
+
+    bugs.clear()
 
 
 def reset_storage():
@@ -523,6 +560,7 @@ manaboy_commands = {
     '!close' : cmd_close,
     '!store (\d+) (\d+)' : cmd_store,
     '!retrieve (\d+) (\d+)' : cmd_retrieve,
+    '!sell (\d+) (\d+) (.+)' : cmd_sell,
     '!(help|info)' : cmd_help,
     '!commands' : cmd_commands,
     '!history' : cmd_history,

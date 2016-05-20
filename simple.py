@@ -96,7 +96,7 @@ if __name__ == '__main__':
 
     if config.getboolean('Other', 'log_network_packets'):
         from loggers import netlog
-        netlog.setLevel(logging.DEBUG)
+        netlog.setLevel(logging.INFO)
         fh = logging.FileHandler('/tmp/netlog.txt', mode="w")
         fmt = logging.Formatter("[%(asctime)s] %(message)s",
                                 datefmt="%Y-%m-%d %H:%M:%S")

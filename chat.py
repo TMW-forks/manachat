@@ -1,3 +1,4 @@
+import time
 from collections import deque
 import net.mapserv as mapserv
 from loggers import debuglog
@@ -8,13 +9,22 @@ sent_whispers = deque()
 
 
 def send_whisper(nick, message):
-    sent_whispers.append((nick, message))
+    ts = time.time()
+    sent_whispers.append((nick, message, ts))
     mapserv.cmsg_chat_whisper(nick, message)
 
 
 @extends('smsg_whisper_response')
 def send_whisper_result(data):
-    nick, msg = sent_whispers.popleft()
+    now = time.time()
+    while True:
+        try:
+            nick, msg, ts = sent_whispers.popleft()
+        except IndexError:
+            return
+        if now - ts < 0.7:
+            break
+
     if data.code == 0:
         m = "[-> {}] {}".format(nick, pp(msg))
         debuglog.info(m)

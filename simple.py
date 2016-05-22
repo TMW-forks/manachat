@@ -10,6 +10,7 @@ import thread
 import struct
 import fcntl
 import termios
+from collections import deque
 from ConfigParser import ConfigParser
 
 try:
@@ -27,17 +28,17 @@ from itemdb import load_itemdb
 from monsterdb import read_monster_db
 from loggers import debuglog
 import commands
-from textutils import preprocess as pp
 from logicmanager import logic_manager
 
 
 PROMPT = '] '
+input_buffer = deque()
 
 
 def input_thread():
     while True:
         s = raw_input(PROMPT)
-        commands.process_line(s)
+        input_buffer.append(s)
 
 
 class DebugLogHandler(logging.Handler):
@@ -118,6 +119,11 @@ if __name__ == '__main__':
 
     try:
         while True:
+            if len(input_buffer) > 0:
+                for l in input_buffer:
+                    commands.process_line(l)
+                input_buffer.clear()
+
             asyncore.loop(timeout=0.2, count=5)
             logic_manager.tick()
     except KeyboardInterrupt:

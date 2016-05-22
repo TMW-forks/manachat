@@ -20,13 +20,15 @@ class SocketWrapper(asyncore.dispatcher_with_send):
     """
     socket wrapper with file-like read() and write() methods
     """
-    def __init__(self, host=None, port=0, buffer_size=1500, protodef={}):
+    def __init__(self, host=None, port=0, buffer_size=1500,
+                 protodef={}, onclose=None):
         asyncore.dispatcher_with_send.__init__(self)
         self.buffer_size = buffer_size
         self.read_buffer = ''
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.protodef = protodef
         self.raw = False
+        self.onclose = onclose
         if protodef == {}:
             netlog.warning("protodef is empty")
         if host is not None:
@@ -39,6 +41,17 @@ class SocketWrapper(asyncore.dispatcher_with_send):
             return
         while len(self.read_buffer) > 0:
             dispatch(self, self.protodef)
+
+    def handle_expt(self):
+        return
+
+    def handle_error(self):
+        self.handle_close()
+
+    def handle_close(self):
+        self.close()
+        if self.onclose is not None:
+            self.onclose()
 
     def read(self, n=-1):
         data = ''

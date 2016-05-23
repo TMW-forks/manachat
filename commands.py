@@ -195,12 +195,9 @@ def show_zeny(*unused):
 def print_beings(cmd, btype):
     '''Show nearby beings
 /beings -- show all beings
-/beings player|npc|portal --show only given being type'''
-    for being in mapserv.beings_cache.itervalues():
-        if btype and being.type != btype:
-            continue
-        debuglog.info("id: %d | type: %s | pos: (%d, %d) | name: %s",
-                      being.id, being.type, being.x, being.y, being.name)
+/beings player|npc|portal|monster --show only given being type'''
+    for l in status.nearby(btype):
+        debuglog.info(l)
 
 
 def player_position(*unused):

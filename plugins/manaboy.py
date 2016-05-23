@@ -348,11 +348,12 @@ def cmd_nearby(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    btype = match.group(2)
+    btype = match.group(1)
     if btype.endswith('s'):
         btype = btype[:-1]
 
-    for l in status.nearby(btype):
+    ls = status.nearby(btype)
+    for l in ls:
         whisper(nick, l)
 
 
@@ -567,7 +568,7 @@ manaboy_commands = {
     '!invlist' : cmd_invlist,
     '!status' : cmd_status,
     '!zeny' : cmd_zeny,
-    '!nearby( (\w+))?' : cmd_nearby,
+    '!nearby (\w+)' : cmd_nearby,
     '!talk2npc (.+)' : cmd_talk2npc,
     '!input (.+)' : cmd_input,
     '!close' : cmd_close,

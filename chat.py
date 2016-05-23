@@ -22,7 +22,7 @@ def send_whisper_result(data):
             nick, msg, ts = sent_whispers.popleft()
         except IndexError:
             return
-        if now - ts < 0.7:
+        if now - ts < 1.0:
             break
 
     if data.code == 0:

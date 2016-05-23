@@ -50,8 +50,8 @@ bugs = deque(maxlen=100)
 
 def set_npc_owner(nick):
     global npc_owner
-    if plugins.npc.npc_id < 0:
-        npc_owner = nick
+    # if plugins.npc.npc_id < 0:
+    npc_owner = nick
 
 
 @extends('smsg_being_remove')

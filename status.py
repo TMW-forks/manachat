@@ -109,3 +109,66 @@ def player_position():
     s = "Map: {} ({}), coor: {}, {}".format(
         map_name, pp['map'], pp['x'], pp['y'])
     return s
+
+
+def split_names(names, origin=[''], maxlen=255, separator=', '):
+    if len(origin) < 1:
+        origin = ['']
+
+    for n in names:
+        ns = n + separator
+        if len(origin[-1] + ns) > maxlen:
+            origin.append(ns)
+        else:
+            origin[-1] += ns
+
+    origin[-1] = origin[-1][:-len(separator)]
+
+    return origin
+
+
+def nearby(btype=''):
+    nearby_beings = {'player': {}, 'npc': {}, 'monster': {}, 'portal': []}
+    for being in mapserv.beings_cache.itervalues():
+        if btype and being.type != btype:
+            continue
+
+        if being.type == 'portal':
+            nearby_beings['portal'].append((being.x, being.y))
+            continue
+
+        if being.name in nearby_beings[being.type]:
+            nearby_beings[being.type][being.name] += 1
+        else:
+            nearby_beings[being.type][being.name] = 1
+
+    del_types = []
+    for t in nearby_beings:
+        if not nearby_beings[t]:
+            del_types.append(t)
+    for t in del_types:
+        del nearby_beings[t]
+
+    lines = []
+    for bt in ('monster', 'player', 'npc'):
+        if bt not in nearby_beings:
+            continue
+        lines.append(bt + 's : ')
+        names_s = []
+        for bname in sorted(nearby_beings[bt].iterkeys()):
+            if nearby_beings[bt][bname] > 1:
+                names_s.append('{} ({})'.format(bname,
+                                                nearby_beings[bt][bname]))
+            else:
+                names_s.append(bname)
+
+        lines = split_names(names_s, lines)
+
+    if 'portal' in nearby_beings:
+        lines.append('portals : ')
+        coor_s = []
+        for cx, cy in nearby_beings['portal']:
+            coor_s.append('({},{})'.format(cx, cy))
+        lines = split_names(coor_s, lines)
+
+    return lines

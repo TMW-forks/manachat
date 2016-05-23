@@ -344,6 +344,18 @@ def cmd_zeny(nick, message, is_whisper, match):
     whisper(nick, 'I have {} GP'.format(mapserv.player_stats[stats.MONEY]))
 
 
+def cmd_nearby(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    btype = match.group(2)
+    if btype.endswith('s'):
+        btype = btype[:-1]
+
+    for l in status.nearby(btype):
+        whisper(nick, l)
+
+
 def cmd_talk2npc(nick, message, is_whisper, match):
     if not is_whisper:
         return
@@ -555,6 +567,7 @@ manaboy_commands = {
     '!invlist' : cmd_invlist,
     '!status' : cmd_status,
     '!zeny' : cmd_zeny,
+    '!nearby( (\w+))?' : cmd_nearby,
     '!talk2npc (.+)' : cmd_talk2npc,
     '!input (.+)' : cmd_input,
     '!close' : cmd_close,

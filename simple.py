@@ -4,6 +4,7 @@
 
 import asyncore
 import logging
+import os
 import sys
 import readline
 import thread
@@ -92,8 +93,12 @@ if __name__ == '__main__':
     debuglog.addHandler(dbgh)
     debuglog.setLevel(logging.INFO)
 
+    config_ini = 'manachat.ini'
+    if len(sys.argv) > 1:
+        if sys.argv[1].endswith('.ini') and os.path.isfile(sys.argv[1]):
+            config_ini = sys.argv[1]
     config = ConfigParser()
-    config.read('manachat.ini')
+    config.read(config_ini)
 
     if config.getboolean('Other', 'log_network_packets'):
         from loggers import netlog

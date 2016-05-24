@@ -113,7 +113,8 @@ def storage_status(data):
     storage_is_open = True
     _times['storage'] = time.time()
     if npc_owner:
-        whisper(npc_owner, '[storage]')
+        whisper(npc_owner, '[storage][{}/{}]'.format(
+            data.used, data.max_size))
 
 
 @extends('smsg_storage_items')
@@ -348,7 +349,7 @@ def cmd_nearby(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    btype = match.group(1)
+    btype = message[8:]
     if btype.endswith('s'):
         btype = btype[:-1]
 
@@ -568,7 +569,7 @@ manaboy_commands = {
     '!invlist' : cmd_invlist,
     '!status' : cmd_status,
     '!zeny' : cmd_zeny,
-    '!nearby (\w+)' : cmd_nearby,
+    '!nearby' : cmd_nearby,
     '!talk2npc (.+)' : cmd_talk2npc,
     '!input (.+)' : cmd_input,
     '!close' : cmd_close,

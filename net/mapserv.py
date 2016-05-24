@@ -1,4 +1,5 @@
 
+import time
 from construct import *
 from construct.protocols.layer3.ipv4 import IpAddress
 from protocol import *
@@ -1166,11 +1167,24 @@ def cmsg_storage_close():
 
 
 # --------------------------------------------------------------------
+
+last_ping_ts = 0
+
+
 def connect(host, port):
+
+    def ping_logic(ts):
+        global last_ping_ts
+        if ts > last_ping_ts + 15:
+            last_ping_ts = time.time()
+            cmsg_map_server_ping()
+
     global server, beings_cache
     beings_cache = BeingsCache(cmsg_name_request)
     server = SocketWrapper(host=host, port=port, protodef=protodef)
-    timers.append(Schedule(10, 15, cmsg_map_server_ping))
+
+    import logicmanager
+    logicmanager.logic_manager.add_logic(ping_logic)
 
 
 def cleanup():

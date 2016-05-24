@@ -137,7 +137,9 @@ def nearby(btype=''):
             nearby_beings['portal'].append((being.x, being.y))
             continue
 
-        if being.name in nearby_beings[being.type]:
+        if being.type == 'npc' and len(being.name) < 1:
+            nearby_beings[being.type][str(being.job)] = 1
+        elif being.name in nearby_beings[being.type]:
             nearby_beings[being.type][being.name] += 1
         else:
             nearby_beings[being.type][being.name] = 1
@@ -156,9 +158,9 @@ def nearby(btype=''):
         lines.append(bt + 's : ')
         names_s = []
         for bname in sorted(nearby_beings[bt].iterkeys()):
-            if nearby_beings[bt][bname] > 1:
-                names_s.append('{} ({})'.format(bname,
-                                                nearby_beings[bt][bname]))
+            count = nearby_beings[bt][bname]
+            if count > 1:
+                names_s.append('{} ({})'.format(bname, count))
             else:
                 names_s.append(bname)
 

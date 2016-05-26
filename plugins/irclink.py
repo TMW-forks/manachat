@@ -1,5 +1,6 @@
 # TMWA <> IRC bridge
 
+import sys
 import irc.bot
 import thread
 import logging
@@ -8,8 +9,8 @@ import time
 import re
 from logicmanager import logic_manager
 from utils import extends
-from Queue import Queue
-from textutils import preprocess as pp
+from collections import deque
+from textutils import (preprocess, simplify_links, manaplus_to_mIRC, remove_formatting, replace_emotes)
 import net
 from net.onlineusers import OnlineUsers
 import net.mapserv as mapserv
@@ -27,7 +28,7 @@ PLUGIN = {
 irc_bridge = None # irc interface
 whisper_players = set() # players to send whispers to
 database = {"game": {}, "irc": {}} # database specific to the irc bridge (ignores, ...)
-send_queue = Queue(maxsize=0) # whispers waiting to be sent #FIXME: maybe use deque instead?
+send_queue = deque() # whispers waiting to be sent
 is_sending = 0 # is the queue being processed right now?
 tmwa_is_ready = False # is the tmwa interface connected and ready to use?
 config = ''
@@ -35,6 +36,8 @@ irclog = logging.getLogger('ManaChat.IRC')
 ircbot_commands = {}
 is_quiet = False # if True, don't send notifications
 follow_player = '' # should the bot follow player X ?
+suicide = False # did the bot commit seppuku?
+online_users = '' # online list thread
 
 class IRCBot(irc.bot.SingleServerIRCBot):
     def __init__(self, channel, nickname, realname, server, port, password, areachannel):
@@ -55,7 +58,7 @@ class IRCBot(irc.bot.SingleServerIRCBot):
         if self.is_dead == 1 and is_quiet is not True:
             self.connection.privmsg(self.channel, "** The IRC link is back.".decode('utf-8', 'replace'))
             for player in whisper_players:
-                send_queue.put((player, "=> IRC link is back."))
+                send_queue.append((player, "=> IRC link is back."))
         if (len(self.areachannel) > 1):
             c.join(self.areachannel)
             if self.is_dead == 1 and is_quiet is not True:
@@ -64,20 +67,16 @@ class IRCBot(irc.bot.SingleServerIRCBot):
         database["irc_last_connected"] = int(time.time())
 
     def on_disconnect(self, *_):
-        global send_queue, whisper_players
+        global send_queue, whisper_players, suicide
+        if suicide is True:
+            return
         self.is_dead = 1
         for player in whisper_players:
-            send_queue.put((player, "=> IRC link died. Trying to reconnect..."))
+            send_queue.append((player, "=> IRC link died. Trying to reconnect..."))
         self.connection.reconnect()
 
     def whisper_to_irc(self, nick, msg):
         if self.connection.connected == 0:
-            return
-        msg = msg.strip(' \t\n\r')
-        if msg.startswith('\302\202'):
-            # manaplus special commands # FIXME: handle talkpet https://git.io/vrGyL
-            return
-        if len(msg) < 1:
             return
         self.connection.privmsg(self.channel, "[ {} ] {}".format(nick, msg).decode('utf-8', 'replace'))
 
@@ -86,51 +85,59 @@ class IRCBot(irc.bot.SingleServerIRCBot):
             return
         if (len(self.areachannel) < 1):
             return
-        msg = msg.strip(' \t\n\r')
-        if msg.startswith('\302\202'):
-            # manaplus special commands # FIXME: implement talkpet https://git.io/vrGyL
-            return
-        if len(msg) < 1:
-            return
         self.connection.privmsg(self.areachannel, "[ {} ] {}".format(nick, msg).decode('utf-8', 'replace'))
 
-    def on_pubmsg(self, c, e):
+    def on_pubmsg(self, c, e, action=False):
         global database, whisper_players
         msg = e.arguments[0].encode('utf-8', 'replace')
+        if action is True:
+            msg = "*{}*".format(msg)
         nick = e.source.nick
         if nick in database["irc"]:
             if 2 in database["irc"][nick]:
                 return # player is ignored
         if e.target == self.channel:
             for player in whisper_players:
-                send_queue.put((player, "[IRC] {}: {}".format(nick, msg)))
+                send_queue.append((player, "[IRC] {}: {}".format(nick, msg)))
             send_next(0) # don't wait
         elif e.target == self.areachannel:
             mapserv.cmsg_chat_message("{}: {}".format(nick, msg))
 
     def on_action(self, c, e):
-        e.arguments[0] = "*{}*".format(e.arguments[0].encode('utf-8', 'replace'))
-        self.on_pubmsg(c, e)
+        self.on_pubmsg(c, e, True)
 
     def on_privmsg(self, c, e):
         c.notice(e.source.nick, "I do not have IRC commands support yet. Please use in-game commands.")
 
 def send_next(ts, force=False):
     global is_sending, send_queue, tmwa_is_ready, irclog
-    if send_queue.empty() == True or tmwa_is_ready != 1:
+    if len(send_queue) < 1 or tmwa_is_ready != 1:
         return
     if is_sending != 0 and (int(time.time()) - is_sending) < 8 and force != True:
         return
     is_sending = int(time.time())
-    player, msg = send_queue.get()
+    player, msg = send_queue.popleft()
     if (len(player) < 1) or (len(msg) < 1):
-        send_queue.task_done()
-        if (send_queue.empty() == True):
-            is_sending = 0 # unblock
-            return
-        send_next(0, True)
+        if (len(send_queue) < 1):
+            is_sending = 0 # queue is empty, so unblock
+        else:
+            send_next(0, True)
     else:
         mapserv.cmsg_chat_whisper(player, msg)
+
+@extends('smsg_whisper_response')
+def send_whisper_result(data):
+    global is_sending, send_queue, whisper_players
+    if is_sending == 0:
+        return
+    last_nick = mapserv.last_whisper['to']
+    if data.code != 0:
+        whisper_players.discard(last_nick)
+
+    if (len(send_queue) < 1):
+        is_sending = 0 # queue is empty, so unblock
+    else:
+        send_next(0, True) # process next whisper in queue
 
 @extends('smsg_map_login_success')
 def map_login_success(data):
@@ -139,24 +146,44 @@ def map_login_success(data):
         is_sending = 0
         if is_quiet is not True:
             if irc_bridge.connection.connected:
-                irc_bridge.connection.privmsg(irc_bridge.channel, "** TMWA link is back.".decode('utf-8', 'replace'))
+                irc_bridge.connection.notice(irc_bridge.channel, "** TMWA link is back.".decode('utf-8', 'replace'))
                 if len(irc_bridge.areachannel) > 1:
-                    irc_bridge.connection.privmsg(irc_bridge.areachannel, "** TMWA link is back.".decode('utf-8', 'replace'))
+                    irc_bridge.connection.notice(irc_bridge.areachannel, "** TMWA link is back.".decode('utf-8', 'replace'))
             for player in whisper_players:
-                send_queue.put((player, "=> TMWA link is back."))
+                send_queue.append((player, "=> TMWA link is back."))
     tmwa_is_ready = 1
     database["game_last_connected"] = int(time.time())
 
+def seppuku():
+    global suicide, irc_bridge, online_users, irclog
+    irclog.warning("Committing seppuku...")
+    suicide = True
+    irc_bridge.die()
+    online_users.stop()
+    mapserv.cleanup()
+    sys.exit(0)
+
 @extends('on_close')
 def on_close():
-    global tmwa_is_ready, irc_bridge, config, is_quiet
+    global tmwa_is_ready, irc_bridge, config, is_quiet, suicide
+    if suicide is True:
+        irclog.warning("I'm dead already")
+        return
+    if tmwa_is_ready == 2:
+        if irc_bridge.connection.connected:
+            irc_bridge.connection.notice(irc_bridge.channel, "** TMWA server unreachable. Committing seppuku...".decode('utf-8', 'replace'))
+            if len(irc_bridge.areachannel) > 1:
+                irc_bridge.connection.notice(irc_bridge.areachannel, "** TMWA server unreachable. Committing seppuku...".decode('utf-8', 'replace'))
+        seppuku()
+        return
+
     tmwa_is_ready = 2
     if irc_bridge.connection.connected and int(time.time()) - irc_bridge.tmwa_last_died > 30 and int(time.time()) - database["last_started"] > 30:
         irc_bridge.tmwa_last_died = int(time.time())
         if is_quiet is not True:
-            irc_bridge.connection.privmsg(irc_bridge.channel, "** TMWA link died. Trying to reconnect...".decode('utf-8', 'replace'))
+            irc_bridge.connection.notice(irc_bridge.channel, "** TMWA link died. Trying to reconnect in 5s...".decode('utf-8', 'replace'))
             if len(irc_bridge.areachannel) > 1:
-                irc_bridge.connection.privmsg(irc_bridge.areachannel, "** TMWA link died. Trying to reconnect...".decode('utf-8', 'replace'))
+                irc_bridge.connection.notice(irc_bridge.areachannel, "** TMWA link died. Trying to reconnect in 5s...".decode('utf-8', 'replace'))
     time.sleep(5)
     net.login(host=config.get('Server', 'host'),
               port=config.getint('Server', 'port'),
@@ -168,8 +195,14 @@ def on_close():
 def being_chat(data):
     global irc_bridge, config
     s = data.message.split(" : ", 1)
-    nick, message = s[0].strip(), pp(s[1])
+    nick, message = s[0].strip(), preprocess(s[1].strip(' \t\n\r'))
     if (nick == config.get('Player', 'charname') and ": " in message) or (nick == "Server"):
+        return
+
+    if message.startswith('\302\202'):
+        # manaplus special commands # FIXME: handle talkpet https://git.io/vrGyL
+        return
+    if len(message) < 1:
         return
     irc_bridge.area_to_irc(nick, message)
 
@@ -180,7 +213,14 @@ def player_chat(data):
 @extends('smsg_whisper')
 def got_whisper(data):
     global database, send_queue, whisper_players, irc_bridge, ircbot_commands
-    nick, message = data.nick, pp(data.message)
+    nick, message = data.nick, data.message.strip(' \t\n\r')
+
+    if message.startswith('\302\202'):
+        # manaplus special commands # FIXME: handle talkpet https://git.io/vrGyL
+        # actually, are these ever sent via whisper?
+        return
+    if len(message) < 1:
+        return
 
     if (message.startswith("*AFK*")):
         return
@@ -191,32 +231,34 @@ def got_whisper(data):
             if match:
                 if action[1] is True:
                     if nick not in database["game"]:
-                        send_queue.put((nick, "=> I do not recognize you as an admin."))
+                        send_queue.append((nick, "=> I do not recognize you as an admin."))
                         return
                     if 1 not in database["game"][nick]:
-                        send_queue.put((nick, "=> I do not recognize you as an admin."))
+                        send_queue.append((nick, "=> I do not recognize you as an admin."))
                         return
                 action[0](nick, message, match)
                 return
-        send_queue.put((nick, "=> Command not found. Type !commands to get a list."))
+        send_queue.append((nick, "=> Command not found. Type !list to see available commands."))
         return
+
+    message = preprocess(message) # only pre-process if not a command
 
     if nick not in whisper_players:
         whisper_players.add(nick)
         if nick in database["game"]:
             if 0 in database["game"][nick]:
-                send_queue.put((nick, "=> Welcome back. You have been automatically added to the send queue. Type !help for info."))
+                send_queue.append((nick, "=> Welcome back. You have been automatically added to the send queue. Type !help for info."))
         else:
-            send_queue.put((nick, "=> You have been added to the send queue for this session only. You might want to !register. Type !help for info."))
+            send_queue.append((nick, "=> You have been added to the send queue for this session only. You might want to !register. Type !help for info."))
 
     if nick in database["game"]:
         if 2 in database["game"][nick]:
-            send_queue.put((nick, "=> Your message could not be sent. You are in the ignore list."))
+            send_queue.append((nick, "=> Your message could not be sent. You are in the ignore list."))
             return
 
     for player in whisper_players:
         if nick != player:
-            send_queue.put((player, "{}: {}".format(nick, data.message)))
+            send_queue.append((player, "{}: {}".format(nick, data.message)))
 
     send_next(0) # don't wait
 
@@ -241,15 +283,24 @@ def online_list_hook(users, u2):
         if player in database["game"]:
             if player not in whisper_players and 0 in database["game"][player]:
                 whisper_players.add(player)
-                if is_quiet is not True:
-                    send_queue.put((player, "=> Welcome back. You have been automatically added to the send queue. Type !help for info."))
+                #if is_quiet is not True:
+                #    send_queue.append((player, "=> Welcome back. You have been automatically added to the send queue. Type !help for info."))
+
+    #if len(users) > 0:
+    #    for player in whisper_players:
+    #        if player not in users:
+    #            # send notice on irc (player offline)
+    #            # send whisper to all (player offline)
 
 @extends('smsg_gm_chat')
 def gm_chat(data):
     global irc_bridge, is_quiet
     if is_quiet is True:
         return
-    irc_bridge.area_to_irc("GM", pp(data.message))
+    irc_bridge.area_to_irc("GM", preprocess("##1{}".format(data.message), (simplify_links,
+                                                                            manaplus_to_mIRC,
+                                                                            remove_formatting,
+                                                                            replace_emotes)))
 
 @extends('smsg_player_move')
 def player_move(data):
@@ -263,133 +314,154 @@ def player_move(data):
 @extends('smsg_being_remove')
 def bot_dies(data):
     if data.id == charserv.server.account:
-        mapserv.cmsg_player_respawn()
-
-@extends('smsg_whisper_response')
-def send_whisper_result(data):
-    global is_sending, send_queue, whisper_players
-    if is_sending == 0:
-        return
-    last_nick = mapserv.last_whisper['to']
-    if last_nick in whisper_players:
-        if data.code != 0:
-            whisper_players.discard(last_nick)
-
-    send_queue.task_done()
-    if (send_queue.empty() == True):
-        is_sending = 0 # queue is empty, so unblock
-        return
-
-    send_next(0, True) # process next whisper in queue
+        mapserv.cmsg_player_emote(7) # angel
+        #mapserv.cmsg_player_respawn()
 
 def cmd_help(nick, message, match):
     global send_queue, irc_bridge
-    send_queue.put((nick, "=> This is an IRC bot. If you register, you will be able to send and receive messages to/from the {} channel on IRC.".format(irc_bridge.channel)))
+    send_queue.append((nick, "=> This is an IRC bot. If you register, you will be able to send and receive messages to/from the {} channel on IRC.".format(irc_bridge.channel)))
     if (len(irc_bridge.areachannel) > 1):
-        send_queue.put((nick, "=> You can also join the {} channel on IRC to interact with players near the bot.".format(irc_bridge.areachannel)))
-    send_queue.put((nick, "=>"))
-    send_queue.put((nick, "=> -- Quick Commands --"))
-    send_queue.put((nick, "=> !register  =>  adds you to the send queue, and remembers it"))
-    send_queue.put((nick, "=> !remove  =>  removes you from the send queue"))
-    send_queue.put((nick, "=> !commands  =>  lists all commands"))
+        send_queue.append((nick, "=> You can also join the {} channel on IRC to interact with players near the bot.".format(irc_bridge.areachannel)))
+    send_queue.append((nick, "=>"))
+    send_queue.append((nick, "=> -- Quick Commands --"))
+    send_queue.append((nick, "=> !register  =>  adds you to the send queue, and remembers it"))
+    send_queue.append((nick, "=> !remove  =>  removes you from the send queue"))
+    send_queue.append((nick, "=> !commands  =>  lists all commands"))
 
 def cmd_register(nick, message, match):
     global whisper_players, send_queue, database
-    if nick not in whisper_players:
-        whisper_players.add(nick)
+    whisper_players.add(nick)
     if nick in database["game"]:
         if 0 in database["game"][nick]:
-            send_queue.put((nick, "=> You are already registered."))
+            send_queue.append((nick, "=> You are already registered."))
             return
         else:
             database["game"][nick].append(0)
     else:
         database["game"][nick] = [0]
-    send_queue.put((nick, "=> You are now registered. Type !remove to unregister."))
+    send_queue.append((nick, "=> You are now registered. Type !remove to unregister."))
 
 def cmd_remove(nick, message, match):
     global whisper_players, send_queue, database
-    if nick in whisper_players:
-        whisper_players.discard(nick)
-        if nick in database["game"]:
-            if 0 in database["game"][nick]:
-                database["game"][nick].remove(0)
-        send_queue.put((nick, "=> You are now unregistered and removed from the send queue."))
-        return
-    send_queue.put((nick, "=> You already aren't registered."))
+    whisper_players.discard(nick)
+    if nick in database["game"]:
+        if 0 in database["game"][nick]:
+            database["game"][nick].remove(0)
+            send_queue.append((nick, "=> You are now unregistered. You must explicitly send !register if you wish to re-register in the future."))
+    send_queue.append((nick, "=> You are now removed from the send queue. You may be temporarily added again if you talk through the bot while unregistered."))
 
 def cmd_list(nick, message, match):
-    global ircbot_commands, send_queue
+    global ircbot_commands, send_queue, database
     c = []
     for cmd in ircbot_commands:
+        if ircbot_commands[cmd][1] is True:
+            if nick not in database["game"]:
+                continue
+            if 1 not in database["game"][nick]:
+                continue
         if cmd.startswith('!('):
-            br = cmd.index(')')
-            c.extend(cmd[2:br].split('|'))
+            c.append(cmd[2:cmd.index('|')])
         elif cmd.startswith('!'):
-            c.append(cmd[1:].split()[0])
+            c.append(cmd[1:cmd.index('(')])
     c.sort()
-    send_queue.put((nick, ', '.join(c)))
+    send_queue.append((nick, "=> Commands: {}".format(', '.join(c))))
 
 def cmd_talk(nick, message, match):
-    mapserv.cmsg_chat_message(match.group(1))
+    global send_queue
+    msg = match.group("msg")
+    if msg is not None:
+        mapserv.cmsg_chat_message(msg)
+        send_queue.append((nick, "=> Done."))
+    else:
+        send_queue.append((nick, "=> Can't send an empty message."))
 
 def cmd_whisper(nick, message, match):
     global send_queue
-    n, msg = match.group(2), match.group(3)
-    send_queue.put((n, msg))
-    send_queue.put((nick, "=> Message sent to `{}`".format(n)))
+    n, msg = match.group("player"), match.group("msg")
+    if n is not None and msg is not None:
+        send_queue.append((n, msg))
+        send_queue.append((nick, "=> Message sent to `{}`".format(n)))
+    else:
+        send_queue.append((nick, "=> Invalid syntax."))
 
 def cmd_goto(nick, message, match):
-    global follow_player
+    global follow_player, send_queue
     try:
-        x = int(match.group(1))
-        y = int(match.group(2))
+        x = int(match.group("x"))
+        y = int(match.group("y"))
     except ValueError:
+        send_queue.append((nick, "=> Invalid location."))
         return
     follow_player = ''
     mapserv.cmsg_player_change_dest(x, y)
+    send_queue.append((nick, "=> Walking to {},{}...".format(x,y)))
 
 def cmd_turn(nick, message, match):
-    d = {"down": 1, "left": 2, "up": 4, "right": 8}
-    dir_num = d.get(match.group(1).lower(), -1)
-    if dir_num > 0:
-        mapserv.cmsg_player_change_dir(dir_num)
+    global send_queue
+    if match.group("dir") is not None:
+        d = {"down": 1, "left": 2, "up": 4, "right": 8}
+        dir_num = d.get(match.group("dir").lower(), -1)
+        if dir_num > 0:
+            mapserv.cmsg_player_change_dir(dir_num)
+        send_queue.append((nick, "=> Done."))
+    else:
+        send_queue.append((nick, "=> Invalid direction."))
 
 def cmd_sit(nick, message, match):
-    global follow_player
+    global follow_player, send_queue
     follow_player = ''
     mapserv.cmsg_player_change_act(0, 2)
-    return
+    send_queue.append((nick, "=> Done."))
 
 def cmd_stand(nick, message, match):
-    global follow_player
+    global follow_player, send_queue
     follow_player = ''
     mapserv.cmsg_player_change_act(0, 3)
-    return
+    send_queue.append((nick, "=> Done."))
 
 def cmd_follow(nick, message, match):
-    global follow_player
-    if follow_player == nick:
+    global follow_player, send_queue
+    n = nick
+    if match.group("player") is not None:
+        n = match.group("player")
+    if follow_player == n or n.lower() == "unfollow":
         follow_player = ''
+        send_queue.append((nick, "=> I am no longer following anyone."))
     else:
-        follow_player = nick
+        follow_player = n
+        send_queue.append((nick, "=> I am now following {}.".format(n)))
+
+def cmd_seppuku(nick, message, match):
+    global irclog, send_queue
+    if match.group("mode") is None:
+        irclog.warning("Suicide signal sent via whisper by {}".format(nick))
+        send_queue.append((nick, "*dies*"))
+        send_next(0)
+    seppuku()
+
+def cmd_ping(nick, message, match):
+    global send_queue
+    send_queue.append((nick, "=> Pong: {}".format(int(time.time()))))
+    send_next(0) # don't wait when it's ping
 
 ircbot_commands = {
-    '!(help|info)' : [cmd_help, False],
-    '!(list|commands)' : [cmd_list, False],
-    '!(register|add)' : [cmd_register, False],
-    '!(remove|unregister)' : [cmd_remove, False],
-    '!say (.+)' : [cmd_talk, True],
-    '!(w|whisper) "([^"]+)" (.+)' : [cmd_whisper, True],
-    '!goto (\d+) (\d+)' : [cmd_goto, True],
-    '!turn (up|down|left|right)' : [cmd_turn, True],
-    '!sit' : [cmd_sit, True],
-    '!stand' : [cmd_stand, True],
-    '!follow' : [cmd_follow, True],
+    '!(help|info)(?: .*)?$' : [cmd_help, False],
+    '!(list|commands)(?: .*)?$' : [cmd_list, False],
+    '!(ping|time)(?: .*)?$' : [cmd_ping, False],
+    '!(register|add)(?: .*)?$' : [cmd_register, False],
+    '!(remove|unregister)(?: .*)?$' : [cmd_remove, False],
+    '!(say|talk)(?: (?P<msg>.+)?)?$' : [cmd_talk, True],
+    '!(whisper|w)(?: "(?P<player>[^"]+)"(?: (?P<msg>.+)?)?| .*)?$' : [cmd_whisper, True],
+    '!(goto|walk)(?: (?P<x>\d+)[ ,](?P<y>\d+)| .*)?$' : [cmd_goto, True],
+    '!turn(?: (?P<dir>(?i)up|down|left|right)| .*)?$' : [cmd_turn, True],
+    '!sit(?: .*)?$' : [cmd_sit, True],
+    '!stand(?: .*)?$' : [cmd_stand, True],
+    '!follow(?: (?P<player>.+)| .*)?$' : [cmd_follow, True],
+    '!(die|suicide)(?: (?P<mode>(?i)force)| .*)?$' : [cmd_seppuku, True],
 }
 
 def init(conf):
-    global irc_bridge, database, config, irclog
+    global irc_bridge, database, config, irclog, online_users
     config = conf
 
     irc_bridge = IRCBot(config.get('IRC', 'channel'),

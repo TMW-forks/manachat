@@ -1,3 +1,4 @@
+import time
 import socket
 import asyncore
 from logging import DEBUG
@@ -59,12 +60,18 @@ class SocketWrapper(asyncore.dispatcher_with_send):
             data = self.read_buffer
             self.read_buffer = ''
         else:
+            tries = 0
             while len(self.read_buffer) < n:
                 try:
                     self.read_buffer += self.recv(n - len(self.read_buffer))
                 except socket.error as e:
-                    netlog.error("socket.error %s", e)
-                    break
+                    tries += 1
+                    if tries < 10:
+                        netlog.error("socket.error %s", e)
+                        time.sleep(0.2)
+                    else:
+                        raise
+
             data = self.read_buffer[:n]
             self.read_buffer = self.read_buffer[n:]
 

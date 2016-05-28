@@ -7,6 +7,7 @@ import walkto
 import logicmanager
 import status
 import plugins
+import itemdb
 from collections import deque
 from net.inventory import get_item_index, get_storage_index
 from utils import extends
@@ -118,14 +119,32 @@ def storage_status(data):
 
 
 @extends('smsg_storage_items')
-@extends('smsg_storage_equip')
 def storage_items(data):
     if not npc_owner:
         return
 
-    ls = status.invlists2(max_length=255, source='storage')
+    items_s = []
+    for item in data.storage:
+        s = itemdb.item_name(item.id, True)
+        if item.amount > 1:
+            s = str(item.amount) + ' ' + s
+        items_s.append(s)
 
-    for l in ls:
+    for l in status.split_names(items_s):
+        whisper(npc_owner, l)
+
+
+@extends('smsg_storage_equip')
+def storage_equipment(data):
+    if not npc_owner:
+        return
+
+    items_s = []
+    for item in data.equipment:
+        s = itemdb.item_name(item.id, True)
+        items_s.append(s)
+
+    for l in status.split_names(items_s):
         whisper(npc_owner, l)
 
 

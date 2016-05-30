@@ -50,7 +50,7 @@ def smsg_char_login_error(data):
     err_msg = "SMSG_CHAR_LOGIN_ERROR (code={})".format(data.code)
     netlog.error(err_msg)
     server.close()
-    riase Exception(err_msg)
+    raise Exception(err_msg)
 
 
 @extendable

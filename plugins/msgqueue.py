@@ -1,7 +1,6 @@
-import time
-import threading
 from collections import deque
 from loggers import debuglog
+from logicmanager import logic_manager
 
 
 __all__ = [ 'PLUGIN', 'init', 'delayed_functions', 'reload_function' ]
@@ -14,49 +13,21 @@ PLUGIN = {
 }
 
 
-scheduler = None
 reloaded_functions = {}
+event_queue = deque()
+_times = { 'next_event' : 0 }
 
 delayed_functions = {
-    'net.mapserv.cmsg_chat_whisper': 4.5,
-    'net.mapserv.cmsg_chat_message': 3.5,
+    # 'net.mapserv.cmsg_chat_whisper': 7.5,
+    # 'net.mapserv.cmsg_chat_message': 3.5,
 }
-
-
-class EventScheduler(threading.Thread):
-
-    def __init__(self, start=True):
-        threading.Thread.__init__(self)
-        self._queue = deque()
-        self._active = True
-        self._next_event = 0
-        if start:
-            self.start()
-
-    def run(self, *args, **kwargs):
-        while self._active:
-            if len(self._queue):
-                now = time.time()
-                if now >= self._next_event:
-                    delay, func, args, kwargs = self._queue.popleft()
-                    self._next_event = now + delay
-                    func(*args, **kwargs)
-
-            time.sleep(0.1)
-
-    def schedule(self, delay, func, *args, **kwargs):
-        call = (delay, func, args, kwargs)
-        self._queue.append(call)
-
-    def cancel(self):
-        self._active = False
 
 
 def delayed_function(func_name, delay):
 
     def func(*args, **kwargs):
-        scheduler.schedule(delay, reloaded_functions[func_name],
-                           *args, **kwargs)
+        call = (delay, reloaded_functions[func_name], args, kwargs)
+        event_queue.append(call)
 
     return func
 
@@ -86,12 +57,20 @@ def reload_function(name, delay):
         debuglog.error('error wrapping function %s: %s', name, e)
 
 
+def msgq_logic(ts):
+    if len(event_queue):
+        if ts > _times['next_event']:
+            delay, func, args, kwargs = event_queue.popleft()
+            _times['next_event'] = ts + delay
+            func(*args, **kwargs)
+
+
 def init(config):
-    global scheduler
+    section = PLUGIN['name']
+    for option in config.options(section):
+        delayed_functions[option] = config.getfloat(section, option)
 
     for func_name, delay in delayed_functions.iteritems():
         reload_function(func_name, delay)
 
-    scheduler = EventScheduler(start=False)
-    scheduler.setDaemon(True)
-    scheduler.start()
+    logic_manager.add_logic(msgq_logic)

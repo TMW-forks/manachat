@@ -4,6 +4,9 @@ import net.mapserv as mapserv
 from loggers import debuglog
 from utils import extends
 from textutils import preprocess as pp
+from textutils import (simplify_links, remove_formatting,
+                       replace_emotes)
+pp_actions = (simplify_links, remove_formatting, replace_emotes)
 
 sent_whispers = deque()
 
@@ -26,7 +29,7 @@ def send_whisper_result(data):
             break
 
     if data.code == 0:
-        m = "[-> {}] {}".format(nick, pp(msg))
+        m = "[-> {}] {}".format(nick, pp(msg, pp_actions))
         debuglog.info(m)
     else:
         debuglog.warning("[error] {} is offline.".format(nick))
@@ -34,20 +37,20 @@ def send_whisper_result(data):
 
 @extends('smsg_being_chat')
 def being_chat(data):
-    message = pp(data.message)
+    message = pp(data.message, pp_actions)
     debuglog.info(message)
 
 
 @extends('smsg_player_chat')
 def player_chat(data):
-    message = pp(data.message)
+    message = pp(data.message, pp_actions)
     debuglog.info(message)
 
 
 @extends('smsg_whisper')
 def got_whisper(data):
     nick, message = data.nick, data.message
-    message = pp(message)
+    message = pp(message, pp_actions)
     m = "[{} ->] {}".format(nick, message)
     debuglog.info(m)
 
@@ -55,7 +58,7 @@ def got_whisper(data):
 @extends('smsg_party_chat')
 def party_chat(data):
     nick = mapserv.party_members.get(data.id, str(data.id))
-    message = pp(data.message)
+    message = pp(data.message, pp_actions)
     m = "[Party] {} : {}".format(nick, message)
     debuglog.info(m)
 

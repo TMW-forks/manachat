@@ -27,6 +27,9 @@ class SocketWrapper(asyncore.dispatcher_with_send):
         self.read_buffer = ''
         if sock is None:
             self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.setblocking(1)
+            self.socket.settimeout(0.7)
+
         self.protodef = protodef
         self.raw = False
         self.onerror = onerror

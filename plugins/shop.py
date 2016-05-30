@@ -299,6 +299,19 @@ def invlist(nick, message, is_whisper, match):
         whisper(nick, l)
 
 
+def zeny(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    if shop_admins is None:
+        return
+
+    if not shop_admins.check_player(nick):
+        return
+
+    whisper(nick, 'I have {} GP'.format(mapserv.player_stats[20]))
+
+
 # =========================================================================
 @extends('smsg_trade_request')
 def trade_request(data):
@@ -486,6 +499,7 @@ shop_commands = {
     '!buyitem (\d+) (\d+) (\d+)' : buyitem,
     '!retrieve (\d+) (\d+)' : retrieve,
     '!invlist' : invlist,
+    '!zeny' : zeny,
 }
 
 

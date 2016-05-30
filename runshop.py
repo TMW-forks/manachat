@@ -58,9 +58,6 @@ if __name__ == '__main__':
               password=config.get('Player', 'password'),
               charname=config.get('Player', 'charname'))
 
-    try:
-        while True:
-            asyncore.loop(timeout=0.2, count=5)
-            logic_manager.tick()
-    except Exception:
-        mapserv.cleanup()
+    while True:
+        asyncore.loop(timeout=0.2, count=5)
+        logic_manager.tick()

@@ -1,4 +1,5 @@
 
+import atexit
 import time
 from construct import *
 from construct.protocols.layer3.ipv4 import IpAddress
@@ -13,7 +14,6 @@ from trade import reset_trade_state
 from loggers import netlog
 
 server = None
-timers = []
 beings_cache = None
 party_info = []
 party_members = {}
@@ -1188,9 +1188,7 @@ def connect(host, port):
     logicmanager.logic_manager.add_logic(ping_logic)
 
 
+@atexit.register
 def cleanup():
-    global server
-    for t in timers:
-        t.cancel()
     if server is not None:
         server.close()

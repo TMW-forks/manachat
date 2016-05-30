@@ -149,7 +149,6 @@ class ManaGuiApp(App):
     def on_stop(self):
         Clock.unschedule(self.update_loop)
         Clock.unschedule(self.update_online_list)
-        mapserv.cleanup()
 
     def open_link(self, link):
         webbrowser.open(link)

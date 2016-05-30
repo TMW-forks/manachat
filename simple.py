@@ -122,14 +122,11 @@ if __name__ == '__main__':
 
     thread.start_new_thread(input_thread, ())
 
-    try:
-        while True:
-            if len(input_buffer) > 0:
-                for l in input_buffer:
-                    commands.process_line(l)
-                input_buffer.clear()
+    while True:
+        if len(input_buffer) > 0:
+            for l in input_buffer:
+                commands.process_line(l)
+            input_buffer.clear()
 
-            asyncore.loop(timeout=0.2, count=5)
-            logic_manager.tick()
-    except KeyboardInterrupt:
-        mapserv.cleanup()
+        asyncore.loop(timeout=0.2, count=5)
+        logic_manager.tick()

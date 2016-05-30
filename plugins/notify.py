@@ -19,6 +19,10 @@ PLUGIN = {
     'name': 'notify',
     'requires': (),
     'blocks': (),
+    'default_config' : {
+        'notif_timeout': 7000,
+        'notif_sound' : True
+    }
 }
 
 

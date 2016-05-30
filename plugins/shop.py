@@ -20,6 +20,11 @@ PLUGIN = {
     'name': 'shop',
     'requires': ('chatbot',),
     'blocks': (),
+    'default_config' : {
+        'timeout' : 60,
+        'shoplist_txt' : 'shoplist.txt',
+        'admins_file' : ''
+    }
 }
 
 shoplog = logging.getLogger('ManaChat.Shop')
@@ -473,6 +478,7 @@ def load_shop_list(config):
 
     shoplist_txt = config.get('shop', 'shoplist_txt')
     if not os.path.isfile(shoplist_txt):
+        shoplog.warning('shoplist file not found : %s', shoplist_txt)
         return
 
     with open(shoplist_txt, 'r') as f:

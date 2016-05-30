@@ -5,6 +5,7 @@ from collections import OrderedDict
 import net.mapserv as mapserv
 import chatbot
 import logicmanager
+import status
 from net.inventory import get_item_index
 from net.trade import reset_trade_state
 from utils import encode_str, extends
@@ -283,6 +284,21 @@ def retrieve(nick, message, is_whisper, match):
     mapserv.cmsg_trade_request(player_id)
 
 
+def invlist(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    if shop_admins is None:
+        return
+
+    if not shop_admins.check_player(nick):
+        return
+
+    ls = status.invlists(50)
+    for l in ls:
+        whisper(nick, l)
+
+
 # =========================================================================
 @extends('smsg_trade_request')
 def trade_request(data):
@@ -469,6 +485,7 @@ shop_commands = {
     '!sellitem (\d+) (\d+) (\d+)' : sellitem,
     '!buyitem (\d+) (\d+) (\d+)' : buyitem,
     '!retrieve (\d+) (\d+)' : retrieve,
+    '!invlist' : invlist,
 }
 
 

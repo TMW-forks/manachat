@@ -47,10 +47,11 @@ def smsg_login_error(data):
         11: "Incurrect email",
         99: "Username permanently erased" }
 
-    netlog.error("SMSG_LOGIN_ERROR {}".format(
-        error_codes.get(data.code, "Unknown error")))
-
+    err_msg = "SMSG_LOGIN_ERROR {}".format(
+        error_codes.get(data.code, "Unknown error"))
+    netlog.error(err_msg)
     server.close()
+    raise Exception(err_msg)
 
 
 protodef = {

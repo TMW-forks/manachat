@@ -196,6 +196,7 @@ def smsg_connection_problem(data):
     }
     msg = error_codes.get(data.code, str(data.code))
     netlog.error("SMSG_CONNECTION_PROBLEM {}".format(msg))
+    raise Exception("Mapserv error: {}".format(msg))
 
 
 @extendable

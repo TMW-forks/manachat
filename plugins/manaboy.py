@@ -109,7 +109,6 @@ def npc_input(data):
 
 @extends('smsg_storage_status')
 def storage_status(data):
-    print 'storage_status'
     global storage_is_open
     storage_is_open = True
     _times['storage'] = time.time()

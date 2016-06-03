@@ -17,6 +17,7 @@ import net.mapserv as mapserv
 import plugins
 from utils import extends
 from itemdb import load_itemdb
+from logicmanager import logic_manager
 
 
 @extends('smsg_player_warp')
@@ -31,7 +32,7 @@ def map_login_success(data):
 
 if __name__ == '__main__':
     logging.basicConfig(format="[%(asctime)s] %(message)s",
-                        level=logging.INFO,
+                        level=logging.WARNING,
                         datefmt="%Y-%m-%d %H:%M:%S")
     config = ConfigParser()
     config.read('manachat.ini')
@@ -47,6 +48,8 @@ if __name__ == '__main__':
               charname=config.get('Player', 'charname'))
 
     try:
-        asyncore.loop()
+        while True:
+            asyncore.loop(timeout=0.2, count=5)
+            logic_manager.tick()
     except KeyboardInterrupt:
         mapserv.cleanup()

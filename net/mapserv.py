@@ -36,6 +36,9 @@ for s in range(255):
 def smsg_ignore(data):
     pass
 
+@extendable
+def on_close():
+    netlog.warning("connection to map server lost")
 
 @extendable
 def smsg_being_chat(data):
@@ -1169,7 +1172,7 @@ def cmsg_storage_close():
 def connect(host, port):
     global server, beings_cache
     beings_cache = BeingsCache(cmsg_name_request)
-    server = SocketWrapper(host=host, port=port, protodef=protodef)
+    server = SocketWrapper(host=host, port=port, protodef=protodef, onclose=on_close)
     timers.append(Schedule(15, 20, cmsg_map_server_ping))
 
 

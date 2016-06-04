@@ -40,7 +40,9 @@ def stats_repr(*stat_types):
         ps = mapserv.player_skills
         skill_names = {339: 'focusing', 45: 'mallard', 350: 'brawling',
                        352: 'speed', 353: 'resist', 354: 'astral',
-                       355: 'raging'}
+                       355: 'raging', 340: 'magic', 341: 'life',
+                       342: 'war', 343: 'transmut', 344: 'nature',
+                       345: 'astralm'}
 
         for s_id, s_v in ps.items():
             if s_v > 0:

@@ -61,6 +61,14 @@ def bot_dies(data):
         mapserv.cmsg_player_respawn()
 
 
+@extends('smsg_player_chat')
+def player_chat(data):
+    if not npc_owner:
+        return
+
+    whisper(npc_owner, data.message)
+
+
 @extends('smsg_npc_message')
 @extends('smsg_npc_choice')
 @extends('smsg_npc_close')
@@ -280,6 +288,7 @@ def cmd_say(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
+    set_npc_owner(nick)
     msg = match.group(1)
     whisper(nick, msg)
 

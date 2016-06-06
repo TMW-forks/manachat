@@ -25,6 +25,7 @@ player_storage = {}
 player_stats = {}
 player_skills = {}
 player_money = 0
+player_attack_range = 0
 trade_state = {'items_give': [], 'items_get': [],
                'zeny_give': 0, 'zeny_get': 0}
 floor_items = {}
@@ -450,6 +451,18 @@ def smsg_storage_items(data):
         player_storage[item.index] = (item.id, item.amount)
 
 
+@extendable
+def smsg_player_attack_range(data):
+    netlog.info("SMSG_PLAYER_ATTACK_RANGE %d", data.range)
+    global player_attack_range
+    player_attack_range = data.range
+
+
+@extendable
+def smsg_player_arrow_message(data):
+    netlog.info("SMSG_PLAYER_ARROW_MESSAGE %d", data.code)
+
+
 # --------------------------------------------------------------------
 protodef = {
     0x8000 : (smsg_ignore, Field("data", 2)),      # ignore
@@ -544,8 +557,12 @@ protodef = {
                                Nibble("dir")),
                      Padding(5))),
     0x013c : (smsg_ignore, Field("data", 2)),   # arrow-equip
-    0x013b : (smsg_ignore, Field("data", 2)),   # arrow-message
-    0x013a : (smsg_ignore, Field("data", 2)),   # attack-range
+    0x013b : (smsg_player_arrow_message,
+              Struct("data",
+                     ULInt16("code"))),
+    0x013a : (smsg_player_attack_range,
+              Struct("data",
+                     ULInt16("range"))),
     0x008e : (smsg_player_chat,
               Struct("data",
                      ULInt16("length"),

@@ -157,10 +157,16 @@ def storage_equipment(data):
 
 @extends('smsg_storage_close')
 def storage_close(data):
-    print 'smsg_storage_close'
     global storage_is_open
     storage_is_open = False
     _times['storage'] = 0
+
+
+@extends('smsg_player_arrow_message')
+def arrow_message(data):
+    if npc_owner:
+        if data.code == 0:
+            whisper(npc_owner, "Equip arrows")
 
 
 def cmd_where(nick, message, is_whisper, match):
@@ -281,7 +287,7 @@ def cmd_attack(nick, message, is_whisper, match):
     if target is not None:
         set_npc_owner(nick)
         plugins.autofollow.follow = ''
-        walkto.walkto_and_action(target, 'attack')
+        walkto.walkto_and_action(target, 'attack', mapserv.player_attack_range)
 
 
 def cmd_say(nick, message, is_whisper, match):

@@ -114,6 +114,7 @@ def player_position():
 
 
 def split_names(names, origin=[''], maxlen=255, separator=', '):
+    origin = origin[:]
     if len(origin) < 1:
         origin = ['']
 

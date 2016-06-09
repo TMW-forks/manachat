@@ -193,11 +193,15 @@ def smsg_ip_response(data):
 @extendable
 def smsg_connection_problem(data):
     error_codes = {
-        2 : "Account already in use"
+        0 : "Authentification failed",
+        1 : "No servers available",
+        2 : "Account already in use",
+        3 : "Speed hack detected",
+        8 : "Duplicated login",
     }
-    msg = error_codes.get(data.code, str(data.code))
-    netlog.error("SMSG_CONNECTION_PROBLEM {}".format(msg))
-    raise Exception("Mapserv error: {}".format(msg))
+    msg = error_codes.get(data.code, 'code ' + str(data.code))
+    netlog.error("SMSG_CONNECTION_PROBLEM %d", data.code)
+    raise Exception(msg)
 
 
 @extendable

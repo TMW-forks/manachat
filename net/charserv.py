@@ -106,7 +106,9 @@ protodef = {
                      ULInt32("char_id"),
                      StringZ("map_name", 16),
                      IpAddress("address"),
-                     ULInt16("port")))
+                     ULInt16("port"))),
+    0x0081 : (mapserv.smsg_connection_problem,
+              Struct("data", Byte("code"))),
 }
 
 

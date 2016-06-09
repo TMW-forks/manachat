@@ -28,7 +28,7 @@ def must_have_arg(func):
 @preprocess_argument(expand_links)
 def general_chat(msg):
     '''Send message to #General chat'''
-    mapserv.cmsg_chat_message(msg)
+    chat.general_chat(msg)
 
 
 @must_have_arg
@@ -231,6 +231,19 @@ def show_status(_, arg):
     debuglog.info(' | '.join(sr.values()))
 
 
+def cmd_afk(_, arg):
+    '''Become AFK'''
+    if arg:
+        chat.afk_message = '*AFK* ' + arg
+    chat.is_afk = True
+    debuglog.info(chat.afk_message)
+
+
+def cmd_back(*unused):
+    '''Disable AFK'''
+    chat.is_afk = False
+
+
 def print_help(_, hcmd):
     '''Show help
 /help -- show all commands
@@ -303,6 +316,8 @@ commands = {
     "pickup"          : pickup,
     "drop"            : drop_item,
     "status"          : show_status,
+    "afk"             : cmd_afk,
+    "back"            : cmd_back,
     "help"            : print_help,
     "exec"            : cmd_exec,
 }

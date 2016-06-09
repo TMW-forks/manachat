@@ -10,11 +10,24 @@ pp_actions = (simplify_links, remove_formatting, replace_emotes)
 
 sent_whispers = deque()
 
+is_afk = False
+afk_message = '*AFK* I am away from keyboard'
+afk_ts = 0
+chat_bots = ["guild", "_IRC_"]
+
 
 def send_whisper(nick, message):
+    global is_afk
+    is_afk = False
     ts = time.time()
     sent_whispers.append((nick, message, ts))
     mapserv.cmsg_chat_whisper(nick, message)
+
+
+def general_chat(message):
+    global is_afk
+    is_afk = False
+    mapserv.cmsg_chat_message(message)
 
 
 @extends('smsg_whisper_response')
@@ -53,6 +66,19 @@ def got_whisper(data):
     message = pp(message, pp_actions)
     m = "[{} ->] {}".format(nick, message)
     debuglog.info(m)
+
+    global is_afk
+    if is_afk:
+        if nick in chat_bots:
+            return
+        if message.startswith('!'):
+            return
+        now = time.time()
+        global afk_ts
+        if now > afk_ts + 20:
+            afk_ts = now
+            send_whisper(nick, afk_message)
+            is_afk = True
 
 
 @extends('smsg_party_chat')

@@ -6,6 +6,7 @@ import net.mapserv as mapserv
 import chatbot
 import logicmanager
 import status
+import badge
 from net.inventory import get_item_index
 from net.trade import reset_trade_state
 from utils import encode_str, extends
@@ -537,6 +538,8 @@ def init(config):
     shop_admins_file = config.get('shop', 'admins_file')
     if os.path.isfile(shop_admins_file):
         shop_admins = PlayerList(shop_admins_file)
+
+    badge.is_shop = True
 
     load_shop_list(config)
     logicmanager.logic_manager.add_logic(shop_logic)

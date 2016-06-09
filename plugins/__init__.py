@@ -35,7 +35,7 @@ def load_plugin(config, plugin_name):
     default_config = plugin.PLUGIN.setdefault('default_config', {})
     for option, value in default_config.iteritems():
         if not config.has_option(plugin_name, option):
-            config.set(plugin_name, option, value)
+            config.set(plugin_name, option, str(value))
 
     plugin.init(config)
     plugins_loaded.append(plugin_name)

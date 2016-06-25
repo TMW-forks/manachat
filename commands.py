@@ -10,6 +10,7 @@ import walkto
 from actor import find_nearest_being
 import status
 import chat
+import badge
 
 __all__ = [ 'commands', 'must_have_arg',
             'parse_player_name', 'process_line' ]
@@ -235,13 +236,13 @@ def cmd_afk(_, arg):
     '''Become AFK'''
     if arg:
         chat.afk_message = '*AFK* ' + arg
-    chat.is_afk = True
+    badge.is_afk = True
     debuglog.info(chat.afk_message)
 
 
 def cmd_back(*unused):
     '''Disable AFK'''
-    chat.is_afk = False
+    badge.is_afk = False
 
 
 def print_help(_, hcmd):

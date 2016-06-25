@@ -1,6 +1,7 @@
 import time
 from collections import deque
 import net.mapserv as mapserv
+import badge
 from loggers import debuglog
 from utils import extends
 from textutils import preprocess as pp
@@ -10,23 +11,20 @@ pp_actions = (simplify_links, remove_formatting, replace_emotes)
 
 sent_whispers = deque()
 
-is_afk = False
 afk_message = '*AFK* I am away from keyboard'
 afk_ts = 0
 chat_bots = ["guild", "_IRC_"]
 
 
 def send_whisper(nick, message):
-    global is_afk
-    is_afk = False
+    badge.is_afk = False
     ts = time.time()
     sent_whispers.append((nick, message, ts))
     mapserv.cmsg_chat_whisper(nick, message)
 
 
 def general_chat(message):
-    global is_afk
-    is_afk = False
+    badge.is_afk = False
     mapserv.cmsg_chat_message(message)
 
 
@@ -67,8 +65,7 @@ def got_whisper(data):
     m = "[{} ->] {}".format(nick, message)
     debuglog.info(m)
 
-    global is_afk
-    if is_afk:
+    if badge.is_afk:
         if nick in chat_bots:
             return
         if message.startswith('!'):
@@ -78,7 +75,7 @@ def got_whisper(data):
         if now > afk_ts + 20:
             afk_ts = now
             send_whisper(nick, afk_message)
-            is_afk = True
+            badge.is_afk = True
 
 
 @extends('smsg_party_chat')

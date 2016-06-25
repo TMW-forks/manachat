@@ -1197,7 +1197,7 @@ def connect(host, port):
 
     def ping_logic(ts):
         global last_ping_ts
-        if ts > last_ping_ts + 15:
+        if last_ping_ts and ts > last_ping_ts + 15:
             last_ping_ts = time.time()
             cmsg_map_server_ping()
 

@@ -1,3 +1,4 @@
+import time
 import socket
 import asyncore
 from logging import DEBUG
@@ -20,13 +21,18 @@ class SocketWrapper(asyncore.dispatcher_with_send):
     """
     socket wrapper with file-like read() and write() methods
     """
-    def __init__(self, host=None, port=0, buffer_size=1500, protodef={}):
-        asyncore.dispatcher_with_send.__init__(self)
-        self.buffer_size = buffer_size
+    def __init__(self, host=None, port=0,
+                 protodef={}, onerror=None, sock=None):
+        asyncore.dispatcher_with_send.__init__(self, sock)
         self.read_buffer = ''
-        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+        if sock is None:
+            self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.setblocking(1)
+            self.socket.settimeout(0.7)
+
         self.protodef = protodef
         self.raw = False
+        self.onerror = onerror
         if protodef == {}:
             netlog.warning("protodef is empty")
         if host is not None:
@@ -40,18 +46,30 @@ class SocketWrapper(asyncore.dispatcher_with_send):
         while len(self.read_buffer) > 0:
             dispatch(self, self.protodef)
 
+    def handle_error(self):
+        if self.onerror is not None:
+            self.onerror()
+        else:
+            raise
+
     def read(self, n=-1):
         data = ''
         if n < 0:
             data = self.read_buffer
             self.read_buffer = ''
         else:
+            tries = 0
             while len(self.read_buffer) < n:
                 try:
                     self.read_buffer += self.recv(n - len(self.read_buffer))
                 except socket.error as e:
-                    netlog.error("socket.error %s", e)
-                    break
+                    tries += 1
+                    if tries < 10:
+                        netlog.error("socket.error %s", e)
+                        time.sleep(0.2)
+                    else:
+                        raise
+
             data = self.read_buffer[:n]
             self.read_buffer = self.read_buffer[n:]
 

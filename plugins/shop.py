@@ -5,6 +5,8 @@ from collections import OrderedDict
 import net.mapserv as mapserv
 import chatbot
 import logicmanager
+import status
+import badge
 from net.inventory import get_item_index
 from net.trade import reset_trade_state
 from utils import encode_str, extends
@@ -20,6 +22,11 @@ PLUGIN = {
     'name': 'shop',
     'requires': ('chatbot',),
     'blocks': (),
+    'default_config' : {
+        'timeout' : 60,
+        'shoplist_txt' : 'shoplist.txt',
+        'admins_file' : ''
+    }
 }
 
 shoplog = logging.getLogger('ManaChat.Shop')
@@ -38,14 +45,14 @@ class s:
 
 
 buying = OrderedDict([
-    (621,  (5000, 1)),    # Eyepatch
-    (640,  (1450, 100)),  # Iron Ore
-    (4001, (650, 300)),   # Coal
+#    (621,  (5000, 1)),    # Eyepatch
+#    (640,  (1450, 100)),  # Iron Ore
+#    (4001, (650, 300)),   # Coal
 ])
 
 selling = OrderedDict([
-    (535,  (100, 50)),    # Red Apple
-    (640,  (1750, 100)),  # Iron Ore
+#    (535,  (100, 50)),    # Red Apple
+#    (640,  (1750, 100)),  # Iron Ore
 ])
 
 
@@ -278,6 +285,34 @@ def retrieve(nick, message, is_whisper, match):
     mapserv.cmsg_trade_request(player_id)
 
 
+def invlist(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    if shop_admins is None:
+        return
+
+    if not shop_admins.check_player(nick):
+        return
+
+    ls = status.invlists(50)
+    for l in ls:
+        whisper(nick, l)
+
+
+def zeny(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    if shop_admins is None:
+        return
+
+    if not shop_admins.check_player(nick):
+        return
+
+    whisper(nick, 'I have {} GP'.format(mapserv.player_stats[20]))
+
+
 # =========================================================================
 @extends('smsg_trade_request')
 def trade_request(data):
@@ -464,6 +499,8 @@ shop_commands = {
     '!sellitem (\d+) (\d+) (\d+)' : sellitem,
     '!buyitem (\d+) (\d+) (\d+)' : buyitem,
     '!retrieve (\d+) (\d+)' : retrieve,
+    '!invlist' : invlist,
+    '!zeny' : zeny,
 }
 
 
@@ -473,6 +510,7 @@ def load_shop_list(config):
 
     shoplist_txt = config.get('shop', 'shoplist_txt')
     if not os.path.isfile(shoplist_txt):
+        shoplog.warning('shoplist file not found : %s', shoplist_txt)
         return
 
     with open(shoplist_txt, 'r') as f:
@@ -500,6 +538,8 @@ def init(config):
     shop_admins_file = config.get('shop', 'admins_file')
     if os.path.isfile(shop_admins_file):
         shop_admins = PlayerList(shop_admins_file)
+
+    badge.is_shop = True
 
     load_shop_list(config)
     logicmanager.logic_manager.add_logic(shop_logic)

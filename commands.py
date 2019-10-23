@@ -10,6 +10,7 @@ import walkto
 from actor import find_nearest_being
 import status
 import chat
+import badge
 
 __all__ = [ 'commands', 'must_have_arg',
             'parse_player_name', 'process_line' ]
@@ -28,7 +29,7 @@ def must_have_arg(func):
 @preprocess_argument(expand_links)
 def general_chat(msg):
     '''Send message to #General chat'''
-    mapserv.cmsg_chat_message(msg)
+    chat.general_chat(msg)
 
 
 @must_have_arg
@@ -195,12 +196,9 @@ def show_zeny(*unused):
 def print_beings(cmd, btype):
     '''Show nearby beings
 /beings -- show all beings
-/beings player|npc|portal --show only given being type'''
-    for being in mapserv.beings_cache.itervalues():
-        if btype and being.type != btype:
-            continue
-        debuglog.info("id: %d | type: %s | pos: (%d, %d) | name: %s",
-                      being.id, being.type, being.x, being.y, being.name)
+/beings player|npc|portal|monster --show only given being type'''
+    for l in status.nearby(btype):
+        debuglog.info(l)
 
 
 def player_position(*unused):
@@ -232,6 +230,19 @@ def show_status(_, arg):
 
     sr = status.stats_repr(*all_stats)
     debuglog.info(' | '.join(sr.values()))
+
+
+def cmd_afk(_, arg):
+    '''Become AFK'''
+    if arg:
+        chat.afk_message = '*AFK* ' + arg
+    badge.is_afk = True
+    debuglog.info(chat.afk_message)
+
+
+def cmd_back(*unused):
+    '''Disable AFK'''
+    badge.is_afk = False
 
 
 def print_help(_, hcmd):
@@ -306,6 +317,8 @@ commands = {
     "pickup"          : pickup,
     "drop"            : drop_item,
     "status"          : show_status,
+    "afk"             : cmd_afk,
+    "back"            : cmd_back,
     "help"            : print_help,
     "exec"            : cmd_exec,
 }

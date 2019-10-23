@@ -37,16 +37,20 @@ def smsg_char_login(data):
             mapserv.player_stats[stats.SKILL_POINTS] = c.skillpoints
             break
     if char_slot < 0:
-        netlog.error("CharName {} not found".format(server.char_name))
+        err_msg = "CharName {} not found".format(server.char_name)
+        netlog.error(err_msg)
         server.close()
+        raise Exception(err_msg)
     else:
         cmsg_char_select(char_slot)
 
 
 @extendable
 def smsg_char_login_error(data):
-    netlog.error("SMSG_CHAR_LOGIN_ERROR (code={})".format(data.code))
+    err_msg = "SMSG_CHAR_LOGIN_ERROR (code={})".format(data.code)
+    netlog.error(err_msg)
     server.close()
+    raise Exception(err_msg)
 
 
 @extendable
@@ -102,7 +106,9 @@ protodef = {
                      ULInt32("char_id"),
                      StringZ("map_name", 16),
                      IpAddress("address"),
-                     ULInt16("port")))
+                     ULInt16("port"))),
+    0x0081 : (mapserv.smsg_connection_problem,
+              Struct("data", Byte("code"))),
 }
 
 

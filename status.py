@@ -40,7 +40,9 @@ def stats_repr(*stat_types):
         ps = mapserv.player_skills
         skill_names = {339: 'focusing', 45: 'mallard', 350: 'brawling',
                        352: 'speed', 353: 'resist', 354: 'astral',
-                       355: 'raging'}
+                       355: 'raging', 340: 'magic', 341: 'life',
+                       342: 'war', 343: 'transmut', 344: 'nature',
+                       345: 'astralm'}
 
         for s_id, s_v in ps.items():
             if s_v > 0:
@@ -109,3 +111,69 @@ def player_position():
     s = "Map: {} ({}), coor: {}, {}".format(
         map_name, pp['map'], pp['x'], pp['y'])
     return s
+
+
+def split_names(names, origin=[''], maxlen=255, separator=', '):
+    origin = origin[:]
+    if len(origin) < 1:
+        origin = ['']
+
+    for n in names:
+        ns = n + separator
+        if len(origin[-1] + ns) > maxlen:
+            origin.append(ns)
+        else:
+            origin[-1] += ns
+
+    origin[-1] = origin[-1][:-len(separator)]
+
+    return origin
+
+
+def nearby(btype=''):
+    nearby_beings = {'player': {}, 'npc': {}, 'monster': {}, 'portal': []}
+    for being in mapserv.beings_cache.itervalues():
+        if btype and being.type != btype:
+            continue
+
+        if being.type == 'portal':
+            nearby_beings['portal'].append((being.x, being.y))
+            continue
+
+        if being.type == 'npc' and len(being.name) < 1:
+            nearby_beings[being.type][str(being.job)] = 1
+        elif being.name in nearby_beings[being.type]:
+            nearby_beings[being.type][being.name] += 1
+        else:
+            nearby_beings[being.type][being.name] = 1
+
+    del_types = []
+    for t in nearby_beings:
+        if not nearby_beings[t]:
+            del_types.append(t)
+    for t in del_types:
+        del nearby_beings[t]
+
+    lines = []
+    for bt in ('monster', 'player', 'npc'):
+        if bt not in nearby_beings:
+            continue
+        lines.append(bt + 's : ')
+        names_s = []
+        for bname in sorted(nearby_beings[bt].iterkeys()):
+            count = nearby_beings[bt][bname]
+            if count > 1:
+                names_s.append('{} ({})'.format(bname, count))
+            else:
+                names_s.append(bname)
+
+        lines = split_names(names_s, lines)
+
+    if 'portal' in nearby_beings:
+        lines.append('portals : ')
+        coor_s = []
+        for cx, cy in nearby_beings['portal']:
+            coor_s.append('({},{})'.format(cx, cy))
+        lines = split_names(coor_s, lines)
+
+    return lines

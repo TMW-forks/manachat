@@ -110,6 +110,9 @@ class ManaGuiApp(App):
 
         handlers.app = self
 
+        import chat
+        chat.pp_actions = ()
+
         # self.reconnect()
 
         Clock.schedule_once(self.update_online_list, 0.2)
@@ -149,7 +152,6 @@ class ManaGuiApp(App):
     def on_stop(self):
         Clock.unschedule(self.update_loop)
         Clock.unschedule(self.update_online_list)
-        mapserv.cleanup()
 
     def open_link(self, link):
         webbrowser.open(link)

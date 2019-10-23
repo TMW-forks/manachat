@@ -13,6 +13,7 @@ PLUGIN = {
     'name': 'chatlogfile',
     'requires': (),
     'blocks': (),
+    'default_config' : {'chatlog_dir': 'chatlogs'}
 }
 
 

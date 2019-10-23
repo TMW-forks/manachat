@@ -1,11 +1,13 @@
 import time
 import net.mapserv as mapserv
 import net.charserv as charserv
+import net.stats as stats
 import commands
 import walkto
 import logicmanager
 import status
 import plugins
+import itemdb
 from collections import deque
 from net.inventory import get_item_index, get_storage_index
 from utils import extends
@@ -39,22 +41,32 @@ _times = {
 
 admins = ['Trav', 'Travolta', 'Komornyik']
 allowed_drops = [535, 719, 513, 727, 729, 869]
+allowed_sells = [531, 521, 522, 700, 1201]
 
 npc_owner = ''
 history = deque(maxlen=10)
 storage_is_open = False
+bugs = deque(maxlen=100)
 
 
 def set_npc_owner(nick):
     global npc_owner
-    if plugins.npc.npc_id < 0:
-        npc_owner = nick
+    # if plugins.npc.npc_id < 0:
+    npc_owner = nick
 
 
 @extends('smsg_being_remove')
 def bot_dies(data):
     if data.id == charserv.server.account:
         mapserv.cmsg_player_respawn()
+
+
+@extends('smsg_player_chat')
+def player_chat(data):
+    if not npc_owner:
+        return
+
+    whisper(npc_owner, data.message)
 
 
 @extends('smsg_npc_message')
@@ -105,32 +117,56 @@ def npc_input(data):
 
 @extends('smsg_storage_status')
 def storage_status(data):
-    print 'storage_status'
     global storage_is_open
     storage_is_open = True
     _times['storage'] = time.time()
     if npc_owner:
-        whisper(npc_owner, '[storage]')
+        whisper(npc_owner, '[storage][{}/{}]'.format(
+            data.used, data.max_size))
 
 
 @extends('smsg_storage_items')
-@extends('smsg_storage_equip')
 def storage_items(data):
     if not npc_owner:
         return
 
-    ls = status.invlists2(max_length=255, source='storage')
+    items_s = []
+    for item in data.storage:
+        s = itemdb.item_name(item.id, True)
+        if item.amount > 1:
+            s = str(item.amount) + ' ' + s
+        items_s.append(s)
 
-    for l in ls:
+    for l in status.split_names(items_s):
+        whisper(npc_owner, l)
+
+
+@extends('smsg_storage_equip')
+def storage_equipment(data):
+    if not npc_owner:
+        return
+
+    items_s = []
+    for item in data.equipment:
+        s = itemdb.item_name(item.id, True)
+        items_s.append(s)
+
+    for l in status.split_names(items_s):
         whisper(npc_owner, l)
 
 
 @extends('smsg_storage_close')
 def storage_close(data):
-    print 'smsg_storage_close'
     global storage_is_open
     storage_is_open = False
     _times['storage'] = 0
+
+
+@extends('smsg_player_arrow_message')
+def arrow_message(data):
+    if npc_owner:
+        if data.code == 0:
+            whisper(npc_owner, "Equip arrows")
 
 
 def cmd_where(nick, message, is_whisper, match):
@@ -251,13 +287,14 @@ def cmd_attack(nick, message, is_whisper, match):
     if target is not None:
         set_npc_owner(nick)
         plugins.autofollow.follow = ''
-        walkto.walkto_and_action(target, 'attack')
+        walkto.walkto_and_action(target, 'attack', mapserv.player_attack_range)
 
 
 def cmd_say(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
+    set_npc_owner(nick)
     msg = match.group(1)
     whisper(nick, msg)
 
@@ -338,14 +375,27 @@ def cmd_zeny(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    whisper(nick, 'I have {} GP'.format(mapserv.player_money))
+    whisper(nick, 'I have {} GP'.format(mapserv.player_stats[stats.MONEY]))
+
+
+def cmd_nearby(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    btype = message[8:]
+    if btype.endswith('s'):
+        btype = btype[:-1]
+
+    ls = status.nearby(btype)
+    for l in ls:
+        whisper(nick, l)
 
 
 def cmd_talk2npc(nick, message, is_whisper, match):
     if not is_whisper:
         return
 
-    npc_s = match.group(1)
+    npc_s = match.group(1).strip()
     jobs = []
     name = ''
     try:
@@ -355,6 +405,7 @@ def cmd_talk2npc(nick, message, is_whisper, match):
 
     b = find_nearest_being(name=name, type='npc', allowed_jobs=jobs)
     if b is None:
+        whisper(nick, '[error] NPC not found: {}'.format(npc_s))
         return
 
     set_npc_owner(nick)
@@ -424,6 +475,39 @@ def cmd_retrieve(nick, message, is_whisper, match):
         mapserv.cmsg_move_from_storage(index, amount)
 
 
+def cmd_sell(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    try:
+        amount = int(match.group(1))
+        item_id = int(match.group(2))
+        npc_s = match.group(3).strip()
+    except ValueError:
+        return
+
+    if item_id not in allowed_sells:
+        return
+
+    index = get_item_index(item_id)
+    if index < 0:
+        return
+
+    jobs = []
+    name = ''
+    try:
+        jobs = [int(npc_s)]
+    except ValueError:
+        name = npc_s
+
+    b = find_nearest_being(name=name, type='npc', allowed_jobs=jobs)
+    if b is None:
+        return
+
+    mapserv.cmsg_npc_buy_sell_request(b.id, 1)
+    mapserv.cmsg_npc_sell_request(index, amount)
+
+
 def cmd_help(nick, message, is_whisper, match):
     if not is_whisper:
         return
@@ -448,6 +532,28 @@ def cmd_commands(nick, message, is_whisper, match):
 
     c.sort()
     whisper(nick, ', '.join(c))
+
+
+def cmd_report_bug(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    bug_s = match.group(1)
+    bugs.append((nick, bug_s))
+    whisper(nick, 'Thank you for your bug report')
+
+
+def cmd_check_bugs(nick, message, is_whisper, match):
+    if not is_whisper:
+        return
+
+    if nick not in admins:
+        return
+
+    for user, bug in bugs:
+        whisper(nick, '{} : {}'.format(user, bug))
+
+    bugs.clear()
 
 
 def reset_storage():
@@ -496,14 +602,18 @@ manaboy_commands = {
     '!invlist' : cmd_invlist,
     '!status' : cmd_status,
     '!zeny' : cmd_zeny,
-    '!talk2npc (\w+)' : cmd_talk2npc,
+    '!nearby' : cmd_nearby,
+    '!talk2npc (.+)' : cmd_talk2npc,
     '!input (.+)' : cmd_input,
     '!close' : cmd_close,
     '!store (\d+) (\d+)' : cmd_store,
     '!retrieve (\d+) (\d+)' : cmd_retrieve,
+    '!sell (\d+) (\d+) (.+)' : cmd_sell,
     '!(help|info)' : cmd_help,
     '!commands' : cmd_commands,
     '!history' : cmd_history,
+    '!bug (.+)' : cmd_report_bug,
+    '!bugs' : cmd_check_bugs,
 }
 
 

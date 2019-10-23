@@ -4,12 +4,14 @@
 
 import asyncore
 import logging
+import os
 import sys
 import readline
 import thread
 import struct
 import fcntl
 import termios
+from collections import deque
 from ConfigParser import ConfigParser
 
 try:
@@ -27,17 +29,17 @@ from itemdb import load_itemdb
 from monsterdb import read_monster_db
 from loggers import debuglog
 import commands
-from textutils import preprocess as pp
 from logicmanager import logic_manager
 
 
 PROMPT = '] '
+input_buffer = deque()
 
 
 def input_thread():
     while True:
         s = raw_input(PROMPT)
-        commands.process_line(s)
+        input_buffer.append(s)
 
 
 class DebugLogHandler(logging.Handler):
@@ -91,8 +93,12 @@ if __name__ == '__main__':
     debuglog.addHandler(dbgh)
     debuglog.setLevel(logging.INFO)
 
+    config_ini = 'manachat.ini'
+    if len(sys.argv) > 1:
+        if sys.argv[1].endswith('.ini') and os.path.isfile(sys.argv[1]):
+            config_ini = sys.argv[1]
     config = ConfigParser()
-    config.read('manachat.ini')
+    config.read(config_ini)
 
     if config.getboolean('Other', 'log_network_packets'):
         from loggers import netlog
@@ -116,9 +122,11 @@ if __name__ == '__main__':
 
     thread.start_new_thread(input_thread, ())
 
-    try:
-        while True:
-            asyncore.loop(timeout=0.2, count=5)
-            logic_manager.tick()
-    except KeyboardInterrupt:
-        mapserv.cleanup()
+    while True:
+        if len(input_buffer) > 0:
+            for l in input_buffer:
+                commands.process_line(l)
+            input_buffer.clear()
+
+        asyncore.loop(timeout=0.2, count=5)
+        logic_manager.tick()

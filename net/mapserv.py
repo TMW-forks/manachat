@@ -1,4 +1,6 @@
 
+import atexit
+import time
 from construct import *
 from construct.protocols.layer3.ipv4 import IpAddress
 from protocol import *
@@ -12,7 +14,6 @@ from trade import reset_trade_state
 from loggers import netlog
 
 server = None
-timers = []
 beings_cache = None
 party_info = []
 party_members = {}
@@ -24,6 +25,7 @@ player_storage = {}
 player_stats = {}
 player_skills = {}
 player_money = 0
+player_attack_range = 0
 trade_state = {'items_give': [], 'items_get': [],
                'zeny_give': 0, 'zeny_get': 0}
 floor_items = {}
@@ -191,10 +193,15 @@ def smsg_ip_response(data):
 @extendable
 def smsg_connection_problem(data):
     error_codes = {
-        2 : "Account already in use"
+        0 : "Authentification failed",
+        1 : "No servers available",
+        2 : "Account already in use",
+        3 : "Speed hack detected",
+        8 : "Duplicated login",
     }
-    msg = error_codes.get(data.code, str(data.code))
-    netlog.error("SMSG_CONNECTION_PROBLEM {}".format(msg))
+    msg = error_codes.get(data.code, 'code ' + str(data.code))
+    netlog.error("SMSG_CONNECTION_PROBLEM %d", data.code)
+    raise Exception(msg)
 
 
 @extendable
@@ -448,6 +455,18 @@ def smsg_storage_items(data):
         player_storage[item.index] = (item.id, item.amount)
 
 
+@extendable
+def smsg_player_attack_range(data):
+    netlog.info("SMSG_PLAYER_ATTACK_RANGE %d", data.range)
+    global player_attack_range
+    player_attack_range = data.range
+
+
+@extendable
+def smsg_player_arrow_message(data):
+    netlog.info("SMSG_PLAYER_ARROW_MESSAGE %d", data.code)
+
+
 # --------------------------------------------------------------------
 protodef = {
     0x8000 : (smsg_ignore, Field("data", 2)),      # ignore
@@ -542,8 +561,12 @@ protodef = {
                                Nibble("dir")),
                      Padding(5))),
     0x013c : (smsg_ignore, Field("data", 2)),   # arrow-equip
-    0x013b : (smsg_ignore, Field("data", 2)),   # arrow-message
-    0x013a : (smsg_ignore, Field("data", 2)),   # attack-range
+    0x013b : (smsg_player_arrow_message,
+              Struct("data",
+                     ULInt16("code"))),
+    0x013a : (smsg_player_attack_range,
+              Struct("data",
+                     ULInt16("range"))),
     0x008e : (smsg_player_chat,
               Struct("data",
                      ULInt16("length"),
@@ -1166,16 +1189,27 @@ def cmsg_storage_close():
 
 
 # --------------------------------------------------------------------
+
+last_ping_ts = 0
+
+
 def connect(host, port):
+
+    def ping_logic(ts):
+        global last_ping_ts
+        if last_ping_ts and ts > last_ping_ts + 15:
+            last_ping_ts = time.time()
+            cmsg_map_server_ping()
+
     global server, beings_cache
     beings_cache = BeingsCache(cmsg_name_request)
     server = SocketWrapper(host=host, port=port, protodef=protodef)
-    timers.append(Schedule(15, 20, cmsg_map_server_ping))
+
+    import logicmanager
+    logicmanager.logic_manager.add_logic(ping_logic)
 
 
+@atexit.register
 def cleanup():
-    global server
-    for t in timers:
-        t.cancel()
     if server is not None:
         server.close()
